@@ -106,22 +106,40 @@ public function delete()
 
 public function deleteSubfolder()
 {
-    $model     = new FolderModel();
-    $folderId  = $this->request->getPost('delete_folder_id');
-    $parentId  = $this->request->getPost('parent_folder_id');
+    $model = new FolderModel();
 
-    if ($folderId) {
-        $model->delete($folderId);
+    // Capture the subfolder id to delete
+    $folderId = $this->request->getPost('delete_folder_id');
+    $parentId = $this->request->getPost('parent_folder_id');
 
-        if ($parentId) {
-            return redirect()->to('/admin/files/view/' . $parentId)
-                             ->with('success', 'Subfolder deleted successfully');
-        }
-        return redirect()->to('/admin/files')->with('success', 'Folder deleted successfully');
+    if (!$folderId) {
+        return redirect()->back()->with('error', 'No subfolder selected.');
     }
 
-    return redirect()->back()->with('error', 'Invalid request');
+    // Check if folder exists
+    $folder = $model->find($folderId);
+    if (!$folder) {
+        return redirect()->back()->with('error', 'Subfolder not found.');
+    }
+
+    // Extra safety: only allow deleting if it really belongs to this parent
+    if ($folder['parent_folder_id'] != $parentId) {
+        return redirect()->back()->with('error', 'Invalid delete request.');
+    }
+
+    // Optional: check if the subfolder still has subfolders
+    $subfolders = $model->where('parent_folder_id', $folderId)->findAll();
+    if (!empty($subfolders)) {
+        return redirect()->back()->with('error', 'This subfolder has child folders. Delete them first.');
+    }
+
+    // Perform delete
+    $model->delete($folderId);
+
+    return redirect()->to('/admin/files/view/' . $parentId)
+                     ->with('success', 'Subfolder deleted successfully.');
 }
+
 
 
 public function view($id)

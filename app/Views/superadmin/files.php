@@ -45,7 +45,7 @@
             margin-top: 20px;
         }
         .add-folder-btn i { margin-right: 10px; }
-         .add-subfolder-btn i { margin-right: 10px; }
+        .add-subfolder-btn i { margin-right: 10px; }
         .add-subfolder-btn {
             background-color: #f0ad4e; /* Bootstrap warning yellow */
             color: white;
@@ -61,9 +61,7 @@
             justify-content: center;
             margin-top: 20px;
         }
-.add-subfolder-btn:hover {
-    background-color: #ec971f; /* darker yellow on hover */
-}
+        .add-subfolder-btn:hover { background-color: #ec971f; }
         .add-folder-btn:hover { background-color: #4A68C0; }
         .folder-container {
             display: flex;
@@ -109,22 +107,21 @@
 </head>
 <body>
 
-    <?= $this->include('admin/sidebar') ?>
+    <?= $this->include('superadmin/sidebar') ?>
 
     <div class="main-container">
 
 <?php if (!isset($parentFolder)): ?>
     <!-- Search MAIN folders -->
-    <form action="<?= base_url('admin/files') ?>" method="get" class="form-inline mb-3">
+    <form action="<?= base_url('superadmin/files') ?>" method="get" class="form-inline mb-3">
         <input type="text" name="search" class="form-control mr-2"
                placeholder="Search folders..."
                value="<?= esc($search ?? '') ?>">
         <button type="submit" class="btn btn-primary">Search</button>
     </form>
-    
 <?php else: ?>
     <!-- Search SUBfolders -->
-    <form action="<?= site_url('admin/files/view/' . $parentFolder['id']) ?>" method="get" class="form-inline mb-3">
+    <form action="<?= site_url('superadmin/files/view/' . $parentFolder['id']) ?>" method="get" class="form-inline mb-3">
         <input type="text" name="search" class="form-control mr-2"
                placeholder="Search subfolders..."
                value="<?= esc($search ?? '') ?>">
@@ -168,7 +165,7 @@
     <nav aria-label="breadcrumb">
         <ol class="breadcrumb">
             <li class="breadcrumb-item">
-                <a href="<?= site_url('admin/files') ?>">FILES</a>
+                <a href="<?= site_url('superadmin/files') ?>">FILES</a>
             </li>
             <?php foreach ($breadcrumb as $index => $crumb): ?>
                 <?php if ($index === array_key_last($breadcrumb)): ?>
@@ -177,7 +174,7 @@
                     </li>
                 <?php else: ?>
                     <li class="breadcrumb-item">
-                        <a href="<?= site_url('admin/files/view/' . $crumb['id']) ?>">
+                        <a href="<?= site_url('superadmin/files/view/' . $crumb['id']) ?>">
                             <?= esc($crumb['folder_name']) ?>
                         </a>
                     </li>
@@ -192,7 +189,7 @@
 <div class="modal fade" id="addFolderModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="<?= site_url('admin/files/add') ?>" method="post">
+            <form action="<?= site_url('superadmin/files/add') ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         <?= isset($parentFolder) 
@@ -227,7 +224,7 @@
     <div class="modal-dialog" role="document">
         <div class="modal-content">
             <!-- Pass parentId in URL -->
-            <form action="<?= site_url('admin/files/addSubfolder/' . $parentFolder['id']) ?>" method="post">
+            <form action="<?= site_url('superadmin/files/addSubfolder/' . $parentFolder['id']) ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         Add Subfolder inside "<?= esc($parentFolder['folder_name']) ?>"
@@ -257,7 +254,7 @@
 <div class="modal fade" id="deleteFolderModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="<?= site_url('admin/files/delete') ?>" method="post">
+            <form action="<?= site_url('superadmin/files/delete') ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title">Delete Folder</h5>
                     <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
@@ -292,7 +289,7 @@
 <div class="modal fade" id="deleteSubFolderModal" tabindex="-1" role="dialog">
     <div class="modal-dialog" role="document">
         <div class="modal-content">
-            <form action="<?= site_url('admin/files/deleteSubfolder') ?>" method="post">
+            <form action="<?= site_url('superadmin/files/deleteSubfolder') ?>" method="post">
                 <div class="modal-header">
                     <h5 class="modal-title">
                         Delete Subfolder in "<?= esc($parentFolder['folder_name'] ?? '') ?>"
@@ -331,7 +328,7 @@
 <div class="folder-container">
     <?php if (!empty($folders)): ?>
         <?php foreach ($folders as $folder): ?>
-            <a href="<?= site_url('admin/files/view/' . $folder['id']) ?>" class="folder">
+            <a href="<?= site_url('superadmin/files/view/' . $folder['id']) ?>" class="folder">
                 <i class="fad fa-folder-open"></i>
                 <div class="folder-name"><?= esc($folder['folder_name']) ?></div>
             </a>
@@ -345,9 +342,6 @@
     <?php endif; ?>
 </div>
 
-
-
-        
     </div>
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
