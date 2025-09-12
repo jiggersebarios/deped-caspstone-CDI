@@ -4,14 +4,17 @@ namespace App\Controllers\Superadmin;
 
 use App\Controllers\BaseController;
 use App\Models\FolderModel;
+use App\Models\GlobalConfigModel;
 
 class Files extends BaseController
 {
     protected $folderModel;
+    protected $configModel;
 
     public function __construct()
     {
         $this->folderModel = new FolderModel();
+        $this->configModel = new GlobalConfigModel();
     }
 
     /**
@@ -25,7 +28,7 @@ class Files extends BaseController
 
     public function index()
     {
-        if (session()->get('role') !== 'superadmin') {
+        if (!in_array(session()->get('role'), ['superadmin', 'admin'])) {
             return redirect()->to('/login')->with('error', 'Unauthorized access');
         }
 
@@ -42,11 +45,10 @@ class Files extends BaseController
                 ->findAll();
         }
 
-        // normalize each folder to array (safety)
         $folders = array_map([$this, 'normalize'], $folders);
 
         $data = [
-            'title'   => 'SuperAdmin - Files',
+            'title'   => 'Files',
             'folders' => $folders,
             'search'  => $search,
         ];
@@ -56,7 +58,7 @@ class Files extends BaseController
 
     public function view($id)
     {
-        if (session()->get('role') !== 'superadmin') {
+        if (!in_array(session()->get('role'), ['superadmin', 'admin'])) {
             return redirect()->to('/login')->with('error', 'Unauthorized access');
         }
 
@@ -79,11 +81,10 @@ class Files extends BaseController
         }
 
         $folders = array_map([$this, 'normalize'], $folders);
-
         $breadcrumb = $this->buildBreadcrumb($id);
 
         $data = [
-            'title'        => 'SuperAdmin - Subfolders',
+            'title'        => 'Subfolders',
             'folders'      => $folders,
             'parentFolder' => $parentFolder,
             'breadcrumb'   => $breadcrumb,
@@ -95,6 +96,12 @@ class Files extends BaseController
 
     public function add()
     {
+        // Check global config only if role = admin
+        if (session()->get('role') === 'admin' &&
+            !$this->configModel->getSetting('allow_admin_add_folder')) {
+            return redirect()->back()->with('error', 'Adding folders is disabled by Superadmin.');
+        }
+
         $folderName = $this->request->getPost('folder_name');
         $parentId   = $this->request->getPost('parent_folder_id');
 
@@ -112,6 +119,11 @@ class Files extends BaseController
 
     public function addSubfolder($parentId)
     {
+        if (session()->get('role') === 'admin' &&
+            !$this->configModel->getSetting('allow_admin_add_subfolder')) {
+            return redirect()->back()->with('error', 'Adding subfolders is disabled by Superadmin.');
+        }
+
         $folderName = $this->request->getPost('folder_name');
 
         if ($folderName) {
@@ -128,6 +140,11 @@ class Files extends BaseController
 
     public function delete()
     {
+        if (session()->get('role') === 'admin' &&
+            !$this->configModel->getSetting('allow_admin_delete_folder')) {
+            return redirect()->back()->with('error', 'Deleting folders is disabled by Superadmin.');
+        }
+
         $folderId = $this->request->getPost('delete_folder_id');
 
         if ($folderId) {
@@ -140,6 +157,11 @@ class Files extends BaseController
 
     public function deleteSubfolder()
     {
+        if (session()->get('role') === 'admin' &&
+            !$this->configModel->getSetting('allow_admin_delete_subfolder')) {
+            return redirect()->back()->with('error', 'Deleting subfolders is disabled by Superadmin.');
+        }
+
         $folderId = $this->request->getPost('delete_folder_id');
 
         if ($folderId) {
@@ -161,10 +183,6 @@ class Files extends BaseController
         $this->folderModel->delete($folderId);
     }
 
-    /**
-     * Build breadcrumb safely.
-     * Supports DB column 'parent_folder_id' or 'parent_id'.
-     */
     private function buildBreadcrumb($folderId)
     {
         $breadcrumb = [];
@@ -173,10 +191,7 @@ class Files extends BaseController
         while ($current) {
             array_unshift($breadcrumb, $current);
 
-            // try both possible parent keys
             $parentId = $current['parent_folder_id'] ?? $current['parent_id'] ?? null;
-
-            // stop when there is no parent
             if (empty($parentId)) {
                 break;
             }

@@ -4,13 +4,21 @@ namespace App\Controllers\Admin;
 
 use App\Controllers\BaseController;
 use App\Models\FolderModel;
+use App\Models\GlobalconfigModel;
 
 class Files extends BaseController
 {
+    protected $configModel;
+
+    public function __construct()
+    {
+        $this->configModel = new GlobalconfigModel();
+    }
+
     public function index()
     {
-        $folderModel = new \App\Models\FolderModel();
-        $search = $this->request->getGet('search'); // get ?search= query
+        $folderModel = new FolderModel();
+        $search = $this->request->getGet('search');
 
         if ($search) {
             $folders = $folderModel->like('folder_name', $search)
@@ -23,92 +31,108 @@ class Files extends BaseController
                                    ->findAll();
         }
 
-        return view('admin/files', [
-            'folders' => $folders
-        ]);
-    }
-public function add()
-{
-    $model = new FolderModel();
+        // Pass configs to view
+        $data = [
+            'folders' => $folders,
+            'canAddFolder'       => $this->isAllowed('allow_add_folder'),
+            'canDeleteFolder'    => $this->isAllowed('allow_delete_folder'),
+            'canAddSubfolder'    => $this->isAllowed('allow_admin_add_subfolder'),
+            'canDeleteSubfolder' => $this->isAllowed('allow_admin_delete_subfolder'),
+        ];
 
-    $folderName = trim($this->request->getPost('folder_name'));
-    if (!$folderName) {
-        return redirect()->back()->with('error', 'Folder name is required');
-    }
-
-    // Check duplicates among MAIN folders
-    $exists = $model->where('folder_name', $folderName)
-                    ->where('parent_folder_id', null)
-                    ->first();
-
-    if ($exists) {
-        return redirect()->back()->with('error', 'A main folder with that name already exists.');
+        return view('admin/files', $data);
     }
 
-    $model->insert([
-        'folder_name'      => $folderName,
-        'parent_folder_id' => null
-    ]);
-
-    return redirect()->to('/admin/files')->with('success', 'Folder added successfully');
-}
-
-
-public function addSubfolder($parentId)
-{
-    $model = new FolderModel();
-
-    $folderName = trim($this->request->getPost('folder_name'));
-    if (!$folderName) {
-        return redirect()->back()->with('error', 'Subfolder name is required');
-    }
-
-    // Check duplicates inside SAME parent
-    $exists = $model->where('folder_name', $folderName)
-                    ->where('parent_folder_id', $parentId)
-                    ->first();
-
-    if ($exists) {
-        return redirect()->back()->with('error', 'A subfolder with that name already exists in this folder.');
-    }
-
-    $model->insert([
-        'folder_name'      => $folderName,
-        'parent_folder_id' => $parentId
-    ]);
-
-    return redirect()->to('/admin/files/view/' . $parentId)
-                     ->with('success', 'Subfolder added successfully');
-}
-
-
-
-public function delete()
-{
-    $model = new FolderModel();
-    $folderId = $this->request->getPost('delete_folder_id');
-    $parentId = $this->request->getPost('parent_folder_id'); // hidden input to know where we came from
-
-    if ($folderId) {
-        $model->delete($folderId);
-
-        // redirect back to correct context
-        if ($parentId) {
-            return redirect()->to('/admin/files/view/' . $parentId)
-                             ->with('success', 'Subfolder deleted successfully');
+    public function add()
+    {
+        if (!$this->isAllowed('allow_add_folder')) {
+            return redirect()->back()->with('error', 'Adding folders is disabled by Superadmin.');
         }
 
-        return redirect()->to('/admin/files')->with('success', 'Folder deleted successfully');
+        $model = new FolderModel();
+        $folderName = trim($this->request->getPost('folder_name'));
+
+        if (!$folderName) {
+            return redirect()->back()->with('error', 'Folder name is required');
+        }
+
+        $exists = $model->where('folder_name', $folderName)
+                        ->where('parent_folder_id', null)
+                        ->first();
+
+        if ($exists) {
+            return redirect()->back()->with('error', 'A main folder with that name already exists.');
+        }
+
+        $model->insert([
+            'folder_name'      => $folderName,
+            'parent_folder_id' => null
+        ]);
+
+        return redirect()->to('/admin/files')->with('success', 'Folder added successfully');
     }
 
-    return redirect()->back()->with('error', 'Invalid request');
-}
+    public function addSubfolder($parentId)
+    {
+        if (!$this->isAllowed('allow_admin_add_subfolder')) {
+            return redirect()->back()->with('error', 'Adding subfolders is disabled by Superadmin.');
+        }
 
-public function deleteSubfolder()
+        $model = new FolderModel();
+        $folderName = trim($this->request->getPost('folder_name'));
+
+        if (!$folderName) {
+            return redirect()->back()->with('error', 'Subfolder name is required');
+        }
+
+        $exists = $model->where('folder_name', $folderName)
+                        ->where('parent_folder_id', $parentId)
+                        ->first();
+
+        if ($exists) {
+            return redirect()->back()->with('error', 'A subfolder with that name already exists in this folder.');
+        }
+
+        $model->insert([
+            'folder_name'      => $folderName,
+            'parent_folder_id' => $parentId
+        ]);
+
+        return redirect()->to('/admin/files/view/' . $parentId)
+                         ->with('success', 'Subfolder added successfully');
+    }
+
+    public function delete()
+    {
+        if (!$this->isAllowed('allow_delete_folder')) {
+            return redirect()->back()->with('error', 'Deleting folders is disabled by Superadmin.');
+        }
+
+        $model = new FolderModel();
+        $folderId = $this->request->getPost('delete_folder_id');
+        $parentId = $this->request->getPost('parent_folder_id');
+
+        if ($folderId) {
+            $model->delete($folderId);
+
+            if ($parentId) {
+                return redirect()->to('/admin/files/view/' . $parentId)
+                                 ->with('success', 'Subfolder deleted successfully');
+            }
+
+            return redirect()->to('/admin/files')->with('success', 'Folder deleted successfully');
+        }
+
+        return redirect()->back()->with('error', 'Invalid request');
+    }
+
+  public function deleteSubfolder()
 {
-    $model = new FolderModel();
+    if (!$this->isAllowed('allow_admin_delete_subfolder')) {
+        return redirect()->back()->with('error', 'Deleting subfolders is disabled by Superadmin.');
+    }
 
-    // Capture the subfolder id to delete
+    $model = new FolderModel();
     $folderId = $this->request->getPost('delete_folder_id');
     $parentId = $this->request->getPost('parent_folder_id');
 
@@ -116,85 +140,82 @@ public function deleteSubfolder()
         return redirect()->back()->with('error', 'No subfolder selected.');
     }
 
-    // Check if folder exists
-    $folder = $model->find($folderId);
-    if (!$folder) {
+    // Cast the result of find() to array
+    $folder = (array) $model->find($folderId);
+
+    if (empty($folder)) {
         return redirect()->back()->with('error', 'Subfolder not found.');
     }
 
-    // Extra safety: only allow deleting if it really belongs to this parent
     if ($folder['parent_folder_id'] != $parentId) {
         return redirect()->back()->with('error', 'Invalid delete request.');
     }
 
-    // Optional: check if the subfolder still has subfolders
     $subfolders = $model->where('parent_folder_id', $folderId)->findAll();
     if (!empty($subfolders)) {
         return redirect()->back()->with('error', 'This subfolder has child folders. Delete them first.');
     }
 
-    // Perform delete
     $model->delete($folderId);
 
     return redirect()->to('/admin/files/view/' . $parentId)
                      ->with('success', 'Subfolder deleted successfully.');
 }
 
-
-
-public function view($id)
-{
-    $model = new FolderModel();
-    $folder = $model->find($id);
-
-    if (!$folder) {
-        return redirect()->to('/admin/files')->with('error', 'Folder not found');
-    }
-
-    // Get search keyword if provided
-    $search = $this->request->getGet('search');
-
-    if ($search) {
-        // Search only within subfolders of this folder
-        $subfolders = $model->like('folder_name', $search)
-                            ->where('parent_folder_id', $id)
-                            ->findAll();
-    } else {
-        // Normal load: all subfolders
-        $subfolders = $model->where('parent_folder_id', $id)->findAll();
-    }
-
-    // Build breadcrumb path (recursive)
-    $breadcrumb = $this->buildBreadcrumb($id);
-
-    return view('admin/files', [
-        'folders'      => $subfolders,
-        'parentFolder' => $folder,
-        'breadcrumb'   => $breadcrumb,
-        'search'       => $search // pass to view so input can persist
-    ]);
-}
-
-
-private function buildBreadcrumb($id)
-{
-    $model = new FolderModel();
-    $path  = [];
-
-    while ($id) {
+    public function view($id)
+    {
+        $model = new FolderModel();
         $folder = $model->find($id);
-        if ($folder) {
-            $path[] = $folder;
-            $id = $folder['parent_folder_id']; // move up
-        } else {
-            $id = null;
+
+        if (!$folder) {
+            return redirect()->to('/admin/files')->with('error', 'Folder not found');
         }
+
+        $search = $this->request->getGet('search');
+
+        if ($search) {
+            $subfolders = $model->like('folder_name', $search)
+                                ->where('parent_folder_id', $id)
+                                ->findAll();
+        } else {
+            $subfolders = $model->where('parent_folder_id', $id)->findAll();
+        }
+
+        $breadcrumb = $this->buildBreadcrumb($id);
+
+        return view('admin/files', [
+            'folders'      => $subfolders,
+            'parentFolder' => $folder,
+            'breadcrumb'   => $breadcrumb,
+            'search'       => $search,
+            'canAddFolder'       => $this->isAllowed('allow_add_folder'),
+            'canDeleteFolder'    => $this->isAllowed('allow_delete_folder'),
+            'canAddSubfolder'    => $this->isAllowed('allow_admin_add_subfolder'),
+            'canDeleteSubfolder' => $this->isAllowed('allow_admin_delete_subfolder'),
+        ]);
     }
 
-    return array_reverse($path); // so it starts from root → child
-}
+    private function buildBreadcrumb($id)
+    {
+        $model = new FolderModel();
+        $path  = [];
 
+        while ($id) {
+            $folder = $model->find($id);
+            if ($folder) {
+                $path[] = $folder;
+                $id = $folder['parent_folder_id'];
+            } else {
+                $id = null;
+            }
+        }
 
+        return array_reverse($path);
+    }
 
-
+    private function isAllowed($settingKey)
+    {
+        $config = $this->configModel->where('setting_key', $settingKey)->first();
+        return $config && $config['setting_value'] == 1;
+    }
 }

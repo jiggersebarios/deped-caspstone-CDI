@@ -12,7 +12,6 @@ $userRole = $session->get('role') ?? 'user';
     <a href="<?= site_url('superadmin/dashboard') ?>" class="nav-link">
         <i class="fas fa-tachometer-alt"></i> DASHBOARD
     </a>
-
     <a href="<?= site_url('superadmin/files') ?>" class="nav-link">
         <i class="fas fa-folder"></i> FILES
     </a>
@@ -24,6 +23,9 @@ $userRole = $session->get('role') ?? 'user';
     </a>
     <a href="<?= site_url('users') ?>" class="nav-link">
         <i class="fas fa-users"></i> MANAGE USERS
+    </a>
+    <a href="<?= site_url('superadmin/globalconfig') ?>" class="nav-link">
+        <i class="fas fa-cogs"></i> GLOBAL CONFIG
     </a>
 <?php else : ?>
     <!-- Regular user links -->
@@ -48,6 +50,7 @@ $userRole = $session->get('role') ?? 'user';
    .sidebar {
     background-color: #2C2C2C;
     color: white;
+    top: 0;
     padding: 20px 15px;
     height: 100vh;
     width: 220px; /* slightly slimmer for better proportions */

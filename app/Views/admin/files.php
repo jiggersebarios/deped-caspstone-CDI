@@ -349,6 +349,18 @@
 
         
     </div>
+<script>
+document.addEventListener('DOMContentLoaded', function() {
+    <?php if(session()->getFlashdata('error')): ?>
+        alert("<?= session()->getFlashdata('error') ?>");
+    <?php endif; ?>
+
+    <?php if(session()->getFlashdata('success')): ?>
+        alert("<?= session()->getFlashdata('success') ?>");
+    <?php endif; ?>
+});
+</script>
+
 
     <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>

@@ -42,6 +42,13 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin'], func
     $routes->post('files/deleteSubfolder', 'Files::deleteSubfolder');
 });
 
+// Global Config Superadmin routes
+// Superadmin routes
+$routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filter' => 'auth'], function($routes) {
+    $routes->get('dashboard', 'Dashboard::index');   // <-- use Dashboard
+    $routes->get('globalconfig', 'Globalconfig::index');
+    $routes->post('globalconfig/toggle', 'Globalconfig::toggle');
+});
 
 
 

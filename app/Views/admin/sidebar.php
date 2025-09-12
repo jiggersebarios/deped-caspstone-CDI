@@ -23,9 +23,7 @@ $userRole = $session->get('role') ?? 'user';
             <a href="<?= site_url('managereq') ?>" class="nav-link">
                 <i class="fas fa-tasks"></i> MANAGE REQUEST
             </a>
-            <a href="<?= site_url('users') ?>" class="nav-link">
-                <i class="fas fa-users"></i> MANAGE USERS
-            </a>
+
         <?php else : ?>
             <!-- User-specific links -->
             <a href="<?= site_url('dashboard') ?>" class="nav-link">
