@@ -16,21 +16,26 @@ $routes->get('/admin/dashboard', 'Admin::index'); // admin
 
 $routes->post('/logout', 'Logout::index');
 
-
 // Admin routes with auth filter
 $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'auth'], function($routes) {
     $routes->get('files', 'Files::index');
     $routes->post('files/add', 'Files::add');
     $routes->post('files/delete', 'Files::delete');
-    $routes->post('files/deleteSubfolder', 'Files::deleteSubfolder'); // fixed
+    $routes->post('files/deleteSubfolder', 'Files::deleteSubfolder');
     $routes->get('files/view/(:num)', 'Files::view/$1');
+    $routes->post('files/addSubfolder/(:num)', 'Files::addSubfolder/$1'); 
+   $routes->post('files/upload/(:num)', 'Files::upload/$1');
+    $routes->post('files/deleteFile/(:num)', 'Files::deleteFile/$1');
+    $routes->get('files/download/(:num)', 'Files::download/$1');
+
 });
 
-$routes->post('admin/files/addSubfolder/(:num)', 'Admin\Files::addSubfolder/$1');
 
-//superadmin routes with auth filter
-// Superadmin routes
-$routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin'], function($routes) {
+
+// =========================
+// SUPERADMIN routes
+// =========================
+$routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filter' => 'auth'], function($routes) {
     $routes->get('dashboard', 'Dashboard::index');
 
     // Files module
@@ -40,16 +45,20 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin'], func
     $routes->post('files/addSubfolder/(:num)', 'Files::addSubfolder/$1');
     $routes->post('files/delete', 'Files::delete');
     $routes->post('files/deleteSubfolder', 'Files::deleteSubfolder');
-});
 
-// Global Config Superadmin routes
-// Superadmin routes
-$routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filter' => 'auth'], function($routes) {
-    $routes->get('dashboard', 'Dashboard::index');   // <-- use Dashboard
+    // 🔹 New for superadmin files
+    $routes->post('files/upload/(:num)', 'Files::upload/$1');
+    $routes->post('files/deleteFile/(:num)', 'Files::deleteFile/$1');
+    $routes->get('files/download/(:num)', 'Files::download/$1');
+
+    // Global Config
     $routes->get('globalconfig', 'Globalconfig::index');
     $routes->post('globalconfig/toggle', 'Globalconfig::toggle');
+
+
+        $routes->get('category', 'Category::index');
+    $routes->post('category/add', 'Category::add');
+    $routes->post('category/delete/(:num)', 'Category::delete/$1');
+    $routes->get('category/edit/(:num)', 'Category::edit/$1');
+    $routes->post('category/update/(:num)', 'Category::update/$1');
 });
-
-
-
-

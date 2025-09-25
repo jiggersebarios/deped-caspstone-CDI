@@ -6,24 +6,33 @@ $userRole = $session->get('role') ?? 'user';
 
 <div class="sidebar">
     <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
-    <h5 class="hello">Welcome, <?= esc($userName) ?></h5>
+    <h5 class="hello"><?= esc($userName) ?></h5>
     
 <?php if ($userRole === 'superadmin') : ?>
     <a href="<?= site_url('superadmin/dashboard') ?>" class="nav-link">
         <i class="fas fa-tachometer-alt"></i> DASHBOARD
     </a>
+    
     <a href="<?= site_url('superadmin/files') ?>" class="nav-link">
         <i class="fas fa-folder"></i> FILES
     </a>
+
     <a href="<?= site_url('request') ?>" class="nav-link">
         <i class="fas fa-upload"></i> MANAGE UPLOADS
     </a>
+
     <a href="<?= site_url('managereq') ?>" class="nav-link">
         <i class="fas fa-tasks"></i> MANAGE REQUEST
     </a>
+
     <a href="<?= site_url('users') ?>" class="nav-link">
         <i class="fas fa-users"></i> MANAGE USERS
     </a>
+
+<a href="<?= site_url('superadmin/category') ?>" class="nav-link">
+    <i class="fas fa-tags"></i> CATEGORIES
+</a>
+
     <a href="<?= site_url('superadmin/globalconfig') ?>" class="nav-link">
         <i class="fas fa-cogs"></i> GLOBAL CONFIG
     </a>
@@ -70,7 +79,7 @@ $userRole = $session->get('role') ?? 'user';
 .sidebar .hello {
     text-align: center;
     margin-bottom: 40px;
-    font-size: 24px;
+    font-size: 15px;
 }
 
 .sidebar .nav-link {
@@ -104,7 +113,7 @@ $userRole = $session->get('role') ?? 'user';
 }
 
 .sidebar .logout-btn { 
-    margin-top: 100px;
+    margin-top: 80px;
     background-color: red; color: white;
     width: 100%;
     text-align: center;

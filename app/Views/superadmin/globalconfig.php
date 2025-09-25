@@ -58,9 +58,7 @@
     <h2 class="page-header mb-4">
         <i class="fa-solid fa-sliders"></i> <?= esc($title) ?>
     </h2>
-   <!-- Alert message always on top -->
-    <div id="alert-box"></div>
-    
+
       <!-- admintable -->
     <table class="table table-bordered align-middle config-table">
         <tr>

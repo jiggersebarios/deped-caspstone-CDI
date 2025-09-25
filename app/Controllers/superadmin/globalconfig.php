@@ -44,16 +44,5 @@ class Globalconfig extends BaseController
         ]);
     }
 
-    public static function renderFriendlyName(string $key): string
-{
-    $map = [
-        'allow_admin_add_folder'       => 'Allow Admin to Add Main Folder',
-        'allow_admin_delete_folder'    => 'Allow Admin to Delete Main Folder',
-        'allow_admin_add_subfolder'    => 'Allow Admin to Add Subfolder',
-        'allow_admin_delete_subfolder' => 'Allow Admin to Delete Subfolder',
-    ];
-
-    return $map[$key] ?? ucfirst(str_replace('_', ' ', $key));
-}
-
+    
 }
