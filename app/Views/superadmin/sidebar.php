@@ -13,7 +13,7 @@ $userRole = $session->get('role') ?? 'user';
         <i class="fas fa-tachometer-alt"></i> DASHBOARD
     </a>
     
-    <a href="<?= site_url('superadmin/files') ?>" class="nav-link">
+    <a href="<?= site_url('admin/files') ?>" class="nav-link">
         <i class="fas fa-folder"></i> FILES
     </a>
 
@@ -25,7 +25,7 @@ $userRole = $session->get('role') ?? 'user';
         <i class="fas fa-tasks"></i> MANAGE REQUEST
     </a>
 
-    <a href="<?= site_url('users') ?>" class="nav-link">
+    <a href="<?= site_url('superadmin/manage_users') ?>" class="nav-link">
         <i class="fas fa-users"></i> MANAGE USERS
     </a>
 

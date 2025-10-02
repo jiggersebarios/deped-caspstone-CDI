@@ -135,6 +135,46 @@
                 </div>
             <?php endif; ?>
 
+            <!-- Delete Folder Modal -->
+<div class="modal fade" id="deleteFolderModal" tabindex="-1" role="dialog" aria-labelledby="deleteFolderModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+    <form action="<?= base_url($role . '/files/delete') ?>" method="post">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="deleteFolderModalLabel">Delete Folder</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span aria-hidden="true">&times;</span>
+          </button>
+        </div>
+
+        <div class="modal-body">
+          <?php if (!empty($folders)): ?>
+            <div class="form-group">
+              <label for="delete_folder_id">Select Folder</label>
+              <select name="delete_folder_id" id="delete_folder_id" class="form-control" required>
+                <?php foreach ($folders as $folder): ?>
+                  <option value="<?= $folder['id'] ?>"><?= esc($folder['name']) ?></option>
+                <?php endforeach; ?>
+              </select>
+            </div>
+            <input type="hidden" name="parent_folder_id" value="">
+          <?php else: ?>
+            <p class="text-muted">No folders available to delete.</p>
+          <?php endif; ?>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <?php if (!empty($folders)): ?>
+            <button type="submit" class="btn btn-danger">Delete</button>
+          <?php endif; ?>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
             <!-- Flash Messages -->
             <?php if(session()->getFlashdata('success')): ?>
                 <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>

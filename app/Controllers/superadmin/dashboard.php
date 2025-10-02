@@ -20,6 +20,7 @@ class Dashboard extends BaseController
 
         $data = [
             'title'        => 'SuperAdmin Dashboard',
+            'role'         => 'superadmin', // <-- pass role for sidebar
             'totalUsers'   => $userModel->countAllResults(),
             'totalFolders' => $folderModel->countAllResults(),
         ];
