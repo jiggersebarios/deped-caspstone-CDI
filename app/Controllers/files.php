@@ -21,40 +21,72 @@ class Files extends BaseController
     
 
     // ROOT level (main folders)
-    public function index()
-    {
-        $folderModel = new FolderModel();
-        $search = $this->request->getGet('search');
+public function index()
+{
+    $folderModel = new FolderModel();
+    $search = $this->request->getGet('search');
+    $role = $this->role;
+    $session = session();
 
-        if ($search) {
-            $folders = $folderModel->like('folder_name', $search)
-                                   ->where('parent_folder_id', null)
-                                   ->orWhere('parent_folder_id', 0)
-                                   ->findAll();
-        } else {
-            $folders = $folderModel->where('parent_folder_id', null)
-                                   ->orWhere('parent_folder_id', 0)
-                                   ->findAll();
+    $viewMode = $this->request->getGet('view') ?? 'grid';
+    $viewFile = 'shared/files'; // unified shared view
+
+    // ✅ If user is normal user → show only their assigned main folder
+    if ($role === 'user') {
+        $userFolderId = $session->get('main_folder_id');
+
+        if (!$userFolderId) {
+            return redirect()->to('/login')->with('error', 'No main folder assigned to your account.');
         }
 
-        $viewMode = $this->request->getGet('view') ?? 'grid';
-        $viewFile = 'shared/files'; // unified shared view
+        // Fetch the user's main folder
+        $userFolder = $folderModel->find($userFolderId);
+        if (!$userFolder) {
+            return redirect()->back()->with('error', 'Main folder not found in the system.');
+        }
 
-        return view($viewFile, [
-            'folders'            => $folders,
-            'parentFolder'       => null,
-            'breadcrumb'         => [],
-            'files'              => [],
-            'depth'              => 1,
-            'search'             => $search,
-            'role'               => $this->role,
-            'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
-            'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
-            'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
-            'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
-            'categories'         => (new CategoryModel())->findAll(),
-        ]);
+        // Show only that folder (and optional search filter)
+        if ($search) {
+            $folders = $folderModel
+                ->like('folder_name', $search)
+                ->where('id', $userFolderId)
+                ->findAll();
+        } else {
+            $folders = [$userFolder];
+        }
+
+    } else {
+        // ✅ For superadmin/admin → show all root folders
+        $query = $folderModel
+            ->groupStart()
+                ->where('parent_folder_id', null)
+                ->orWhere('parent_folder_id', 0)
+            ->groupEnd();
+
+        if ($search) {
+            $query = $query->like('folder_name', $search);
+        }
+
+        $folders = $query->findAll();
     }
+
+    return view($viewFile, [
+        'folders'            => $folders,
+        'parentFolder'       => null,
+        'breadcrumb'         => [],
+        'files'              => [],
+        'depth'              => 1,
+        'search'             => $search,
+        'role'               => $role,
+        'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
+        'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
+        'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
+        'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
+        'categories'         => (new CategoryModel())->findAll(),
+    ]);
+}
+
+
 
     public function add()
     {
@@ -122,7 +154,7 @@ class Files extends BaseController
         $model = new FolderModel();
         $folder = $model->find($folderId);
 
-        if (!$folder || $folder['parent_folder_id'] != $parentId) {
+        if (!$folder || $folder->parent_folder_id != $parentId) {
             return redirect()->back()->with('error', 'Invalid subfolder delete request');
         }
 
@@ -136,32 +168,57 @@ class Files extends BaseController
     }
 
     public function view($id)
-    {
-        $folderModel   = new FolderModel();
-        $fileModel     = new FileModel();
-        $categoryModel = new CategoryModel();
+{
+    $folderModel   = new FolderModel();
+    $fileModel     = new FileModel();
+    $categoryModel = new CategoryModel();
+    $session       = session();
+    $role          = $session->get('role');
 
-        $folder = $folderModel->find($id);
-        if (!$folder) return redirect()->to($this->role . '/files')->with('error', 'Folder not found');
-
-        $breadcrumb = $this->buildBreadcrumb($id);
-        $depth      = count($breadcrumb);
-        $files      = $depth >= 3 ? $fileModel->getFilesWithDetails($id) : [];
-
-        return view('shared/files', [
-            'folders'            => $folderModel->where('parent_folder_id', $id)->findAll(),
-            'parentFolder'       => $folder,
-            'breadcrumb'         => $breadcrumb,
-            'files'              => $files,
-            'depth'              => $depth,
-            'categories'         => $categoryModel->findAll(),
-            'role'               => $this->role,
-            'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
-            'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
-            'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
-            'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
-        ]);
+    $folder = $folderModel->find($id);
+    if (!$folder) {
+        return redirect()->to($this->role . '/files')->with('error', 'Folder not found.');
     }
+
+    // ✅ Restrict normal users to their own main folder and its subfolders
+    if ($role === 'user') {
+        $userFolderId = $session->get('main_folder_id');
+
+        if (!$userFolderId) {
+            return redirect()->to('/login')->with('error', 'No main folder assigned to your account.');
+        }
+
+        // Check if the requested folder is within the user's allowed scope
+        if (!$this->isFolderWithinUserScope($id, $userFolderId, $folderModel)) {
+            return redirect()->to('/user/files')->with('error', 'You are not authorized to view this folder.');
+        }
+    }
+
+    // Build breadcrumb and determine depth
+    $breadcrumb = $this->buildBreadcrumb($id);
+    $depth      = count($breadcrumb);
+
+    // Show files only at depth 3 or deeper
+    $files = $depth >= 3 ? $fileModel->getFilesWithDetails($id) : [];
+
+    // Load subfolders
+    $subfolders = $folderModel->where('parent_folder_id', $id)->findAll();
+
+    return view('shared/files', [
+        'folders'            => $subfolders,
+        'parentFolder'       => $folder,
+        'breadcrumb'         => $breadcrumb,
+        'files'              => $files,
+        'depth'              => $depth,
+        'categories'         => $categoryModel->findAll(),
+        'role'               => $role,
+        'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
+        'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
+        'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
+        'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
+    ]);
+}
+
 
     public function upload($folderId)
     {
@@ -200,6 +257,30 @@ class Files extends BaseController
         return redirect()->to($this->role . '/files/view/' . $file['folder_id'])->with('success', 'File deleted successfully.');
     }
 
+public function viewFile($id)
+{
+    $fileModel = new \App\Models\FileModel();
+    $file = $fileModel->find($id);
+
+    if (!$file) {
+        return redirect()->back()->with('error', 'File not found in database.');
+    }
+
+    $filePath = WRITEPATH . 'uploads/files/' . $file['file_path'];
+
+    if (!file_exists($filePath)) {
+        return redirect()->back()->with('error', 'File not found on server. Path: ' . $filePath);
+    }
+
+    // ✅ Display file inline (PDF, images, etc.)
+    return $this->response
+                ->setHeader('Content-Type', mime_content_type($filePath))
+                ->setHeader('Content-Disposition', 'inline; filename="' . basename($file['file_name']) . '"')
+                ->setBody(file_get_contents($filePath));
+}
+
+
+
     public function download($fileId)
     {
         $fileModel = new FileModel();
@@ -236,4 +317,29 @@ class Files extends BaseController
         $config = $this->configModel->where('setting_key', $settingKey)->first();
         return $config && $config['setting_value'] == 1;
     }
+
+    // ✅ Check if a folder is within the user's allowed folder hierarchy
+private function isFolderWithinUserScope($folderId, $userMainFolderId, $folderModel)
+{
+    if ($folderId == $userMainFolderId) {
+        return true;
+    }
+
+    $folder = $folderModel->find($folderId);
+    if (!$folder) {
+        return false;
+    }
+
+    // Climb up the folder tree
+    while ($folder && $folder['parent_folder_id']) {
+        if ($folder['parent_folder_id'] == $userMainFolderId) {
+            return true;
+        }
+        $folder = $folderModel->find($folder['parent_folder_id']);
+    }
+
+    return false;
+}
+
+
 }

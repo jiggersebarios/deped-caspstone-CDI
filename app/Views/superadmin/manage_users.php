@@ -67,7 +67,7 @@
             <i class="fa fa-plus"></i> Add User
         </button>
 
-        <!-- Users Table -->
+  <!-- Users Table -->
         <table class="table table-bordered users-table">
             <thead>
                 <tr>
@@ -75,6 +75,8 @@
                     <th>Username</th>
                     <th>Email</th>
                     <th>Role</th>
+                    <th>Main Folder ID</th>
+                    <th>Main Folder</th>
                     <th>Created</th>
                     <th>Updated</th>
                     <th>Actions</th>
@@ -88,6 +90,8 @@
                             <td><?= esc($user['username']) ?></td>
                             <td><?= esc($user['email']) ?></td>
                             <td><?= esc($user['role']) ?></td>
+                            <td><?= esc($user['main_folder_id'] ?? '—') ?></td>
+                            <td><?= esc($user['main_folder'] ?? '—') ?></td>
                             <td><?= esc($user['created_at']) ?></td>
                             <td><?= esc($user['updated_at']) ?></td>
                             <td>
@@ -105,7 +109,6 @@
                                 </a>
                             </td>
                         </tr>
-
                         <!-- Edit User Modal -->
                         <div class="modal fade" id="editUserModal<?= $user['id'] ?>" tabindex="-1">
                             <div class="modal-dialog">

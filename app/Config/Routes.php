@@ -7,10 +7,11 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
-// login
+// -------------------- Authentication --------------------
 $routes->get('/login', 'Login::index');
 $routes->post('/login/auth', 'Login::auth');
-$routes->post('/logout', 'Logout::index');
+$routes->get('/logout', 'Login::logout'); // ✅ match controller method
+
 
 //dashboard
 $routes->get('/dashboard', 'Dashboard::index'); // user
@@ -27,6 +28,8 @@ $routes->group('admin', ['namespace' => 'App\Controllers', 'filter' => 'auth'], 
     $routes->get('files/view/(:num)', 'Files::view/$1');
     $routes->post('files/addSubfolder/(:num)', 'Files::addSubfolder/$1'); 
     $routes->post('files/upload/(:num)', 'Files::upload/$1');
+    $routes->get('files/viewFile/(:num)', 'Files::viewFile/$1');
+
     $routes->post('files/deleteFile/(:num)', 'Files::deleteFile/$1');
     $routes->get('files/download/(:num)', 'Files::download/$1');
 });
@@ -44,6 +47,8 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->post('files/delete', '\App\Controllers\Files::delete');
     $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
     $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
+$routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
+
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
 
@@ -58,10 +63,25 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->get('category/edit/(:num)', 'Category::edit/$1');
     $routes->post('category/update/(:num)', 'Category::update/$1');
 
-      // ---------------- Manage Users ----------------
+     
 // Manage Users
 $routes->get('manage_users', 'ManageUsers::index');
 $routes->post('manage_users/store', 'ManageUsers::store');
 $routes->post('manage_users/update/(:num)', 'ManageUsers::update/$1');
 $routes->get('manage_users/delete/(:num)', 'ManageUsers::delete/$1');
+
+});
+
+//user
+// -------------------- User Routes --------------------
+$routes->group('user', ['namespace' => 'App\Controllers', 'filter' => 'auth'], function($routes) {
+    $routes->get('dashboard', 'User\Dashboard::index');
+
+    // ✅ Allow users to access the shared Files controller
+    $routes->get('files', 'Files::index');
+    $routes->get('files/view/(:num)', 'Files::view/$1');
+    $routes->post('files/addSubfolder/(:num)', 'Files::addSubfolder/$1');
+    $routes->post('files/upload/(:num)', 'Files::upload/$1');
+    $routes->get('files/viewFile/(:num)', 'Files::viewFile/$1');
+    $routes->get('files/download/(:num)', 'Files::download/$1');
 });

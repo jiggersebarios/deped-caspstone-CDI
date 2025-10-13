@@ -12,7 +12,7 @@
     <img src="/cdi/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
 </div>
 
-<h1>HR ARCHIVING SYSTEM</h1>
+<h1>DEPED ARCHIVING SYSTEM</h1>
 
 <div class="card">
     <h2>Login</h2>
@@ -51,7 +51,7 @@
 .login .logo {
     position: absolute;
     top: 29%;
-    left: 38%;
+    left: 35%;
     transform: translate(-50%, -50%);
     display: flex;
     justify-content: center;
@@ -86,7 +86,7 @@
     .login h1 {
         position: absolute;
         top: 300px;
-        left: 350px;
+        left: 200px;
         font-size: 4em;
         font-weight: bold;
         z-index: 2;
@@ -97,7 +97,7 @@
     .login .card {
         position: absolute;
         top: 100px;
-        right: 200px;
+        right: 150px;
         width: 350px;
         height: 500px;
         padding: 30px;

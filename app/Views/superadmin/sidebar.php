@@ -47,12 +47,11 @@ $userRole = $session->get('role') ?? 'user';
 <?php endif; ?>
 
 
-    
-    <form method="post" action="<?= site_url('logout') ?>">
-        <button type="submit" class="logout-btn">
-            <i class="fas fa-sign-out-alt"></i> Logout
-        </button>
-    </form>
+<a href="<?= site_url('logout') ?>" class="logout-btn">
+    <i class="fas fa-sign-out-alt"></i> Logout
+</a>
+
+
 </div>
 
 <style>
@@ -112,10 +111,11 @@ $userRole = $session->get('role') ?? 'user';
     font-weight: 600;
 }
 
-.sidebar .logout-btn { 
-    margin-top: 80px;
-    background-color: red; color: white;
-    width: 100%;
+.sidebar .logout-btn {
+    margin-top: 100px;
+    background-color: #b23b3b;
+    color: white;
+    width: 70%;
     text-align: center;
     padding: 10px;
     border: none;
@@ -123,12 +123,18 @@ $userRole = $session->get('role') ?? 'user';
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 8px; }
-
-.logout-btn:hover {
-    background-color: darkred;
+    gap: 8px;
+    text-decoration: none; /* remove underline */
+    border-radius: 4px; /* optional smoother look */
+    font-weight: 500;
+    transition: background-color 0.3s ease;
 }
-/* Sidebar links default look */
+
+.sidebar .logout-btn:hover {
+    background-color: #6b1d1d;
+    color: white;
+}
+
 .sidebar a {
     font-weight: normal !important;
     color: #ffffffff !important;

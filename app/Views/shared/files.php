@@ -159,11 +159,12 @@ if ($role === 'superadmin') {
                                 <?php endif; ?>
                             </td>
                             <td>
-                                <a href="<?= base_url('writable/uploads/files/' . $file['file_path']) ?>" target="_blank" class="btn btn-sm btn-info">View</a>
-                                <a href="<?= site_url($role . '/files/download/' . $file['id']) ?>" class="btn btn-sm btn-success">Download</a>
-                                <form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" method="post" style="display:inline;">
-                                    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this file?')">Delete</button>
-                                </form>
+<a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-sm btn-info">View</a>
+<a href="<?= site_url($role . '/files/download/' . $file['id']) ?>" class="btn btn-sm btn-success">Download</a>
+<form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" method="post" style="display:inline;">
+    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this file?')">Delete</button>
+</form>
+
                             </td>
                         </tr>
                     <?php endforeach; ?>
@@ -172,7 +173,7 @@ if ($role === 'superadmin') {
         <?php endif; ?>
     <?php endif; ?>
 
-</div> <!-- end main-container -->
+</div> 
 
 <!-- Modals -->
 
