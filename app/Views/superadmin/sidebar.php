@@ -2,6 +2,10 @@
 $session = session();
 $userName = $session->get('username');
 $userRole = $session->get('role') ?? 'user';
+
+// Get current first segment after base URL, e.g. 'dashboard', 'files', etc.
+$uri = service('uri');
+$currentSegment1 = $uri->getSegment(2); // 1 = 'superadmin', 2 = 'dashboard' or 'files'
 ?>
 
 <div class="sidebar">
@@ -9,41 +13,34 @@ $userRole = $session->get('role') ?? 'user';
     <h5 class="hello"><?= esc($userName) ?></h5>
     
 <?php if ($userRole === 'superadmin') : ?>
-    <a href="<?= site_url('superadmin/dashboard') ?>" class="nav-link">
+    <a href="<?= site_url('superadmin/dashboard') ?>" class="nav-link <?= ($currentSegment1 === 'dashboard') ? 'active' : '' ?>">
         <i class="fas fa-tachometer-alt"></i> DASHBOARD
     </a>
     
-    <a href="<?= site_url('admin/files') ?>" class="nav-link">
+    <a href="<?= site_url('superadmin/files') ?>" class="nav-link <?= ($currentSegment1 === 'files') ? 'active' : '' ?>">
         <i class="fas fa-folder"></i> FILES
     </a>
 
-    <a href="<?= site_url('request') ?>" class="nav-link">
+    <a href="<?= site_url('superadmin/manage_uploads') ?>" class="nav-link <?= ($currentSegment1 === 'manage_uploads') ? 'active' : '' ?>">
         <i class="fas fa-upload"></i> MANAGE UPLOADS
     </a>
 
-    <a href="<?= site_url('managereq') ?>" class="nav-link">
-        <i class="fas fa-tasks"></i> MANAGE REQUEST
+    <a href="<?= site_url('superadmin/manage_request') ?>" class="nav-link <?= ($currentSegment1 === 'manage_request') ? 'active' : '' ?>">
+        <i class="fas fa-tasks"></i> REQUESTS
     </a>
 
-    <a href="<?= site_url('superadmin/manage_users') ?>" class="nav-link">
+    <a href="<?= site_url('superadmin/category') ?>" class="nav-link <?= ($currentSegment1 === 'category') ? 'active' : '' ?>">
+        <i class="fas fa-tags"></i> CATEGORIES
+    </a>
+
+    <a href="<?= site_url('superadmin/globalconfig') ?>" class="nav-link <?= ($currentSegment1 === 'globalconfig') ? 'active' : '' ?>">
+        <i class="fas fa-cogs"></i> GLOBAL CONFIG
+    </a>
+
+        <a href="<?= site_url('superadmin/manage_users') ?>" class="nav-link <?= ($currentSegment1 === 'manage_users') ? 'active' : '' ?>">
         <i class="fas fa-users"></i> MANAGE USERS
     </a>
 
-<a href="<?= site_url('superadmin/category') ?>" class="nav-link">
-    <i class="fas fa-tags"></i> CATEGORIES
-</a>
-
-    <a href="<?= site_url('superadmin/globalconfig') ?>" class="nav-link">
-        <i class="fas fa-cogs"></i> GLOBAL CONFIG
-    </a>
-<?php else : ?>
-    <!-- Regular user links -->
-    <a href="<?= site_url('dashboard') ?>" class="nav-link">
-        <i class="fas fa-tachometer-alt"></i> DASHBOARD
-    </a>
-    <a href="<?= site_url('files') ?>" class="nav-link">
-        <i class="fas fa-folder"></i> MANAGE FILES
-    </a>
 <?php endif; ?>
 
 
@@ -55,23 +52,24 @@ $userRole = $session->get('role') ?? 'user';
 </div>
 
 <style>
-   .sidebar {
+
+.sidebar {
     background-color: #2C2C2C;
     color: white;
     top: 0;
     padding: 20px 15px;
     height: 100vh;
-    width: 220px; /* slightly slimmer for better proportions */
+    width: 220px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: fixed;
-    font-size: 15px; /* consistent baseline font */
+    font-size: 15px;
 }
 
 .sidebar img {
     margin-bottom: 25px;
-    width: 60%; /* more presence */
+    width: 60%;
     height: auto;
 }
 
@@ -82,7 +80,7 @@ $userRole = $session->get('role') ?? 'user';
 }
 
 .sidebar .nav-link {
-    color: white;
+    color: #ffffff; /* corrected */
     margin: 12px 0;
     text-decoration: none;
     padding: 8px 0;
@@ -93,22 +91,13 @@ $userRole = $session->get('role') ?? 'user';
     display: flex;
     align-items: center;
     gap: 12px; 
-    width: 100%; /* links stretch nicely */
+    width: 100%;
 }
 
 .sidebar .nav-link i {
-    font-size:20px; /* icons scale with text */
+    font-size: 20px;
     min-width: 20px;
     text-align: center;
-}
-
-.nav-link:hover {
-    color: #ECB439;
-}
-
-.nav-link.active {
-    color: #ECB439;
-    font-weight: 600;
 }
 
 .sidebar .logout-btn {
@@ -124,8 +113,8 @@ $userRole = $session->get('role') ?? 'user';
     align-items: center;
     justify-content: center;
     gap: 8px;
-    text-decoration: none; /* remove underline */
-    border-radius: 4px; /* optional smoother look */
+    text-decoration: none;
+    border-radius: 4px;
     font-weight: 500;
     transition: background-color 0.3s ease;
 }
@@ -136,23 +125,21 @@ $userRole = $session->get('role') ?? 'user';
 }
 
 .sidebar a {
-    font-weight: normal !important;
-    color: #ffffffff !important;
+    font-weight: normal;
+    color: #ffffff; /* fixed */
     text-decoration: none;
 }
 
 /* Keep hover consistent */
 .sidebar a:hover {
-    color: #3550A0 !important;
+    color: #ECB439;
     text-decoration: none;
 }
 
-/* Active sidebar link */
-.sidebar a.active {
-    font-weight: normal !important; /* prevent bold */
-    color: #3550A0 !important;
-    background: #f0f2f8; /* optional highlight */
-    border-radius: 5px;
+.sidebar .nav-link.active {
+    color: #ECB439 !important;
+    font-weight: 600;
 }
+
 
 </style>

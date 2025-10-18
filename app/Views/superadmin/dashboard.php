@@ -89,39 +89,54 @@
     <!-- Sidebar -->
     <?= $this->include('superadmin/sidebar') ?>
 
-    <div class="main-content">
+<div class="main-content">
     <div class="cards-wrapper">
         <!-- Total Users -->
-        <div class="card shadow-sm text-center">
+      
+        <a href="<?= site_url('superadmin/manage_users') ?>" class="card-link-wrapper">
+              <div class="card shadow-sm text-center">
             <div class="card-body">
                 <i class="fas fa-users fa-2x text-primary mb-2"></i>
                 <h5>Total Users</h5>
                 <h2><?= esc($totalUsers ?? 0) ?></h2>
             </div>
         </div>
-
-        <!-- Total Folders -->
-         <a href="<?= site_url('superadmin/files')?>">
-               <div class="card shadow-sm text-center">
-            <div class="card-body">
-                <i class="fas fa-folder fa-2x text-success mb-2"></i>
-                <h5>Total Folders</h5>
-                <h2><?= esc($totalFolders ?? 0) ?></h2>
+        </a>
+        <!-- Total Files -->
+        <a href="<?= site_url('superadmin/files') ?>" class="card-link-wrapper">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <i class="fas fa-file-alt fa-2x text-success mb-2"></i>
+                    <h5>Total Files</h5>
+                    <h2><?= esc($totalFiles ?? 0) ?></h2>
+                </div>
             </div>
-        </div>
-         </a>
-     
+        </a>
 
         <!-- Pending Requests -->
-        <div class="card shadow-sm text-center">
-            <div class="card-body">
-                <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
-                <h5>Pending Requests</h5>
-                <h2><?= esc($pendingRequests ?? 0) ?></h2>
+        <a href="<?= site_url('superadmin/requests') ?>" class="card-link-wrapper">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
+                    <h5>Pending Requests</h5>
+                    <h2><?= esc($pendingRequests ?? 0) ?></h2>
+                </div>
             </div>
-        </div>
+        </a>
+
+        <!-- New Uploaded Files (Pending) -->
+        <a href="<?= site_url('superadmin/files?status=pending') ?>" class="card-link-wrapper">
+            <div class="card shadow-sm text-center">
+                <div class="card-body">
+                    <i class="fas fa-upload fa-2x text-info mb-2"></i>
+                    <h5>New Uploaded Files</h5>
+                    <h2><?= esc($newUploadedFiles ?? 0) ?></h2>
+                </div>
+            </div>
+        </a>
     </div>
 </div>
+
 
     </div>
 

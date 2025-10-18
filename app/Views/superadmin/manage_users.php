@@ -109,45 +109,63 @@
                                 </a>
                             </td>
                         </tr>
-                        <!-- Edit User Modal -->
-                        <div class="modal fade" id="editUserModal<?= $user['id'] ?>" tabindex="-1">
-                            <div class="modal-dialog">
-                                <div class="modal-content">
-                                    <form action="<?= site_url('superadmin/manage_users/update/'.$user['id']) ?>" method="post">
-                                        <div class="modal-header">
-                                            <h5 class="modal-title">Edit User</h5>
-                                            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-                                        </div>
-                                        <div class="modal-body">
-                                            <div class="mb-3">
-                                                <label>Username</label>
-                                                <input type="text" name="username" value="<?= esc($user['username']) ?>" class="form-control" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label>Email</label>
-                                                <input type="email" name="email" value="<?= esc($user['email']) ?>" class="form-control" required>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label>Role</label>
-                                                <select name="role" class="form-select" required>
-                                                    <option value="superadmin" <?= $user['role']=='superadmin'?'selected':'' ?>>Superadmin</option>
-                                                    <option value="admin" <?= $user['role']=='admin'?'selected':'' ?>>Admin</option>
-                                                    <option value="user" <?= $user['role']=='user'?'selected':'' ?>>User</option>
-                                                </select>
-                                            </div>
-                                            <div class="mb-3">
-                                                <label>Password (leave blank to keep current)</label>
-                                                <input type="password" name="password" class="form-control">
-                                            </div>
-                                        </div>
-                                        <div class="modal-footer">
-                                            <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
-                                            <button type="submit" class="btn btn-primary">Update</button>
-                                        </div>
-                                    </form>
-                                </div>
-                            </div>
-                        </div>
+<!-- Edit User Modal -->
+<div class="modal fade" id="editUserModal<?= $user['id'] ?>" tabindex="-1">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <form action="<?= site_url('superadmin/manage_users/update/'.$user['id']) ?>" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit User</h5>
+                    <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body">
+                    <div class="mb-3">
+                        <label>Username</label>
+                        <input type="text" name="username" value="<?= esc($user['username']) ?>" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Email</label>
+                        <input type="email" name="email" value="<?= esc($user['email']) ?>" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>Role</label>
+                        <select name="role" class="form-select" required>
+                            <option value="superadmin" <?= $user['role']=='superadmin'?'selected':'' ?>>Superadmin</option>
+                            <option value="admin" <?= $user['role']=='admin'?'selected':'' ?>>Admin</option>
+                            <option value="user" <?= $user['role']=='user'?'selected':'' ?>>User</option>
+                        </select>
+                    </div>
+
+                    <!-- ✅ New Folder Assignment Dropdown -->
+                    <div class="mb-3">
+                        <label>Main Folder</label>
+                        <select name="main_folder_id" class="form-select">
+                            <option value="">-- Select Folder --</option>
+                            <?php foreach ($folders as $folder): ?>
+                                <?php if (empty($folder['parent_folder_id'])): ?>
+                                    <option value="<?= $folder['id']; ?>"
+                                        <?= isset($user['main_folder_id']) && $user['main_folder_id'] == $folder['id'] ? 'selected' : ''; ?>>
+                                        <?= esc($folder['folder_name']); ?>
+                                    </option>
+                                <?php endif; ?>
+                            <?php endforeach; ?>
+                        </select>
+                    </div>
+
+                    <div class="mb-3">
+                        <label>Password (leave blank to keep current)</label>
+                        <input type="password" name="password" class="form-control">
+                    </div>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                    <button type="submit" class="btn btn-primary">Update</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+
 
                     <?php endforeach; ?>
                 <?php else: ?>

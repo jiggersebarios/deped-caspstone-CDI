@@ -8,13 +8,17 @@ use App\Models\FolderModel;
 
 class ManageUsers extends BaseController
 {
-    public function index()
-    {
-        $userModel = new UserModel();
-        $data['users'] = $userModel->findAll();
-        $data['title'] = 'Manage Users';
-        return view('superadmin/manage_users', $data);
-    }
+public function index()
+{
+    $userModel = new UserModel();
+    $folderModel = new FolderModel();
+
+    $data['users'] = $userModel->findAll();
+    $data['folders'] = $folderModel->findAll(); // ✅ Added so we can show folder list
+    $data['title'] = 'Manage Users';
+
+    return view('superadmin/manage_users', $data);
+}
 
     public function store()
     {
@@ -76,24 +80,46 @@ class ManageUsers extends BaseController
             ->with('success', "User '$username' added successfully and folder assigned.");
     }
 
-    public function update($id)
-    {
-        $userModel = new UserModel();
 
-        $data = [
-            'username' => $this->request->getPost('username'),
-            'email'    => $this->request->getPost('email'),
-            'role'     => $this->request->getPost('role'),
-        ];
+    //edit
+public function update($id)
+{
+    $userModel = new UserModel();
+    $folderModel = new FolderModel();
 
-        $password = $this->request->getPost('password');
-        if (!empty($password)) {
-            $data['password'] = password_hash($password, PASSWORD_DEFAULT);
-        }
+    $data = [
+        'username' => $this->request->getPost('username'),
+        'email'    => $this->request->getPost('email'),
+        'role'     => $this->request->getPost('role'),
+    ];
 
-        $userModel->update($id, $data);
-        return redirect()->to('/superadmin/manage_users')->with('success', 'User updated successfully.');
+    // ✅ Optional password update
+    $password = $this->request->getPost('password');
+    if (!empty($password)) {
+        $data['password'] = password_hash($password, PASSWORD_DEFAULT);
     }
+
+    // ✅ Handle folder reassignment (optional)
+    $newFolderId = $this->request->getPost('main_folder_id');
+    if (!empty($newFolderId)) {
+        // Explicitly cast to array to avoid IDE/analysis confusion
+        $folder = (array) $folderModel->find($newFolderId);
+
+        if (!empty($folder)) {
+            $data['main_folder_id'] = $folder['id'] ?? null;
+            $data['main_folder']    = $folder['folder_name'] ?? null;
+        } else {
+            return redirect()->back()->with('error', 'Selected folder not found.');
+        }
+    }
+
+    // ✅ Update user record
+    $userModel->update($id, $data);
+
+    return redirect()->to('/superadmin/manage_users')->with('success', 'User updated successfully.');
+}
+
+
 
     public function delete($id)
     {

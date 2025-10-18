@@ -15,7 +15,7 @@
         }
 
         .category-table {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0;
             background: white;
             border-radius: 8px;
@@ -33,12 +33,6 @@
         .category-table td {
             font-size: 14px;
             vertical-align: middle;
-        }
-
-        .category-form {
-            margin-bottom: 20px;
-            display: flex;
-            gap: 10px;
         }
 
         .category-form input {
@@ -61,11 +55,11 @@
 
         .btn-edit { background-color: #ffc107; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; }
         .btn-edit:hover { background-color: #e0a800; }
-        .btn-delete { background-color: #dc3545; color: white; padding: 6px 12px; border-radius: 4px; text-decoration: none; }
+        .btn-delete { background-color: #dc3545; color: white; padding: 6px 12px; border-radius: 4px;  }
         .btn-delete:hover { background-color: #c82333; }
 
         #alert-box {
-            max-width: 800px;
+            max-width: 900px;
             margin: 0 auto 20px auto;
         }
     </style>
@@ -77,17 +71,49 @@
 <div class="content">
     <h2 class="page-header mb-4"><i class="fas fa-tags"></i> Categories</h2>
 
-    <form action="<?= site_url('superadmin/category/add') ?>" method="post" class="category-form">
-        <input type="text" name="category_name" placeholder="Category Name" required>
-        <input type="number" name="retention_years" placeholder="Retention Years" required>
-        <button type="submit">Add Category</button>
-    </form>
+    <!-- Button trigger modal for normal category -->
+    <button type="button" class="btn btn-primary mb-3" data-bs-toggle="modal" data-bs-target="#addCategoryModal">
+        <i class="fas fa-plus"></i> Add Category
+    </button>
 
+    <!-- Modal for adding normal category -->
+    <div class="modal fade" id="addCategoryModal" tabindex="-1" aria-labelledby="addCategoryModalLabel" aria-hidden="true">
+      <div class="modal-dialog">
+        <div class="modal-content">
+          <form action="<?= site_url('superadmin/category/add') ?>" method="post">
+            <div class="modal-header">
+              <h5 class="modal-title" id="addCategoryModalLabel">Add Category</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body d-flex flex-column gap-2">
+                <input type="text" name="category_name" class="form-control" placeholder="Category Name" required>
+                <input type="number" name="archive_years" class="form-control" placeholder="Archive Years" required>
+                <input type="number" name="retention_years" class="form-control" placeholder="Retention Years" required>
+            </div>
+            <div class="modal-footer">
+              <button type="submit" class="btn btn-success"><i class="fas fa-check"></i> Add</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    </div>
+
+    <!-- Demo Category Form -->
+ <h4>for Demo</h4> 
+ <form action="<?= site_url('superadmin/category/addDemo') ?>" method="post" class="category-form mb-4"> 
+    <input type="text" name="category_name" placeholder="Demo Category Name" required> 
+    <input type="number" name="archive_seconds" placeholder="Archive After Seconds" required> 
+    <input type="number" name="retention_seconds" placeholder="Retention After Archive (Seconds)" required> 
+    <button type="submit">Add</button> 
+</form>
+
+    <!-- Categories Table -->
     <table class="table table-bordered align-middle category-table">
         <thead>
             <tr>
                 <th>ID</th>
                 <th>Category Name</th>
+                <th>Archive Years</th>
                 <th>Retention Years</th>
                 <th>Actions</th>
             </tr>
@@ -98,19 +124,27 @@
                     <tr>
                         <td><?= esc($cat['id']) ?></td>
                         <td><?= esc($cat['category_name']) ?></td>
-                        <td><?= esc($cat['retention_years']) ?> year(s)</td>
-                        <td>
-                            <a href="<?= site_url('superadmin/category/edit/' . $cat['id']) ?>" class="btn-edit">Edit</a>
-                            <a href="<?= site_url('superadmin/category/delete/' . $cat['id']) ?>" class="btn-delete" onclick="return confirm('Delete this category?')">Delete</a>
+                        <td><?= esc($cat['archive_after_years'] ?? 0) ?> year(s)</td>
+                        <td><?= esc($cat['retention_years'] ?? 0) ?> year(s)</td>
+                        <td class="d-flex gap-2">
+                            <a href="<?= site_url('superadmin/category/edit/' . $cat['id']) ?>" class="btn btn-warning btn-sm">
+                                <i class="fas fa-edit"></i> Edit
+                            </a>
+                            <form action="<?= site_url('superadmin/category/delete/' . $cat['id']) ?>" method="post" style="display:inline;">
+                                <button type="submit" class="btn btn-danger btn-sm" onclick="return confirm('Delete this category?')">
+                                    <i class="fas fa-trash"></i> Delete
+                                </button>
+                            </form>
                         </td>
                     </tr>
                 <?php endforeach; ?>
             <?php else: ?>
-                <tr><td colspan="4" class="text-center text-muted">No categories found.</td></tr>
+                <tr><td colspan="5" class="text-center text-muted">No categories found.</td></tr>
             <?php endif; ?>
         </tbody>
     </table>
 </div>
+
 
 <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>

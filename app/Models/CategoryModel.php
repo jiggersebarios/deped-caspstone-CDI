@@ -6,7 +6,14 @@ use CodeIgniter\Model;
 
 class CategoryModel extends Model
 {
-    protected $table = 'categories'; // your table name
+    protected $table = 'categories';
     protected $primaryKey = 'id';
-    protected $allowedFields = ['category_name', 'retention_years'];
+    
+    protected $allowedFields = [
+        'category_name',
+        'archive_after_years',
+        'retention_years',
+        'archive_after_seconds',
+        'retention_seconds'
+    ];
 }

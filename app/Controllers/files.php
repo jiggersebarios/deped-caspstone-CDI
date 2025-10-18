@@ -124,48 +124,83 @@ public function index()
         return redirect()->to($this->role . '/files/view/' . $parentId)->with('success', 'Subfolder added successfully');
     }
 
-    public function delete()
-    {
-        if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_folder')) {
-            return redirect()->back()->with('error', 'Deleting folders is disabled by Superadmin.');
-        }
-
-        $folderId = $this->request->getPost('delete_folder_id');
-        $parentId = $this->request->getPost('parent_folder_id');
-
-        if ($folderId) {
-            (new FolderModel())->delete($folderId);
-            $redirect = $parentId ? $this->role . '/files/view/' . $parentId : $this->role . '/files';
-            return redirect()->to($redirect)->with('success', 'Folder deleted successfully');
-        }
-
-        return redirect()->back()->with('error', 'Invalid request');
+    // Deleting mainfolder 
+public function delete()
+{
+    if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_folder')) {
+        return redirect()->back()->with('error', 'Deleting folders is disabled by Superadmin.');
     }
 
-    public function deleteSubfolder()
-    {
-        if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_subfolder')) {
-            return redirect()->back()->with('error', 'Deleting subfolders is disabled by Superadmin.');
-        }
+    $folderId = $this->request->getPost('delete_folder_id');
+    $parentId = $this->request->getPost('parent_folder_id');
 
-        $folderId = $this->request->getPost('delete_folder_id');
-        $parentId = $this->request->getPost('parent_folder_id');
-
-        $model = new FolderModel();
-        $folder = $model->find($folderId);
-
-        if (!$folder || $folder->parent_folder_id != $parentId) {
-            return redirect()->back()->with('error', 'Invalid subfolder delete request');
-        }
-
-        $subfolders = $model->where('parent_folder_id', $folderId)->findAll();
-        if (!empty($subfolders)) {
-            return redirect()->back()->with('error', 'This subfolder has child folders. Delete them first.');
-        }
-
-        $model->delete($folderId);
-        return redirect()->to($this->role . '/files/view/' . $parentId)->with('success', 'Subfolder deleted successfully');
+    if (!$folderId) {
+        return redirect()->back()->with('error', 'Invalid folder delete request.');
     }
+
+    $folderModel = new \App\Models\FolderModel();
+    $userModel   = new \App\Models\UserModel();
+
+    $folder = $folderModel->find($folderId);
+
+    if (!$folder) {
+        return redirect()->back()->with('error', 'Folder not found.');
+    }
+
+    // Check if folder is a main folder (no parent)
+    $isMainFolder = empty($folder['parent_folder_id']);
+
+    // If main folder, make sure no users are assigned to it
+    if ($isMainFolder) {
+        $assignedUsers = $userModel->where('main_folder_id', $folderId)->findAll();
+        if (!empty($assignedUsers)) {
+            return redirect()->back()->with('error', 'This folder is assigned to users. Reassign them first before deletion.');
+        }
+    }
+
+    // Check if folder has subfolders
+    $subfolders = $folderModel->where('parent_folder_id', $folderId)->findAll();
+    if (!empty($subfolders)) {
+        return redirect()->back()->with('error', 'This folder has subfolders. Delete them first.');
+    }
+
+    // Delete folder
+    $folderModel->delete($folderId);
+
+    $redirect = $isMainFolder
+        ? $this->role . '/files'
+        : $this->role . '/files/view/' . $parentId;
+
+    return redirect()->to($redirect)->with('success', 'Folder deleted successfully.');
+}
+
+
+public function deleteSubfolder()
+{
+    if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_subfolder')) {
+        return redirect()->back()->with('error', 'Deleting subfolders is disabled by Superadmin.');
+    }
+
+    $folderId = $this->request->getPost('delete_folder_id');
+    $parentId = $this->request->getPost('parent_folder_id');
+
+    $model = new FolderModel();
+    $folder = $model->find($folderId);
+
+    // Use array syntax with null coalescing for safety
+    if (!$folder || (($folder['parent_folder_id'] ?? null) != $parentId)) {
+        return redirect()->back()->with('error', 'Invalid subfolder delete request');
+    }
+
+    $subfolders = $model->where('parent_folder_id', $folderId)->findAll();
+    if (!empty($subfolders)) {
+        return redirect()->back()->with('error', 'This subfolder has child folders. Delete them first.');
+    }
+
+    $model->delete($folderId);
+    return redirect()->to($this->role . '/files/view/' . $parentId)->with('success', 'Subfolder deleted successfully');
+}
+
 
     public function view($id)
 {
@@ -198,8 +233,13 @@ public function index()
     $breadcrumb = $this->buildBreadcrumb($id);
     $depth      = count($breadcrumb);
 
+    // ✅ NEW: Auto-update archive/expiry info before displaying
+    $fileModel->ensureArchiveDates();
+    $fileModel->autoArchiveAndExpire();
+
     // Show files only at depth 3 or deeper
-    $files = $depth >= 3 ? $fileModel->getFilesWithDetails($id) : [];
+    $activeFiles   = $depth >= 3 ? $fileModel->getActiveFilesByFolder($id) : [];
+    $archivedFiles = $depth >= 3 ? $fileModel->getArchivedFilesByFolder($id) : [];
 
     // Load subfolders
     $subfolders = $folderModel->where('parent_folder_id', $id)->findAll();
@@ -208,7 +248,9 @@ public function index()
         'folders'            => $subfolders,
         'parentFolder'       => $folder,
         'breadcrumb'         => $breadcrumb,
-        'files'              => $files,
+        'files'              => [], // Optional, if no longer used
+        'activeFiles'        => $activeFiles,
+        'archivedFiles'      => $archivedFiles,
         'depth'              => $depth,
         'categories'         => $categoryModel->findAll(),
         'role'               => $role,
@@ -220,29 +262,41 @@ public function index()
 }
 
 
-    public function upload($folderId)
-    {
-        $file = $this->request->getFile('upload_file');
-        $categoryId = $this->request->getPost('category_id');
-        $session = session();
 
-        if (!$file || !$file->isValid()) return redirect()->back()->with('error', 'Invalid file upload.');
-        if (!$categoryId) return redirect()->back()->with('error', 'Please select a category.');
+public function upload($folderId)
+{
+    $file = $this->request->getFile('upload_file');
+    $categoryId = $this->request->getPost('category_id');
+    $session = session();
 
-        $newName = $file->getRandomName();
-        $file->move(WRITEPATH . 'uploads/files', $newName);
-
-        (new FileModel())->insert([
-            'folder_id'   => $folderId,
-            'category_id' => $categoryId,
-            'file_name'   => $file->getClientName(),
-            'file_path'   => $newName,
-            'uploaded_by' => $session->get('id'),
-            'uploaded_at' => date('Y-m-d H:i:s'),
-        ]);
-
-        return redirect()->to($this->role . '/files/view/' . $folderId)->with('success', 'File uploaded successfully.');
+    if (!$file || !$file->isValid()) {
+        return redirect()->back()->with('error', 'Invalid file upload.');
     }
+    if (!$categoryId) {
+        return redirect()->back()->with('error', 'Please select a category.');
+    }
+
+    $newName = $file->getRandomName();
+    $file->move(WRITEPATH . 'uploads/files', $newName);
+
+    // Determine initial status
+    // By default, newly uploaded files are "pending" until approved
+    $status = 'pending'; 
+
+    // Insert file record
+    (new \App\Models\FileModel())->insert([
+        'folder_id'   => $folderId,
+        'category_id' => $categoryId,
+        'file_name'   => $file->getClientName(),
+        'file_path'   => $newName,
+        'uploaded_by' => $session->get('id'),
+        'uploaded_at' => date('Y-m-d H:i:s'),
+        'status'      => $status,  // new field in the files table
+    ]);
+
+    return redirect()->to($this->role . '/files/view/' . $folderId)->with('success', 'File uploaded successfully. File is pending review.');
+}
+
 
     public function deleteFile($fileId)
     {
@@ -318,7 +372,7 @@ public function viewFile($id)
         return $config && $config['setting_value'] == 1;
     }
 
-    // ✅ Check if a folder is within the user's allowed folder hierarchy
+    // Check if a folder is within the user's allowed folder hierarchy
 private function isFolderWithinUserScope($folderId, $userMainFolderId, $folderModel)
 {
     if ($folderId == $userMainFolderId) {

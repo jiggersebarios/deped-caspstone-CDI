@@ -37,9 +37,9 @@ $routes->group('admin', ['namespace' => 'App\Controllers', 'filter' => 'auth'], 
 
 // -------------------- Superadmin Routes --------------------
 $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filter' => 'auth'], function($routes) {
-    $routes->get('dashboard', 'Dashboard::index'); // points to Superadmin dashboard
+    $routes->get('dashboard', 'Dashboard::index');
 
-    // For the shared Files controller, specify full namespace WITHOUT the group namespace being applied
+    // Shared Files Controller
     $routes->get('files', '\App\Controllers\Files::index');
     $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
     $routes->post('files/add', '\App\Controllers\Files::add');
@@ -47,8 +47,7 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->post('files/delete', '\App\Controllers\Files::delete');
     $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
     $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
-$routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
-
+    $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
 
@@ -59,18 +58,21 @@ $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     // Category management
     $routes->get('category', 'Category::index');
     $routes->post('category/add', 'Category::add');
-    $routes->post('category/delete/(:num)', 'Category::delete/$1');
+    $routes->post('category/addDemo', 'Category::addDemo');
     $routes->get('category/edit/(:num)', 'Category::edit/$1');
     $routes->post('category/update/(:num)', 'Category::update/$1');
+    $routes->post('category/delete/(:num)', 'Category::delete/$1');
 
-     
-// Manage Users
-$routes->get('manage_users', 'ManageUsers::index');
-$routes->post('manage_users/store', 'ManageUsers::store');
-$routes->post('manage_users/update/(:num)', 'ManageUsers::update/$1');
-$routes->get('manage_users/delete/(:num)', 'ManageUsers::delete/$1');
-
+    // Manage Users
+    $routes->get('manage_users', 'ManageUsers::index');
+    $routes->post('manage_users/store', 'ManageUsers::store');
+    $routes->post('manage_users/update/(:num)', 'ManageUsers::update/$1');
+    $routes->get('manage_users/delete/(:num)', 'ManageUsers::delete/$1');
 });
+
+// ✅ Place these outside of the superadmin group
+$routes->post('superadmin/files/deleteMainFolder', 'Superadmin\Files::deleteMainFolder');
+$routes->post('admin/files/deleteMainFolder', 'Admin\Files::deleteMainFolder');
 
 //user
 // -------------------- User Routes --------------------

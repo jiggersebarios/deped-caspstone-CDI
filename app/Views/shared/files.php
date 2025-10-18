@@ -29,7 +29,8 @@ if ($role === 'superadmin') {
 
 <div class="main-container">
 
-    <!-- Search -->
+<!-- Search -->
+<?php if (!isset($parentFolder) || (isset($depth) && $depth < 3)): ?>
     <?php if (!isset($parentFolder)): ?>
         <form action="<?= base_url($role . '/files') ?>" method="get" class="form-inline mb-3">
             <input type="text" name="search" class="form-control mr-2" placeholder="Search folders..." value="<?= esc($search ?? '') ?>">
@@ -41,6 +42,8 @@ if ($role === 'superadmin') {
             <button type="submit" class="btn btn-primary">Search</button>
         </form>
     <?php endif; ?>
+<?php endif; ?>
+
 
   <!-- Folder / Subfolder Buttons -->
 <?php if (!isset($parentFolder)): ?>
@@ -119,61 +122,155 @@ if ($role === 'superadmin') {
         <?php endif; ?>
     </div>
 
-    <!-- Upload + Files Table (depth 3) -->
-    <?php if (isset($depth) && $depth === 3): ?>
-        <div class="d-flex justify-content-end mb-3">
-            <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
-                <i class="fa fa-upload mr-2"></i> Upload File
-            </button>
+<!-- Upload + Files Table (depth 3 only) -->
+<?php if (isset($depth) && $depth === 3): ?>
+    <div class="d-flex justify-content-end mb-3">
+        <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
+            <i class="fa fa-upload mr-2"></i> Upload File
+        </button>
+    </div>
+
+    <!-- 🧭 Tabs -->
+    <ul class="nav nav-tabs" id="fileTabs" role="tablist">
+        <li class="nav-item">
+            <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active" role="tab">Active Files</a>
+        </li>
+        <li class="nav-item">
+            <a class="nav-link" id="archived-tab" data-toggle="tab" href="#archived" role="tab">Archived Files</a>
+        </li>
+    </ul>
+
+    <div class="tab-content mt-3" id="fileTabsContent">
+
+        <!-- 🟢 ACTIVE FILES TAB -->
+        <div class="tab-pane fade show active" id="active" role="tabpanel">
+            <?php if (!empty($activeFiles)): ?>
+                <h5>📂 Active Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>File Name</th>
+                            <th>Category</th>
+                            <th>Uploaded By</th>
+                            <th>Date Uploaded</th>
+                            <th>Date Archived</th>
+                            <th>Date Expired</th>
+                            <th>Status</th>
+                            <th style="width: 250px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($activeFiles as $file): ?>
+                            <tr>
+                                <td><?= $file['id'] ?></td>
+                                <td><?= esc($file['file_name']) ?></td>
+                                <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
+                                <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
+
+                                <td><?= $file['uploaded_at'] ? date('Y-m-d H:i', strtotime($file['uploaded_at'])) : '—' ?></td>
+                                <td><?= $file['archived_at'] ? date('Y-m-d H:i', strtotime($file['archived_at'])) : '—' ?></td>
+                                <td><?= $file['expired_at'] ? date('Y-m-d H:i', strtotime($file['expired_at'])) : '—' ?></td>
+
+                                <td>
+                                    <?php
+                                        $status = strtolower($file['status'] ?? 'pending');
+                                        switch ($status) {
+                                            case 'pending':
+                                                $badge = 'badge-warning';
+                                                break;
+                                            case 'active':
+                                                $badge = 'badge-success';
+                                                break;
+                                            case 'archived':
+                                                $badge = 'badge-secondary';
+                                                break;
+                                            case 'expired':
+                                                $badge = 'badge-danger';
+                                                break;
+                                            default:
+                                                $badge = 'badge-light';
+                                        }
+                                    ?>
+                                    <span class="badge <?= $badge ?>"><?= ucfirst($status) ?></span>
+                                </td>
+
+                                <td>
+                                    <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-sm btn-info">View</a>
+                                    <a href="<?= site_url($role . '/files/download/' . $file['id']) ?>" class="btn btn-sm btn-success">Download</a>
+                                    <form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" method="post" style="display:inline;">
+                                        <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this file?')">Delete</button>
+                                    </form>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p class="text-muted">No active files found in this folder.</p>
+            <?php endif; ?>
         </div>
 
-        <?php if (!empty($files)): ?>
-            <h5>Files in <?= esc($parentFolder['folder_name']) ?></h5>
-            <table class="table table-bordered table-striped">
-                <thead class="thead-dark">
-                    <tr>
-                        <th>ID</th>
-                        <th>File Name</th>
-                        <th>Category</th>
-                        <th>Uploaded By</th>
-                        <th>Date Uploaded</th>
-                        <th>Status</th>
-                        <th style="width: 250px;">Actions</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <?php foreach ($files as $file): ?>
+        <!-- 🗄️ ARCHIVED FILES TAB -->
+        <div class="tab-pane fade" id="archived" role="tabpanel">
+            <?php if (!empty($archivedFiles)): ?>
+                <h5>🗄️ Archived Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
                         <tr>
-                            <td><?= $file['id'] ?></td>
-                            <td><?= esc($file['file_name']) ?></td>
-                            <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
-                            <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
-                            <td><?= date('Y-m-d H:i', strtotime($file['uploaded_at'])) ?></td>
-                            <td>
-                                <?php if ($file['archived_at']): ?>
-                                    <span class="badge badge-secondary">Archived</span>
-                                <?php elseif ($file['deleted_at']): ?>
-                                    <span class="badge badge-danger">Deleted</span>
-                                <?php else: ?>
-                                    <span class="badge badge-success">Active</span>
-                                <?php endif; ?>
-                            </td>
-                            <td>
-<a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-sm btn-info">View</a>
-<a href="<?= site_url($role . '/files/download/' . $file['id']) ?>" class="btn btn-sm btn-success">Download</a>
-<form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" method="post" style="display:inline;">
-    <button type="submit" class="btn btn-sm btn-danger" onclick="return confirm('Delete this file?')">Delete</button>
-</form>
-
-                            </td>
+                            <th>ID</th>
+                            <th>File Name</th>
+                            <th>Category</th>
+                            <th>Uploaded By</th>
+                            <th>Date Uploaded</th>
+                            <th>Date Archived</th>
+                            <th>Date Expired</th>
+                            <th>Status</th>
+                            <th style="width: 200px;">Actions</th>
                         </tr>
-                    <?php endforeach; ?>
-                </tbody>
-            </table>
-        <?php endif; ?>
-    <?php endif; ?>
+                    </thead>
+<tbody>
+    <?php foreach ($archivedFiles as $file): ?>
+        <tr>
+            <td><?= $file['id'] ?></td>
+            <td><?= esc($file['file_name']) ?></td>
+            <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
+            <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
 
-</div> 
+            <td><?= $file['uploaded_at'] ? date('Y-m-d H:i', strtotime($file['uploaded_at'])) : '—' ?></td>
+            <td><?= $file['archived_at'] ? date('Y-m-d H:i', strtotime($file['archived_at'])) : '—' ?></td>
+            <td><?= $file['expired_at'] ? date('Y-m-d H:i', strtotime($file['expired_at'])) : '—' ?></td>
+
+            <td>
+                <?php
+                    $status = strtolower($file['status'] ?? 'archived');
+                    $badge = match ($status) {
+                        'archived' => 'badge-secondary',
+                        'expired'  => 'badge-danger',
+                        default    => 'badge-light',
+                    };
+                ?>
+                <span class="badge <?= $badge ?>"><?= ucfirst($status) ?></span>
+            </td>
+
+            <td>
+                <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-sm btn-info">View</a>
+                <a href="<?= site_url($role . '/files/download/' . $file['id']) ?>" class="btn btn-sm btn-success">Download</a>
+            </td>
+        </tr>
+    <?php endforeach; ?>
+</tbody>
+
+                </table>
+            <?php else: ?>
+                <p class="text-muted">No archived files found in this folder.</p>
+            <?php endif; ?>
+        </div>
+    </div>
+<?php endif; ?>
+
+
+
 
 <!-- Modals -->
 
@@ -292,7 +389,7 @@ if ($role === 'superadmin') {
     </div>
 </div>
 <?php endif; ?>
-7
+
 
 <!-- Upload File Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
