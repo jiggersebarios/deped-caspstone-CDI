@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
+use CodeIgniter\Database\Exceptions\DatabaseException;
 
 class FileModel extends Model
 {
@@ -31,147 +32,42 @@ class FileModel extends Model
     public function getFilesWithDetails($folderId = null)
     {
         return $this->select('
-                files.*,
-                categories.category_name,
-                users.username AS uploader_name
-            ')
-            ->join('categories', 'categories.id = files.category_id', 'left')
-            ->join('users', 'users.id = files.uploaded_by', 'left')
-            ->where('files.folder_id', $folderId)
-            ->orderBy('files.uploaded_at', 'DESC')
-            ->findAll();
+            files.*,
+            categories.category_name,
+            users.username AS uploader_name
+        ')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users', 'users.id = files.uploaded_by', 'left')
+        ->where('files.folder_id', $folderId)
+        ->orderBy('files.uploaded_at', 'DESC')
+        ->findAll();
     }
 
     /**
-     * ✅ Automatically set archive and expiry when file becomes ACTIVE
-     */
-    public function activateFile($fileId)
-    {
-        $file = $this->find($fileId);
-        if (!$file) return false;
-
-        $categoryModel = new \App\Models\CategoryModel();
-        $category = $categoryModel->find($file['category_id']);
-        if (!$category) return false;
-
-        $now = date('Y-m-d H:i:s');
-
-        // Calculate archive and expiry dates based on category
-        $archiveYears   = (int)($category['archive_after_years'] ?? 0);
-        $archiveSeconds = (int)($category['archive_after_seconds'] ?? 0);
-        $retentionYears = (int)($category['retention_years'] ?? 0);
-        $retentionSeconds = (int)($category['retention_seconds'] ?? 0);
-
-        $archivedAt = date('Y-m-d H:i:s', strtotime($now . " + {$archiveYears} years + {$archiveSeconds} seconds"));
-        $expiredAt  = date('Y-m-d H:i:s', strtotime($archivedAt . " + {$retentionYears} years + {$retentionSeconds} seconds"));
-
-        // Update the file record
-        return $this->update($fileId, [
-            'status' => 'active',
-            'archived_at' => $archivedAt,
-            'expired_at' => $expiredAt,
-            'uploaded_at' => $file['uploaded_at'] ?? $now,
-            'is_archived' => 0
-        ]);
-    }
-
-    /**
-     * ✅ Fill in missing archived_at and expired_at for active files
-     */
-    public function ensureArchiveDates()
-    {
-        $categoryModel = new \App\Models\CategoryModel();
-        $now = date('Y-m-d H:i:s');
-
-        // Include files missing either archived_at or expired_at
-        $activeFiles = $this->where('status', 'active')
-            ->groupStart()
-                ->where('archived_at IS NULL')
-                ->orWhere('archived_at', '')
-                ->orWhere('expired_at IS NULL')
-                ->orWhere('expired_at', '')
-            ->groupEnd()
-            ->findAll();
-
-        foreach ($activeFiles as $file) {
-            $category = $categoryModel->find($file['category_id']);
-            if (!$category) continue;
-
-            $archiveYears   = (int)($category['archive_after_years'] ?? 0);
-            $archiveSeconds = (int)($category['archive_after_seconds'] ?? 0);
-            $retentionYears = (int)($category['retention_years'] ?? 0);
-            $retentionSeconds = (int)($category['retention_seconds'] ?? 0);
-
-            $baseTime = $file['uploaded_at'] ?? $now;
-
-            $archivedAt = date('Y-m-d H:i:s', strtotime($baseTime . " + {$archiveYears} years + {$archiveSeconds} seconds"));
-            $expiredAt  = date('Y-m-d H:i:s', strtotime($archivedAt . " + {$retentionYears} years + {$retentionSeconds} seconds"));
-
-            $this->update($file['id'], [
-                'archived_at' => $archivedAt,
-                'expired_at'  => $expiredAt,
-                'is_archived' => 0,
-            ]);
-        }
-    }
-
-    /**
-     * ✅ Automatically move files to ARCHIVED or EXPIRED when due
-     */
-    public function autoArchiveAndExpire()
-    {
-        $now = date('Y-m-d H:i:s');
-
-        // 🔹 1. Archive due files
-        $toArchive = $this->where('status', 'active')
-            ->where('archived_at <=', $now)
-            ->findAll();
-
-        foreach ($toArchive as $file) {
-            $this->update($file['id'], [
-                'status' => 'archived',
-                'is_archived' => 1
-            ]);
-        }
-
-        // 🔹 2. Expire due files (after retention period)
-        $toExpire = $this->whereIn('status', ['archived', 'active'])
-            ->where('expired_at <=', $now)
-            ->findAll();
-
-        foreach ($toExpire as $file) {
-            $this->update($file['id'], [
-                'status' => 'expired',
-                'is_archived' => 1
-            ]);
-        }
-    }
-
-    /**
-     * ✅ Fetch active (non-archived) files for a folder
+     * ✅ Fetch active or pending files (not archived)
      */
     public function getActiveFilesByFolder($folderId)
     {
         return $this->select('
-                files.*,
-                categories.category_name,
-                users.username AS uploader_name
-            ')
-            ->join('categories', 'categories.id = files.category_id', 'left')
-            ->join('users', 'users.id = files.uploaded_by', 'left')
-            ->where('files.folder_id', $folderId)
-            ->where('files.is_archived', 0)
-            ->where('files.status !=', 'expired')
-            ->orderBy('files.uploaded_at', 'DESC')
-            ->findAll();
+            files.*,
+            categories.category_name,
+            users.username AS uploader_name
+        ')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users', 'users.id = files.uploaded_by', 'left')
+        ->where('files.folder_id', $folderId)
+        ->where('files.is_archived', 0)
+        ->whereIn('files.status', ['active', 'pending'])
+        ->orderBy('files.uploaded_at', 'DESC')
+        ->findAll();
     }
 
     /**
-     * ✅ Fetch archived files for a folder
+     * ✅ Fetch archived and expired files
      */
-public function getArchivedFilesByFolder($folderId)
-{
-    return $this->select('
+    public function getArchivedFilesByFolder($folderId)
+    {
+        return $this->select('
             files.*,
             categories.category_name,
             users.username AS uploader_name
@@ -180,30 +76,94 @@ public function getArchivedFilesByFolder($folderId)
         ->join('users', 'users.id = files.uploaded_by', 'left')
         ->where('files.folder_id', $folderId)
         ->where('files.is_archived', 1)
-        // ✅ include both archived and expired
         ->whereIn('files.status', ['archived', 'expired'])
         ->orderBy('files.archived_at', 'DESC')
         ->findAll();
+    }
+
+    /**
+     * ✅ Activate file — calculate archive/expire dates based on category
+     */
+/**
+ * ✅ Activate file — calculate archive/expire dates based on category
+ */
+public function activateFile($fileId)
+{
+    $file = $this->find($fileId);
+    if (!$file) return false;
+
+    // ✅ Use CodeIgniter CategoryModel (not Eloquent)
+    $categoryModel = new \App\Models\CategoryModel();
+    $category = $categoryModel->find($file['category_id']); // returns array
+    if (!is_array($category)) return false;
+
+    $now = date('Y-m-d H:i:s');
+
+    // ✅ Calculate archive & expire times from category setup
+    $archivedAt = $this->calculateDate($now, (int)$category['archive_after_value'], $category['archive_after_unit']);
+    $expiredAt  = $this->calculateDate($archivedAt, (int)$category['retention_value'], $category['retention_unit']);
+
+    return $this->update($fileId, [
+        'status'      => 'active',
+        'archived_at' => $archivedAt,
+        'expired_at'  => $expiredAt,
+        'uploaded_at' => $file['uploaded_at'] ?? $now,
+        'is_archived' => 0
+    ]);
 }
 
-
-
-
-    
-     //Fetch expired files for a folder
-     
-    public function getExpiredFilesByFolder($folderId)
+    /**
+     * ✅ Automatically archive or expire files when due
+     */
+    public function autoArchiveAndExpire()
     {
-        return $this->select('
-                files.*,
-                categories.category_name,
-                users.username AS uploader_name
-            ')
-            ->join('categories', 'categories.id = files.category_id', 'left')
-            ->join('users', 'users.id = files.uploaded_by', 'left')
-            ->where('files.folder_id', $folderId)
-            ->where('files.status', 'expired')
-            ->orderBy('files.expired_at', 'DESC')
+        $now = date('Y-m-d H:i:s');
+
+        // 🔹 Move active → archived (archive time reached)
+        $toArchive = $this->where('status', 'active')
+            ->where('archived_at <=', $now)
             ->findAll();
+
+        foreach ($toArchive as $file) {
+            $this->update($file['id'], [
+                'status'      => 'archived',
+                'is_archived' => 1
+            ]);
+        }
+
+        // 🔹 Move archived → expired (expiration time reached)
+        $toExpire = $this->whereIn('status', ['archived', 'active'])
+            ->where('expired_at <=', $now)
+            ->findAll();
+
+        foreach ($toExpire as $file) {
+            $this->update($file['id'], [
+                'status'      => 'expired',
+                'is_archived' => 1
+            ]);
+        }
+    }
+
+    /**
+     * ✅ Helper: Add time to a date (based on unit)
+     */
+    private function calculateDate($baseDate, $value, $unit)
+    {
+        if (!$value || !$unit) return $baseDate;
+
+        $intervalSpec = match (strtolower($unit)) {
+            'years'   => "P{$value}Y",
+            'months'  => "P{$value}M",
+            'days'    => "P{$value}D",
+            'hours'   => "PT{$value}H",
+            'minutes' => "PT{$value}M",
+            'seconds' => "PT{$value}S",
+            default   => "P0D",
+        };
+
+        $date = new \DateTime($baseDate, new \DateTimeZone('Asia/Manila'));
+        $date->add(new \DateInterval($intervalSpec));
+
+        return $date->format('Y-m-d H:i:s');
     }
 }

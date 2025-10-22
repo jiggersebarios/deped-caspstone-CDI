@@ -168,9 +168,10 @@ if ($role === 'superadmin') {
                                 <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
                                 <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
 
-                                <td><?= $file['uploaded_at'] ? date('Y-m-d H:i', strtotime($file['uploaded_at'])) : '—' ?></td>
-                                <td><?= $file['archived_at'] ? date('Y-m-d H:i', strtotime($file['archived_at'])) : '—' ?></td>
-                                <td><?= $file['expired_at'] ? date('Y-m-d H:i', strtotime($file['expired_at'])) : '—' ?></td>
+                                <td><?= $file['uploaded_at'] ? date('Y-m-d h:i A', strtotime($file['uploaded_at'])) : '—' ?></td>
+<td><?= $file['archived_at'] ? date('Y-m-d h:i A', strtotime($file['archived_at'])) : '—' ?></td>
+<td><?= $file['expired_at'] ? date('Y-m-d h:i A', strtotime($file['expired_at'])) : '—' ?></td>
+
 
                                 <td>
                                     <?php
@@ -212,60 +213,56 @@ if ($role === 'superadmin') {
         </div>
 
         <!-- 🗄️ ARCHIVED FILES TAB -->
-        <div class="tab-pane fade" id="archived" role="tabpanel">
-            <?php if (!empty($archivedFiles)): ?>
-                <h5>🗄️ Archived Files in <?= esc($parentFolder['folder_name']) ?></h5>
-                <table class="table table-bordered table-striped">
-                    <thead class="thead-dark">
-                        <tr>
-                            <th>ID</th>
-                            <th>File Name</th>
-                            <th>Category</th>
-                            <th>Uploaded By</th>
-                            <th>Date Uploaded</th>
-                            <th>Date Archived</th>
-                            <th>Date Expired</th>
-                            <th>Status</th>
-                            <th style="width: 200px;">Actions</th>
-                        </tr>
-                    </thead>
-<tbody>
-    <?php foreach ($archivedFiles as $file): ?>
-        <tr>
-            <td><?= $file['id'] ?></td>
-            <td><?= esc($file['file_name']) ?></td>
-            <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
-            <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
+<div class="tab-pane fade" id="archived" role="tabpanel">
+    <?php if (!empty($archivedFiles)): ?>
+        <h5>🗄️ Archived & Expired Files in <?= esc($parentFolder['folder_name']) ?></h5>
+        <table class="table table-bordered table-striped">
+            <thead class="thead-dark">
+                <tr>
+                    <th>ID</th>
+                    <th>File Name</th>
+                    <th>Category</th>
+                    <th>Uploaded By</th>
+                    <th>Date Uploaded</th>
+                    <th>Date Archived</th>
+                    <th>Date Expired</th>
+                    <th>Status</th>
+                    <th style="width: 200px;">Actions</th>
+                </tr>
+            </thead>
+            <tbody>
+                <?php foreach ($archivedFiles as $file): ?>
+                    <tr>
+                        <td><?= $file['id'] ?></td>
+                        <td><?= esc($file['file_name']) ?></td>
+                        <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
+                        <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
 
-            <td><?= $file['uploaded_at'] ? date('Y-m-d H:i', strtotime($file['uploaded_at'])) : '—' ?></td>
-            <td><?= $file['archived_at'] ? date('Y-m-d H:i', strtotime($file['archived_at'])) : '—' ?></td>
-            <td><?= $file['expired_at'] ? date('Y-m-d H:i', strtotime($file['expired_at'])) : '—' ?></td>
+                        <td><?= $file['uploaded_at'] ? date('Y-m-d h:i A', strtotime($file['uploaded_at'])) : '—' ?></td>
+                        <td><?= $file['archived_at'] ? date('Y-m-d h:i A', strtotime($file['archived_at'])) : '—' ?></td>
+                        <td><?= $file['expired_at'] ? date('Y-m-d h:i A', strtotime($file['expired_at'])) : '—' ?></td>
 
-            <td>
-                <?php
-                    $status = strtolower($file['status'] ?? 'archived');
-                    $badge = match ($status) {
-                        'archived' => 'badge-secondary',
-                        'expired'  => 'badge-danger',
-                        default    => 'badge-light',
-                    };
-                ?>
-                <span class="badge <?= $badge ?>"><?= ucfirst($status) ?></span>
-            </td>
+                        <td>
+                            <?php if ($file['status'] === 'expired'): ?>
+                                <span class="badge badge-danger">Expired</span>
+                            <?php else: ?>
+                                <span class="badge badge-secondary">Archived</span>
+                            <?php endif; ?>
+                        </td>
+                        
+                        <td>
+                            <a href="<?= site_url($role . '/requests/create/' . $file['id']) ?>" class="btn btn-sm btn-info">Request</a>
+                        </td>
 
-            <td>
-                <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-sm btn-info">View</a>
-                <a href="<?= site_url($role . '/files/download/' . $file['id']) ?>" class="btn btn-sm btn-success">Download</a>
-            </td>
-        </tr>
-    <?php endforeach; ?>
-</tbody>
+                    </tr>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+    <?php else: ?>
+        <p class="text-muted">No archived or expired files found in this folder.</p>
+    <?php endif; ?>
+</div>
 
-                </table>
-            <?php else: ?>
-                <p class="text-muted">No archived files found in this folder.</p>
-            <?php endif; ?>
-        </div>
     </div>
 <?php endif; ?>
 
@@ -422,6 +419,23 @@ if ($role === 'superadmin') {
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+
+<script>
+$(document).ready(function () {
+    // Restore the previously active tab
+    const activeTab = localStorage.getItem('activeFileTab');
+    if (activeTab) {
+        $('#fileTabs a[href="' + activeTab + '"]').tab('show');
+    }
+
+    // Save the selected tab on click
+    $('#fileTabs a[data-toggle="tab"]').on('shown.bs.tab', function (e) {
+        localStorage.setItem('activeFileTab', $(e.target).attr('href'));
+    });
+});
+</script>
+
+
 </body>
 </html>
         <style>
@@ -519,4 +533,6 @@ if ($role === 'superadmin') {
         .delete-btn:hover { background-color: #B52D2D; }
         </style>
 
+
 </html>
+

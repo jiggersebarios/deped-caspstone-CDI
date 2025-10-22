@@ -29,34 +29,30 @@ public function index()
     $session = session();
 
     $viewMode = $this->request->getGet('view') ?? 'grid';
-    $viewFile = 'shared/files'; // unified shared view
+    $viewFile = 'shared/files';
 
-    // ✅ If user is normal user → show only their assigned main folder
     if ($role === 'user') {
+        // ✅ Get the user's assigned main folder
         $userFolderId = $session->get('main_folder_id');
 
         if (!$userFolderId) {
             return redirect()->to('/login')->with('error', 'No main folder assigned to your account.');
         }
 
-        // Fetch the user's main folder
-        $userFolder = $folderModel->find($userFolderId);
-        if (!$userFolder) {
-            return redirect()->back()->with('error', 'Main folder not found in the system.');
+        // ✅ Only fetch subfolders of their main folder
+        $query = $folderModel->where('parent_folder_id', $userFolderId);
+
+        if ($search) {
+            $query = $query->like('folder_name', $search);
         }
 
-        // Show only that folder (and optional search filter)
-        if ($search) {
-            $folders = $folderModel
-                ->like('folder_name', $search)
-                ->where('id', $userFolderId)
-                ->findAll();
-        } else {
-            $folders = [$userFolder];
-        }
+        $folders = $query->findAll();
+
+        // ✅ Also load the parent folder (for breadcrumb display)
+        $parentFolder = $folderModel->find($userFolderId);
 
     } else {
-        // ✅ For superadmin/admin → show all root folders
+        // ✅ For admin/superadmin, show all root folders
         $query = $folderModel
             ->groupStart()
                 ->where('parent_folder_id', null)
@@ -68,11 +64,12 @@ public function index()
         }
 
         $folders = $query->findAll();
+        $parentFolder = null;
     }
 
     return view($viewFile, [
         'folders'            => $folders,
-        'parentFolder'       => null,
+        'parentFolder'       => $parentFolder,
         'breadcrumb'         => [],
         'files'              => [],
         'depth'              => 1,
@@ -85,6 +82,8 @@ public function index()
         'categories'         => (new CategoryModel())->findAll(),
     ]);
 }
+
+
 
 
 
@@ -202,7 +201,7 @@ public function deleteSubfolder()
 }
 
 
-    public function view($id)
+public function view($id)
 {
     $folderModel   = new FolderModel();
     $fileModel     = new FileModel();
@@ -215,7 +214,7 @@ public function deleteSubfolder()
         return redirect()->to($this->role . '/files')->with('error', 'Folder not found.');
     }
 
-    // ✅ Restrict normal users to their own main folder and its subfolders
+    // Restrict normal users to their own main folder and its subfolders
     if ($role === 'user') {
         $userFolderId = $session->get('main_folder_id');
 
@@ -223,32 +222,41 @@ public function deleteSubfolder()
             return redirect()->to('/login')->with('error', 'No main folder assigned to your account.');
         }
 
-        // Check if the requested folder is within the user's allowed scope
         if (!$this->isFolderWithinUserScope($id, $userFolderId, $folderModel)) {
             return redirect()->to('/user/files')->with('error', 'You are not authorized to view this folder.');
         }
     }
 
-    // Build breadcrumb and determine depth
+    // 🧭 Build breadcrumb
     $breadcrumb = $this->buildBreadcrumb($id);
     $depth      = count($breadcrumb);
 
-    // ✅ NEW: Auto-update archive/expiry info before displaying
-    $fileModel->ensureArchiveDates();
+    // 🕓 Start countdown for any active file missing archived_at
+    $activeFilesWithoutDates = $fileModel->where('status', 'active')
+        ->groupStart()
+            ->where('archived_at IS NULL')
+            ->orWhere('archived_at', '')
+        ->groupEnd()
+        ->findAll();
+
+    foreach ($activeFilesWithoutDates as $file) {
+        $fileModel->activateFile($file['id']);
+    }
+
+    // 🔁 Auto-update archive and expiry statuses
     $fileModel->autoArchiveAndExpire();
 
-    // Show files only at depth 3 or deeper
-    $activeFiles   = $depth >= 3 ? $fileModel->getActiveFilesByFolder($id) : [];
-    $archivedFiles = $depth >= 3 ? $fileModel->getArchivedFilesByFolder($id) : [];
+    // 📁 Load active (pending + approved) and archived files
+    $activeFiles   = $fileModel->getActiveFilesByFolder($id);
+    $archivedFiles = $fileModel->getArchivedFilesByFolder($id);
 
-    // Load subfolders
+    // 📂 Load subfolders
     $subfolders = $folderModel->where('parent_folder_id', $id)->findAll();
 
     return view('shared/files', [
         'folders'            => $subfolders,
         'parentFolder'       => $folder,
         'breadcrumb'         => $breadcrumb,
-        'files'              => [], // Optional, if no longer used
         'activeFiles'        => $activeFiles,
         'archivedFiles'      => $archivedFiles,
         'depth'              => $depth,
@@ -260,6 +268,7 @@ public function deleteSubfolder()
         'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
     ]);
 }
+
 
 
 
@@ -373,27 +382,30 @@ public function viewFile($id)
     }
 
     // Check if a folder is within the user's allowed folder hierarchy
-private function isFolderWithinUserScope($folderId, $userMainFolderId, $folderModel)
+private function isFolderWithinUserScope($targetFolderId, $userFolderId, $folderModel)
 {
-    if ($folderId == $userMainFolderId) {
+    // ✅ Direct access to their main folder
+    if ($targetFolderId == $userFolderId) {
         return true;
     }
 
-    $folder = $folderModel->find($folderId);
-    if (!$folder) {
-        return false;
-    }
+    // ✅ Check if target folder is a subfolder (or deeper descendant)
+    $subfolders = $folderModel->where('parent_folder_id', $userFolderId)->findAll();
 
-    // Climb up the folder tree
-    while ($folder && $folder['parent_folder_id']) {
-        if ($folder['parent_folder_id'] == $userMainFolderId) {
+    foreach ($subfolders as $subfolder) {
+        if ($subfolder['id'] == $targetFolderId) {
             return true;
         }
-        $folder = $folderModel->find($folder['parent_folder_id']);
+
+        // 🔁 Recursively check deeper levels
+        if ($this->isFolderWithinUserScope($targetFolderId, $subfolder['id'], $folderModel)) {
+            return true;
+        }
     }
 
     return false;
 }
+
 
 
 }

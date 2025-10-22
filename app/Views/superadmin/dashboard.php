@@ -125,7 +125,7 @@
         </a>
 
         <!-- New Uploaded Files (Pending) -->
-        <a href="<?= site_url('superadmin/files?status=pending') ?>" class="card-link-wrapper">
+        <a href="<?= site_url('superadmin/manage-uploads?status=pending') ?>" class="card-link-wrapper">
             <div class="card shadow-sm text-center">
                 <div class="card-body">
                     <i class="fas fa-upload fa-2x text-info mb-2"></i>

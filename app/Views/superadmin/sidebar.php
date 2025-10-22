@@ -21,7 +21,7 @@ $currentSegment1 = $uri->getSegment(2); // 1 = 'superadmin', 2 = 'dashboard' or 
         <i class="fas fa-folder"></i> FILES
     </a>
 
-    <a href="<?= site_url('superadmin/manage_uploads') ?>" class="nav-link <?= ($currentSegment1 === 'manage_uploads') ? 'active' : '' ?>">
+    <a href="<?= site_url('superadmin/manage-uploads') ?>" class="nav-link <?= ($currentSegment1 === 'manage-uploads') ? 'active' : '' ?>">
         <i class="fas fa-upload"></i> MANAGE UPLOADS
     </a>
 
