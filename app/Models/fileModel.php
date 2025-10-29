@@ -15,6 +15,7 @@ class FileModel extends Model
         'category_id',
         'file_name',
         'file_path',
+        'file_size',
         'uploaded_by',
         'uploaded_at',
         'archived_at',
@@ -84,33 +85,29 @@ class FileModel extends Model
     /**
      * ✅ Activate file — calculate archive/expire dates based on category
      */
-/**
- * ✅ Activate file — calculate archive/expire dates based on category
- */
-public function activateFile($fileId)
-{
-    $file = $this->find($fileId);
-    if (!$file) return false;
+    public function activateFile($fileId)
+    {
+        $file = $this->find($fileId);
+        if (!$file) return false;
 
-    // ✅ Use CodeIgniter CategoryModel (not Eloquent)
-    $categoryModel = new \App\Models\CategoryModel();
-    $category = $categoryModel->find($file['category_id']); // returns array
-    if (!is_array($category)) return false;
+        $categoryModel = new \App\Models\CategoryModel();
+        $category = $categoryModel->find($file['category_id']);
+        if (!is_array($category)) return false;
 
-    $now = date('Y-m-d H:i:s');
+        $now = date('Y-m-d H:i:s');
 
-    // ✅ Calculate archive & expire times from category setup
-    $archivedAt = $this->calculateDate($now, (int)$category['archive_after_value'], $category['archive_after_unit']);
-    $expiredAt  = $this->calculateDate($archivedAt, (int)$category['retention_value'], $category['retention_unit']);
+        // ✅ Calculate archive & expire times from category setup
+        $archivedAt = $this->calculateDate($now, (int)$category['archive_after_value'], $category['archive_after_unit']);
+        $expiredAt  = $this->calculateDate($archivedAt, (int)$category['retention_value'], $category['retention_unit']);
 
-    return $this->update($fileId, [
-        'status'      => 'active',
-        'archived_at' => $archivedAt,
-        'expired_at'  => $expiredAt,
-        'uploaded_at' => $file['uploaded_at'] ?? $now,
-        'is_archived' => 0
-    ]);
-}
+        return $this->update($fileId, [
+            'status'      => 'active',
+            'archived_at' => $archivedAt,
+            'expired_at'  => $expiredAt,
+            'uploaded_at' => $file['uploaded_at'] ?? $now,
+            'is_archived' => 0
+        ]);
+    }
 
     /**
      * ✅ Automatically archive or expire files when due
@@ -145,25 +142,90 @@ public function activateFile($fileId)
     }
 
     /**
-     * ✅ Helper: Add time to a date (based on unit)
+     * ✅ Helper: Add time to a date (now fully supports hours, minutes, seconds)
      */
     private function calculateDate($baseDate, $value, $unit)
     {
         if (!$value || !$unit) return $baseDate;
 
-        $intervalSpec = match (strtolower($unit)) {
-            'years'   => "P{$value}Y",
-            'months'  => "P{$value}M",
-            'days'    => "P{$value}D",
-            'hours'   => "PT{$value}H",
-            'minutes' => "PT{$value}M",
-            'seconds' => "PT{$value}S",
-            default   => "P0D",
-        };
-
         $date = new \DateTime($baseDate, new \DateTimeZone('Asia/Manila'));
-        $date->add(new \DateInterval($intervalSpec));
+
+        switch (strtolower($unit)) {
+            case 'year':
+            case 'years':
+                $date->modify("+{$value} year");
+                break;
+
+            case 'month':
+            case 'months':
+                $date->modify("+{$value} month");
+                break;
+
+            case 'day':
+            case 'days':
+                $date->modify("+{$value} day");
+                break;
+
+            case 'hour':
+            case 'hours':
+                $date->modify("+{$value} hour");
+                break;
+
+            case 'minute':
+            case 'minutes':
+                $date->modify("+{$value} minute");
+                break;
+
+            case 'second':
+            case 'seconds':
+                $date->modify("+{$value} second");
+                break;
+        }
 
         return $date->format('Y-m-d H:i:s');
     }
+
+    /**
+ * ✅ Rename a file (both in filesystem and database)
+ */
+public function renameFile($fileId, $newName)
+{
+    // Get file info
+    $file = $this->find($fileId);
+    if (!$file) {
+        throw new \Exception("File not found.");
+    }
+
+    $oldPath = WRITEPATH . 'uploads/' . $file['file_path']; // adjust if stored elsewhere
+
+    // Ensure file exists in storage
+    if (!file_exists($oldPath)) {
+        throw new \Exception("File does not exist on server.");
+    }
+
+    // Get file extension
+    $extension = pathinfo($file['file_name'], PATHINFO_EXTENSION);
+    $newFileName = $newName . '.' . $extension;
+
+    // Keep the same folder path, rename only the filename
+    $folderPath = dirname($oldPath);
+    $newPath = $folderPath . '/' . $newFileName;
+
+    // Prevent overwriting existing files
+    if (file_exists($newPath)) {
+        throw new \Exception("A file with the same name already exists.");
+    }
+
+    // Rename file in storage
+    if (!rename($oldPath, $newPath)) {
+        throw new \Exception("Failed to rename file on server.");
+    }
+
+    // Update database record
+    return $this->update($fileId, [
+        'file_name' => $newFileName,
+        'file_path' => str_replace(WRITEPATH . 'uploads/', '', $newPath) // relative path
+    ]);
+}
+
 }

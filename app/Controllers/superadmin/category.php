@@ -71,12 +71,12 @@ class Category extends BaseController
             ->with('success', 'Category updated successfully!');
     }
 
-    // Delete category
-    public function delete($id)
-    {
-        $this->categoryModel->delete($id);
+        // Delete category
+        public function delete($id)
+        {
+            $this->categoryModel->delete($id);
 
-        return redirect()->to(site_url('superadmin/category'))
-            ->with('success', 'Category deleted successfully!');
-    }
+            return redirect()->to(site_url('superadmin/category'))
+                ->with('success', 'Category deleted successfully!');
+        }
 }

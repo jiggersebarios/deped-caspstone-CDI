@@ -87,6 +87,7 @@ public function index()
 
 
 
+
     public function add()
     {
         if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_add_folder')) {
@@ -285,40 +286,33 @@ public function upload($folderId)
         return redirect()->back()->with('error', 'Please select a category.');
     }
 
+    // Ensure the "pending" folder exists
+    $pendingPath = FCPATH . 'uploads/pending/';
+    if (!is_dir($pendingPath)) {
+        mkdir($pendingPath, 0777, true);
+    }
+
     $newName = $file->getRandomName();
-    $file->move(WRITEPATH . 'uploads/files', $newName);
+    $file->move($pendingPath, $newName);
 
-    // Determine initial status
-    // By default, newly uploaded files are "pending" until approved
-    $status = 'pending'; 
+    $fileSize = $file->getSize();
 
-    // Insert file record
     (new \App\Models\FileModel())->insert([
         'folder_id'   => $folderId,
         'category_id' => $categoryId,
         'file_name'   => $file->getClientName(),
-        'file_path'   => $newName,
+        'file_path'   => 'uploads/pending/' . $newName, // ✅ store relative path
+        'file_size'   => $fileSize,
         'uploaded_by' => $session->get('id'),
         'uploaded_at' => date('Y-m-d H:i:s'),
-        'status'      => $status,  // new field in the files table
+        'status'      => 'pending',
     ]);
 
-    return redirect()->to($this->role . '/files/view/' . $folderId)->with('success', 'File uploaded successfully. File is pending review.');
+    return redirect()
+        ->to($this->role . '/files/view/' . $folderId)
+        ->with('success', 'File uploaded successfully. File is pending for review.');
 }
 
-
-    public function deleteFile($fileId)
-    {
-        $fileModel = new FileModel();
-        $file      = $fileModel->find($fileId);
-        if (!$file) return redirect()->back()->with('error', 'File not found.');
-
-        $filePath = WRITEPATH . 'uploads/files/' . $file['file_path'];
-        if (file_exists($filePath)) unlink($filePath);
-
-        $fileModel->delete($fileId);
-        return redirect()->to($this->role . '/files/view/' . $file['folder_id'])->with('success', 'File deleted successfully.');
-    }
 
 public function viewFile($id)
 {
@@ -326,36 +320,98 @@ public function viewFile($id)
     $file = $fileModel->find($id);
 
     if (!$file) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException("File not found");
+    }
+
+    $filePath = FCPATH . $file['file_path'];
+
+    if (!file_exists($filePath)) {
+        throw new \CodeIgniter\Exceptions\PageNotFoundException("File does not exist on server");
+    }
+
+    // Display file inline (PDFs, images, etc.)
+    return $this->response
+        ->setHeader('Content-Type', mime_content_type($filePath))
+        ->setHeader('Content-Disposition', 'inline; filename="' . basename($filePath) . '"')
+        ->setBody(file_get_contents($filePath));
+}
+
+public function deleteFile($fileId)
+{
+    $fileModel = new FileModel();
+    $file = $fileModel->find($fileId);
+
+    if (!$file) {
         return redirect()->back()->with('error', 'File not found in database.');
     }
 
-    $filePath = WRITEPATH . 'uploads/files/' . $file['file_path'];
+    // ✅ Correct path - use FCPATH since files are in /public/uploads/
+    $filePath = FCPATH . $file['file_path'];
 
-    if (!file_exists($filePath)) {
-        return redirect()->back()->with('error', 'File not found on server. Path: ' . $filePath);
+    // ✅ Check and delete the actual file from disk
+    if (is_file($filePath)) {
+        if (!unlink($filePath)) {
+            return redirect()->back()->with('error', 'Failed to delete the file from server.');
+        }
+    } else {
+        // Optional: log if the file is missing from folder
+        // log_message('warning', 'File missing at delete: ' . $filePath);
     }
 
-    // ✅ Display file inline (PDF, images, etc.)
-    return $this->response
-                ->setHeader('Content-Type', mime_content_type($filePath))
-                ->setHeader('Content-Disposition', 'inline; filename="' . basename($file['file_name']) . '"')
-                ->setBody(file_get_contents($filePath));
+    // ✅ Remove from database
+    $fileModel->delete($fileId);
+
+    return redirect()
+        ->to($this->role . '/files/view/' . $file['folder_id'])
+        ->with('success', 'File deleted successfully.');
 }
 
 
 
-    public function download($fileId)
-    {
-        $fileModel = new FileModel();
-        $file = $fileModel->find($fileId);
+public function download($fileId)
+{
+    $fileModel = new FileModel();
+    $file = $fileModel->find($fileId);
 
-        if ($file) {
-            $filePath = WRITEPATH . 'uploads/files/' . $file['file_path'];
-            if (is_file($filePath)) return $this->response->download($filePath, null)->setFileName($file['file_name']);
+    if ($file) {
+        // ✅ Use FCPATH since files are in /public/uploads/
+        $filePath = FCPATH . $file['file_path']; 
+
+        if (is_file($filePath)) {
+            return $this->response->download($filePath, null)
+                                  ->setFileName($file['file_name']);
         }
 
+        // Optional debug line to trace path issues
+        // log_message('error', 'Download failed. File not found: ' . $filePath);
+    }
+
+    return redirect()->back()->with('error', 'File not found.');
+}
+
+public function renameFile()
+{
+    $fileId = $this->request->getPost('file_id');
+    $newName = $this->request->getPost('new_name');
+
+    if (empty($fileId) || empty($newName)) {
+        return redirect()->back()->with('error', 'Missing parameters.');
+    }
+
+    $fileModel = new \App\Models\FileModel();
+    $file = $fileModel->find($fileId);
+
+    if (!$file) {
         return redirect()->back()->with('error', 'File not found.');
     }
+
+    // Update filename
+    $fileModel->update($fileId, ['file_name' => $newName]);
+
+    return redirect()->back()->with('success', 'File renamed successfully.');
+}
+
+
 
     private function buildBreadcrumb($id)
     {

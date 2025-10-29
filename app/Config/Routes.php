@@ -34,6 +34,7 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'au
     $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
+    $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 });
 
 // -------------------- SUPERADMIN ROUTES --------------------
@@ -51,6 +52,10 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
+
+    $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+
+
 
     // Global Config
     $routes->get('globalconfig', 'Globalconfig::index');
@@ -99,4 +104,5 @@ $routes->group('user', ['namespace' => 'App\Controllers\User', 'filter' => 'auth
     $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
     $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
+     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 });

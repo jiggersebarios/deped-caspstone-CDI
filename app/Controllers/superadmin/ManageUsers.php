@@ -93,7 +93,7 @@ public function update($id)
         'role'     => $this->request->getPost('role'),
     ];
 
-    // ✅ Optional password update
+    // ✅  password update
     $password = $this->request->getPost('password');
     if (!empty($password)) {
         $data['password'] = password_hash($password, PASSWORD_DEFAULT);

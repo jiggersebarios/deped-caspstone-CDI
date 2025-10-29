@@ -33,13 +33,15 @@ $currentSegment1 = $uri->getSegment(2); // 1 = 'superadmin', 2 = 'dashboard' or 
         <i class="fas fa-tags"></i> CATEGORIES
     </a>
 
-    <a href="<?= site_url('superadmin/globalconfig') ?>" class="nav-link <?= ($currentSegment1 === 'globalconfig') ? 'active' : '' ?>">
-        <i class="fas fa-cogs"></i> GLOBAL CONFIG
-    </a>
 
         <a href="<?= site_url('superadmin/manage_users') ?>" class="nav-link <?= ($currentSegment1 === 'manage_users') ? 'active' : '' ?>">
         <i class="fas fa-users"></i> MANAGE USERS
     </a>
+
+        <a href="<?= site_url('superadmin/globalconfig') ?>" class="nav-link <?= ($currentSegment1 === 'globalconfig') ? 'active' : '' ?>">
+        <i class="fas fa-cogs"></i> GLOBAL CONFIG
+    </a>
+
 
 <?php endif; ?>
 
