@@ -125,9 +125,13 @@ if ($role === 'superadmin') {
 <!-- Upload + Files Table (depth 3 only) -->
 <?php if (isset($depth) && $depth === 3): ?>
     <div class="d-flex justify-content-end mb-3">
-        <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
+        <?php if ($enableUpload): ?>
+   <!-- Upload button code -->
+            <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
             <i class="fa fa-upload mr-2"></i> Upload File
         </button>
+<?php endif; ?>
+
     </div>
 
     <!-- 🧭 Tabs -->
@@ -137,6 +141,9 @@ if ($role === 'superadmin') {
         </li>
         <li class="nav-item">
             <a class="nav-link" id="archived-tab" data-toggle="tab" href="#archived" role="tab">Archived Files</a>
+        </li>
+          <li class="nav-item">
+            <a class="nav-link" id="archived-tab" data-toggle="tab" href="#expired" role="tab">Expired Files</a>
         </li>
     </ul>
 
@@ -214,7 +221,10 @@ if ($role === 'superadmin') {
            class="btn btn-success">
             <i class="fa fa-download"></i> Download
         </a>
-<button type="button" 
+
+        <?php if ($enableEdit): ?>
+       <!-- Edit button code -->
+        <button type="button" 
     class="btn btn-warning" 
     data-toggle="modal" 
     data-target="#renameModal"
@@ -222,14 +232,19 @@ if ($role === 'superadmin') {
     data-file-name="<?= esc($file['file_name']) ?>">
     <i class="fa fa-edit"></i> Edit
 </button>
+         <?php endif; ?>
 
-
-        <form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" 
+         <?php if ($enableDelete): ?>
+   <!-- Delete button code -->
+            <form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" 
               method="post" class="d-inline">
             <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this file?')">
                 <i class="fa fa-trash"></i> Delete
             </button>
         </form>
+    <?php endif; ?>
+
+
     </div>
 </td>
 
@@ -307,6 +322,71 @@ if ($role === 'superadmin') {
             <?php endif; ?>
         </div>
 
+                <!-- 🔴 EXPIRED FILES TAB -->
+        <div class="tab-pane fade" id="expired" role="tabpanel">
+            <?php if (!empty($expiredFiles)): ?>
+                <h5>⚠️ Expired Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <table class="table table-bordered table-striped">
+                    <thead class="thead-dark">
+                        <tr>
+                            <th>ID</th>
+                            <th>File Name</th>
+                            <th>Category</th>
+                            <th>File Size</th>
+                            <th>Uploaded By</th>
+                            <th>Date Uploaded</th>
+                            <th>Date Archived</th>
+                            <th>Date Expired</th>
+                            <th>Status</th>
+                            <th style="width: 200px;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <?php foreach ($expiredFiles as $file): ?>
+                            <tr>
+                                <td><?= $file['id'] ?></td>
+                                <td><?= esc($file['file_name']) ?></td>
+                                <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
+                                <td>
+                                    <?php 
+                                        if (!empty($file['file_size'])) {
+                                            $size = $file['file_size'] < 1048576 
+                                                ? round($file['file_size'] / 1024, 2) . ' KB' 
+                                                : round($file['file_size'] / 1048576, 2) . ' MB';
+                                            echo $size;
+                                        } else {
+                                            echo '—';
+                                        }
+                                    ?>
+                                </td>
+                                <td><?= esc($file['uploader_name'] ?? 'Unknown') ?></td>
+                                <td><?= $file['uploaded_at'] ? date('Y-m-d h:i A', strtotime($file['uploaded_at'])) : '—' ?></td>
+                                <td><?= $file['archived_at'] ? date('Y-m-d h:i A', strtotime($file['archived_at'])) : '—' ?></td>
+                                <td><?= $file['expired_at'] ? date('Y-m-d h:i A', strtotime($file['expired_at'])) : '—' ?></td>
+                                <td><span class="badge badge-danger">Expired</span></td>
+                                <td class="text-center">
+                                    <div class="btn-group btn-group-sm" role="group">
+                                        <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-info">
+                                            <i class="fa fa-eye"></i> View
+                                        </a>
+                                        <?php if ($enableDelete): ?>
+                                            <form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" method="post" class="d-inline">
+                                            <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this expired file permanently?')">
+                                                <i class="fa fa-trash"></i> Delete
+                                            </button>
+                                        </form>
+                                        <?php endif; ?>
+
+                                    </div>
+                                </td>
+                            </tr>
+                        <?php endforeach; ?>
+                    </tbody>
+                </table>
+            <?php else: ?>
+                <p class="text-muted">No expired files found in this folder.</p>
+            <?php endif; ?>
+        </div>
     </div>
 <?php endif; ?>
 
@@ -315,7 +395,7 @@ if ($role === 'superadmin') {
 
 
 <!-- Modals -->
-<!-- 🟡 Rename File Modal -->
+
 
 
 <!-- Add Folder Modal -->

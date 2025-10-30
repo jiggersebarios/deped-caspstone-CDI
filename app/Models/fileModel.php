@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
-use CodeIgniter\Database\Exceptions\DatabaseException;
 
 class FileModel extends Model
 {
@@ -28,7 +27,7 @@ class FileModel extends Model
     public $timestamps = false;
 
     /**
-     * ✅ Fetch all files (with category + uploader info)
+     * Get files with category and uploader info
      */
     public function getFilesWithDetails($folderId = null)
     {
@@ -45,7 +44,7 @@ class FileModel extends Model
     }
 
     /**
-     * ✅ Fetch active or pending files (not archived)
+     * Get active or pending files
      */
     public function getActiveFilesByFolder($folderId)
     {
@@ -64,7 +63,7 @@ class FileModel extends Model
     }
 
     /**
-     * ✅ Fetch archived and expired files
+     * Get archived files
      */
     public function getArchivedFilesByFolder($folderId)
     {
@@ -77,13 +76,13 @@ class FileModel extends Model
         ->join('users', 'users.id = files.uploaded_by', 'left')
         ->where('files.folder_id', $folderId)
         ->where('files.is_archived', 1)
-        ->whereIn('files.status', ['archived', 'expired'])
+        ->where('files.status', 'archived')
         ->orderBy('files.archived_at', 'DESC')
         ->findAll();
     }
 
     /**
-     * ✅ Activate file — calculate archive/expire dates based on category
+     * Activate a file: set archive & expire dates and move file
      */
     public function activateFile($fileId)
     {
@@ -96,27 +95,31 @@ class FileModel extends Model
 
         $now = date('Y-m-d H:i:s');
 
-        // ✅ Calculate archive & expire times from category setup
         $archivedAt = $this->calculateDate($now, (int)$category['archive_after_value'], $category['archive_after_unit']);
         $expiredAt  = $this->calculateDate($archivedAt, (int)$category['retention_value'], $category['retention_unit']);
 
-        return $this->update($fileId, [
+        $this->update($fileId, [
             'status'      => 'active',
             'archived_at' => $archivedAt,
             'expired_at'  => $expiredAt,
             'uploaded_at' => $file['uploaded_at'] ?? $now,
             'is_archived' => 0
         ]);
+
+        // Move file to active folder
+        $this->moveFileByStatus($fileId, 'active');
+
+        return true;
     }
 
     /**
-     * ✅ Automatically archive or expire files when due
+     * Automatically archive or expire files
      */
     public function autoArchiveAndExpire()
     {
         $now = date('Y-m-d H:i:s');
 
-        // 🔹 Move active → archived (archive time reached)
+        // Active → Archived
         $toArchive = $this->where('status', 'active')
             ->where('archived_at <=', $now)
             ->findAll();
@@ -126,9 +129,10 @@ class FileModel extends Model
                 'status'      => 'archived',
                 'is_archived' => 1
             ]);
+            $this->moveFileByStatus($file['id'], 'archived');
         }
 
-        // 🔹 Move archived → expired (expiration time reached)
+        // Archived/Active → Expired
         $toExpire = $this->whereIn('status', ['archived', 'active'])
             ->where('expired_at <=', $now)
             ->findAll();
@@ -138,11 +142,82 @@ class FileModel extends Model
                 'status'      => 'expired',
                 'is_archived' => 1
             ]);
+            $this->moveFileByStatus($file['id'], 'expired');
         }
     }
 
     /**
-     * ✅ Helper: Add time to a date (now fully supports hours, minutes, seconds)
+     * Move a file physically based on status
+     */
+    public function moveFileByStatus($fileId, $newStatus)
+    {
+        $file = $this->find($fileId);
+        if (!$file) return false;
+
+        $currentPath = FCPATH . $file['file_path'];
+
+        switch ($newStatus) {
+            case 'active':
+                $destFolder = FCPATH . 'uploads/active/';
+                break;
+            case 'archived':
+                $destFolder = FCPATH . 'uploads/archive/';
+                break;
+            case 'expired':
+                $destFolder = FCPATH . 'uploads/expired/';
+                break;
+            case 'pending':
+            default:
+                $destFolder = FCPATH . 'uploads/pending/';
+        }
+
+        if (!is_dir($destFolder)) mkdir($destFolder, 0777, true);
+
+        $filename = basename($currentPath);
+        $newPath = $destFolder . $filename;
+
+        if (!rename($currentPath, $newPath)) {
+            log_message('error', "Failed to move file {$filename} to {$destFolder}");
+            return false;
+        }
+
+        // Update database path and status
+        $this->update($fileId, [
+            'file_path' => str_replace(FCPATH, '', $newPath),
+            'status'    => $newStatus
+        ]);
+
+        return true;
+    }
+
+    /**
+     * Rename a file on disk and in database
+     */
+    public function renameFile($fileId, $newName)
+    {
+        $file = $this->find($fileId);
+        if (!$file) throw new \Exception("File not found.");
+
+        $oldPath = FCPATH . $file['file_path'];
+        if (!file_exists($oldPath)) throw new \Exception("File does not exist on server.");
+
+        $extension = pathinfo($file['file_name'], PATHINFO_EXTENSION);
+        $newFileName = $newName . '.' . $extension;
+        $folderPath = dirname($oldPath);
+        $newPath = $folderPath . '/' . $newFileName;
+
+        if (file_exists($newPath)) throw new \Exception("A file with the same name already exists.");
+
+        if (!rename($oldPath, $newPath)) throw new \Exception("Failed to rename file on server.");
+
+        return $this->update($fileId, [
+            'file_name' => $newFileName,
+            'file_path' => str_replace(FCPATH, '', $newPath)
+        ]);
+    }
+
+    /**
+     * Helper: add time to date
      */
     private function calculateDate($baseDate, $value, $unit)
     {
@@ -153,79 +228,24 @@ class FileModel extends Model
         switch (strtolower($unit)) {
             case 'year':
             case 'years':
-                $date->modify("+{$value} year");
-                break;
-
+                $date->modify("+{$value} year"); break;
             case 'month':
             case 'months':
-                $date->modify("+{$value} month");
-                break;
-
+                $date->modify("+{$value} month"); break;
             case 'day':
             case 'days':
-                $date->modify("+{$value} day");
-                break;
-
+                $date->modify("+{$value} day"); break;
             case 'hour':
             case 'hours':
-                $date->modify("+{$value} hour");
-                break;
-
+                $date->modify("+{$value} hour"); break;
             case 'minute':
             case 'minutes':
-                $date->modify("+{$value} minute");
-                break;
-
+                $date->modify("+{$value} minute"); break;
             case 'second':
             case 'seconds':
-                $date->modify("+{$value} second");
-                break;
+                $date->modify("+{$value} second"); break;
         }
 
         return $date->format('Y-m-d H:i:s');
     }
-
-    /**
- * ✅ Rename a file (both in filesystem and database)
- */
-public function renameFile($fileId, $newName)
-{
-    // Get file info
-    $file = $this->find($fileId);
-    if (!$file) {
-        throw new \Exception("File not found.");
-    }
-
-    $oldPath = WRITEPATH . 'uploads/' . $file['file_path']; // adjust if stored elsewhere
-
-    // Ensure file exists in storage
-    if (!file_exists($oldPath)) {
-        throw new \Exception("File does not exist on server.");
-    }
-
-    // Get file extension
-    $extension = pathinfo($file['file_name'], PATHINFO_EXTENSION);
-    $newFileName = $newName . '.' . $extension;
-
-    // Keep the same folder path, rename only the filename
-    $folderPath = dirname($oldPath);
-    $newPath = $folderPath . '/' . $newFileName;
-
-    // Prevent overwriting existing files
-    if (file_exists($newPath)) {
-        throw new \Exception("A file with the same name already exists.");
-    }
-
-    // Rename file in storage
-    if (!rename($oldPath, $newPath)) {
-        throw new \Exception("Failed to rename file on server.");
-    }
-
-    // Update database record
-    return $this->update($fileId, [
-        'file_name' => $newFileName,
-        'file_path' => str_replace(WRITEPATH . 'uploads/', '', $newPath) // relative path
-    ]);
-}
-
 }

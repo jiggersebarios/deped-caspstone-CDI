@@ -14,16 +14,37 @@ class Globalconfig extends BaseController
         $this->configModel = new GlobalconfigModel();
     }
 
-    public function index()
-    {
-        $configs = $this->configModel->findAll();
+public function index()
+{
+    $role = session()->get('role') ?? 'user';
+    $user_controls = $this->configModel->getUserControls();
 
-        return view('superadmin/globalconfig', [
-            'title'   => 'Global Configuration',
-            'configs' => $configs
-        ]);
+    $canUpload = ($role === 'user') && (($user_controls['enable_file_upload'] ?? 0) == 1);
+    $canEdit   = ($role === 'user') && (($user_controls['enable_file_edit'] ?? 0) == 1);
+    $canDelete = ($role === 'user') && (($user_controls['enable_file_delete'] ?? 0) == 1);
+
+    if (in_array($role, ['admin', 'superadmin'])) {
+        $canUpload = $canEdit = $canDelete = true;
     }
 
+    $data = [
+        'title' => 'Global Configuration',
+        'configs' => $this->configModel->getAdminControls(),
+        'user_controls' => $user_controls,
+        'role' => $role,
+        'canUpload' => $canUpload,
+        'canEdit' => $canEdit,
+        'canDelete' => $canDelete,
+    ];
+
+    return view('superadmin/globalconfig', $data);
+}
+
+
+
+
+
+    
     public function toggle()
     {
         $id     = $this->request->getPost('id');

@@ -35,6 +35,12 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'au
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+
+     $routes->get('category', 'Category::index');
+ 
+
+
+    
 });
 
 // -------------------- SUPERADMIN ROUTES --------------------

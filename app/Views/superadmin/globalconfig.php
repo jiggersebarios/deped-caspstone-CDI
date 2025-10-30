@@ -94,26 +94,44 @@
     </table>
 <br>
   <!-- usertable -->
-        <table class="table table-bordered align-middle config-table">
-        <tr>
-            <th colspan="2">User Controls</th>
-        </tr>
-
-        <tr>
-            <th style="width:70%">Setting</th>
-            <th style="width:30%">Status</th>
-        </tr>
-    </thead>
-<tbody>
-    <!-- Empty for now -->
+<!-- usertable -->
+<table class="table table-bordered align-middle config-table">
     <tr>
-        <td colspan="2" class="text-center text-muted">No user settings available for now</td>
+        <th colspan="2">User Controls</th>
     </tr>
-</tbody>
-    </table>
-</div>
+    <tr>
+        <th style="width:70%">Setting</th>
+        <th style="width:30%">Status</th>
+    </tr>
+    <tbody>
+        <?php if (!empty($user_controls)): ?>
+            <?php foreach ($user_controls as $uc): ?>
+                <tr>
+                    <td class="fw-medium">
+                        <?= ucwords(str_replace("_", " ", $uc['setting_key'])) ?>
+                    </td>
+                    <td>
+                        <div class="form-check form-switch d-flex align-items-center">
+                            <input 
+                                class="form-check-input toggle-switch me-2" 
+                                type="checkbox" 
+                                data-id="<?= $uc['id'] ?>" 
+                                <?= $uc['setting_value'] == 1 ? 'checked' : '' ?>>
+                            <label class="form-check-label mb-0">
+                                <?= $uc['setting_value'] == 1 ? 'ON' : 'OFF' ?>
+                            </label>
+                        </div>
+                    </td>
+                </tr>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="2" class="text-center text-muted">No user settings available</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
 
-</div>
 
 
 

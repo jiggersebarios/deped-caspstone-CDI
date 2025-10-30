@@ -58,6 +58,7 @@
 
 <?= $this->include('superadmin/sidebar') ?>
 
+
 <div class="content">
     <h2 class="page-header"><i class="fa-solid fa-tags"></i> Manage Categories</h2>
 

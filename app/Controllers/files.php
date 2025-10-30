@@ -24,62 +24,68 @@ class Files extends BaseController
 public function index()
 {
     $folderModel = new FolderModel();
-    $search = $this->request->getGet('search');
-    $role = $this->role;
-    $session = session();
+    $search      = $this->request->getGet('search');
+    $role        = $this->role;
+    $session     = session();
 
-    $viewMode = $this->request->getGet('view') ?? 'grid';
     $viewFile = 'shared/files';
 
     if ($role === 'user') {
-        // ✅ Get the user's assigned main folder
         $userFolderId = $session->get('main_folder_id');
-
         if (!$userFolderId) {
             return redirect()->to('/login')->with('error', 'No main folder assigned to your account.');
         }
 
-        // ✅ Only fetch subfolders of their main folder
         $query = $folderModel->where('parent_folder_id', $userFolderId);
+        if ($search) $query = $query->like('folder_name', $search);
 
-        if ($search) {
-            $query = $query->like('folder_name', $search);
-        }
-
-        $folders = $query->findAll();
-
-        // ✅ Also load the parent folder (for breadcrumb display)
+        $folders      = $query->findAll();
         $parentFolder = $folderModel->find($userFolderId);
-
     } else {
-        // ✅ For admin/superadmin, show all root folders
         $query = $folderModel
             ->groupStart()
                 ->where('parent_folder_id', null)
                 ->orWhere('parent_folder_id', 0)
             ->groupEnd();
+        if ($search) $query = $query->like('folder_name', $search);
 
-        if ($search) {
-            $query = $query->like('folder_name', $search);
-        }
-
-        $folders = $query->findAll();
+        $folders      = $query->findAll();
         $parentFolder = null;
     }
+
+    // ✅ Load global config toggles
+    $configModel = $this->configModel;
+    $rawEnableUpload = $configModel->isEnabled('enable_file_uploads');
+    $rawEnableEdit   = $configModel->isEnabled('enable_file_edit');
+    $rawEnableDelete = $configModel->isEnabled('enable_file_delete');
+
+    // ✅ Make them role-aware
+    $enableUpload = ($role === 'user') ? $rawEnableUpload : 1;
+    $enableEdit   = ($role === 'user') ? $rawEnableEdit   : 1;
+    $enableDelete = ($role === 'user') ? $rawEnableDelete : 1;
 
     return view($viewFile, [
         'folders'            => $folders,
         'parentFolder'       => $parentFolder,
         'breadcrumb'         => [],
-        'files'              => [],
+        'activeFiles'        => [],
+        'archivedFiles'      => [],
+        'expiredFiles'       => [],
         'depth'              => 1,
         'search'             => $search,
         'role'               => $role,
+        'categories'         => (new CategoryModel())->findAll(),
+
+        // Admin/Superadmin controls
         'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
         'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
         'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
         'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
-        'categories'         => (new CategoryModel())->findAll(),
+
+        // User controls
+        'enableUpload'       => $enableUpload,
+        'enableEdit'         => $enableEdit,
+        'enableDelete'       => $enableDelete,
     ]);
 }
 
@@ -207,6 +213,7 @@ public function view($id)
     $folderModel   = new FolderModel();
     $fileModel     = new FileModel();
     $categoryModel = new CategoryModel();
+    $configModel   = $this->configModel;
     $session       = session();
     $role          = $session->get('role');
 
@@ -228,31 +235,28 @@ public function view($id)
         }
     }
 
-    // 🧭 Build breadcrumb
+    // Build breadcrumb
     $breadcrumb = $this->buildBreadcrumb($id);
     $depth      = count($breadcrumb);
 
-    // 🕓 Start countdown for any active file missing archived_at
-    $activeFilesWithoutDates = $fileModel->where('status', 'active')
-        ->groupStart()
-            ->where('archived_at IS NULL')
-            ->orWhere('archived_at', '')
-        ->groupEnd()
-        ->findAll();
-
-    foreach ($activeFilesWithoutDates as $file) {
-        $fileModel->activateFile($file['id']);
-    }
-
-    // 🔁 Auto-update archive and expiry statuses
+    // Auto-update archive and expiry statuses
     $fileModel->autoArchiveAndExpire();
 
-    // 📁 Load active (pending + approved) and archived files
+    // Load files and subfolders
     $activeFiles   = $fileModel->getActiveFilesByFolder($id);
     $archivedFiles = $fileModel->getArchivedFilesByFolder($id);
+    $expiredFiles  = $fileModel->where('folder_id', $id)->where('status', 'expired')->findAll();
+    $subfolders    = $folderModel->where('parent_folder_id', $id)->findAll();
 
-    // 📂 Load subfolders
-    $subfolders = $folderModel->where('parent_folder_id', $id)->findAll();
+    // Load global config toggles
+    $rawEnableUpload = $configModel->isEnabled('enable_file_uploads');
+    $rawEnableEdit   = $configModel->isEnabled('enable_file_edit');
+    $rawEnableDelete = $configModel->isEnabled('enable_file_delete');
+
+    // Role-aware
+    $enableUpload = ($role === 'user') ? $rawEnableUpload : 1;
+    $enableEdit   = ($role === 'user') ? $rawEnableEdit   : 1;
+    $enableDelete = ($role === 'user') ? $rawEnableDelete : 1;
 
     return view('shared/files', [
         'folders'            => $subfolders,
@@ -260,17 +264,23 @@ public function view($id)
         'breadcrumb'         => $breadcrumb,
         'activeFiles'        => $activeFiles,
         'archivedFiles'      => $archivedFiles,
+        'expiredFiles'       => $expiredFiles,
         'depth'              => $depth,
         'categories'         => $categoryModel->findAll(),
         'role'               => $role,
+
+        // Admin controls
         'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
         'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
         'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
         'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
+
+        // User controls
+        'enableUpload'       => $enableUpload,
+        'enableEdit'         => $enableEdit,
+        'enableDelete'       => $enableDelete,
     ]);
 }
-
-
 
 
 public function upload($folderId)
@@ -286,26 +296,41 @@ public function upload($folderId)
         return redirect()->back()->with('error', 'Please select a category.');
     }
 
-    // Ensure the "pending" folder exists
-    $pendingPath = FCPATH . 'uploads/pending/';
-    if (!is_dir($pendingPath)) {
-        mkdir($pendingPath, 0777, true);
+    // Determine initial status (pending by default)
+    $status = 'pending'; // You can also allow admin to set it to 'active'
+
+    // Map status to folder path
+    $statusFolders = [
+        'pending'  => FCPATH . 'uploads/pending/',
+        'active'   => FCPATH . 'uploads/active/',
+        'archived' => FCPATH . 'uploads/archive/',
+        'expired'  => FCPATH . 'uploads/expired/'
+    ];
+
+    $destFolder = $statusFolders[$status];
+
+    // Ensure folder exists
+    if (!is_dir($destFolder)) {
+        mkdir($destFolder, 0777, true);
     }
 
+    // Generate random file name to prevent conflicts
     $newName = $file->getRandomName();
-    $file->move($pendingPath, $newName);
+    $file->move($destFolder, $newName);
 
     $fileSize = $file->getSize();
 
+    // Insert into database
     (new \App\Models\FileModel())->insert([
         'folder_id'   => $folderId,
         'category_id' => $categoryId,
         'file_name'   => $file->getClientName(),
-        'file_path'   => 'uploads/pending/' . $newName, // ✅ store relative path
+        'file_path'   => str_replace(FCPATH, '', $destFolder . $newName),
         'file_size'   => $fileSize,
         'uploaded_by' => $session->get('id'),
         'uploaded_at' => date('Y-m-d H:i:s'),
-        'status'      => 'pending',
+        'status'      => $status,
+        'is_archived' => 0
     ]);
 
     return redirect()
@@ -329,12 +354,40 @@ public function viewFile($id)
         throw new \CodeIgniter\Exceptions\PageNotFoundException("File does not exist on server");
     }
 
-    // Display file inline (PDFs, images, etc.)
+    $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
+
+    // ✅ 1. Show PDFs or Images inline
+    if (in_array($extension, ['pdf', 'jpg', 'jpeg', 'png', 'gif'])) {
+        return $this->response
+            ->setHeader('Content-Type', mime_content_type($filePath))
+            ->setHeader('Content-Disposition', 'inline; filename="' . basename($filePath) . '"')
+            ->setBody(file_get_contents($filePath));
+    }
+
+    // ✅ 2. DOCX → use shared/docx_viewer.php
+    if ($extension === 'docx') {
+        $data = [
+            'fileUrl' => base_url($file['file_path']),
+            'fileName' => $file['file_name']
+        ];
+        return view('shared/docx_viewer', $data);
+    }
+
+    // ✅ 3. XLSX → use shared/xlsx_viewer.php
+    if ($extension === 'xlsx') {
+        $data = [
+            'fileUrl' => base_url($file['file_path']),
+            'fileName' => $file['file_name']
+        ];
+        return view('shared/xlsx_viewer', $data);
+    }
+
+    // ✅ 4. Other file types → download
     return $this->response
-        ->setHeader('Content-Type', mime_content_type($filePath))
-        ->setHeader('Content-Disposition', 'inline; filename="' . basename($filePath) . '"')
-        ->setBody(file_get_contents($filePath));
+        ->download($filePath, null)
+        ->setFileName(basename($filePath));
 }
+
 
 public function deleteFile($fileId)
 {
@@ -355,7 +408,7 @@ public function deleteFile($fileId)
         }
     } else {
         // Optional: log if the file is missing from folder
-        // log_message('warning', 'File missing at delete: ' . $filePath);
+        log_message('warning', 'File missing at delete: ' . $filePath);
     }
 
     // ✅ Remove from database
@@ -391,8 +444,8 @@ public function download($fileId)
 
 public function renameFile()
 {
-    $fileId = $this->request->getPost('file_id');
-    $newName = $this->request->getPost('new_name');
+    $fileId  = $this->request->getPost('file_id');
+    $newName = trim($this->request->getPost('new_name'));
 
     if (empty($fileId) || empty($newName)) {
         return redirect()->back()->with('error', 'Missing parameters.');
@@ -405,11 +458,39 @@ public function renameFile()
         return redirect()->back()->with('error', 'File not found.');
     }
 
-    // Update filename
-    $fileModel->update($fileId, ['file_name' => $newName]);
+    // Get original file name regardless of return type (array or object)
+    if (is_array($file)) {
+        $originalName = $file['file_name'] ?? '';
+    } elseif (is_object($file)) {
+        // support stdClass, Eloquent models, or CI model objects with properties
+        $originalName = $file->file_name ?? (property_exists($file, 'file_name') ? $file->file_name : '');
+    } else {
+        $originalName = '';
+    }
 
-    return redirect()->back()->with('success', 'File renamed successfully.');
+    // Get original file extension
+    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
+
+    // Remove any extension typed by user to avoid overriding original type
+    $newBaseName = pathinfo($newName, PATHINFO_FILENAME);
+
+    // Optional: sanitize new filename to remove invalid characters
+    $newBaseName = preg_replace('/[^A-Za-z0-9_\- ]/', '', $newBaseName);
+
+    if (empty($newBaseName)) {
+        return redirect()->back()->with('error', 'Invalid file name.');
+    }
+
+    $finalName = $newBaseName . '.' . $extension;
+
+    try {
+        $fileModel->update($fileId, ['file_name' => $finalName]);
+        return redirect()->back()->with('success', 'File renamed successfully.');
+    } catch (\Exception $e) {
+        return redirect()->back()->with('error', 'Failed to rename file.');
+    }
 }
+
 
 
 

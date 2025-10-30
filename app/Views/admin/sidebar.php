@@ -3,6 +3,13 @@ $session = session();
 $userName = $session->get('username');
 $userRole = $session->get('role') ?? 'user';
 ?>
+<?php if (isset($config['allow_admin_to_access_category']) && $config['allow_admin_to_access_category'] == 1): ?>
+<li>
+    <a href="<?= site_url('admin/category') ?>">
+        <i class="fas fa-tags"></i> <span>Categories</span>
+    </a>
+</li>
+<?php endif; ?>
 
 <div class="sidebar">
     <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
@@ -24,6 +31,13 @@ $userRole = $session->get('role') ?? 'user';
                 <i class="fas fa-tasks"></i> MANAGE REQUEST
             </a>
 
+
+<a href="<?= site_url('admin/category') ?>" class="nav-link">
+    <i class="fas fa-tags"></i> CATEGORIES
+</a>
+
+
+
         <?php else : ?>
             <!-- User-specific links -->
             <a href="<?= site_url('dashboard') ?>" class="nav-link">
@@ -34,16 +48,13 @@ $userRole = $session->get('role') ?? 'user';
             </a>
         <?php endif; ?>
     </nav>
-    
 
-<a href="<?= site_url('logout') ?>" class="logout-btn">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</a>
-
+    <a href="<?= site_url('logout') ?>" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
 </div>
 
 <style>
-
 .sidebar {
     background-color: #2C2C2C;
     color: white;
@@ -71,11 +82,10 @@ $userRole = $session->get('role') ?? 'user';
 }
 
 .sidebar .nav-link {
-    color: #ffffff; /* corrected */
+    color: #ffffff;
     margin: 12px 0;
     text-decoration: none;
     padding: 8px 0;
-    position: relative;
     transition: all 0.3s ease;
     font-weight: 500;
     font-size: 15px;
@@ -92,7 +102,7 @@ $userRole = $session->get('role') ?? 'user';
 }
 
 .sidebar .logout-btn {
-    margin-top: 100px;
+    margin-top: auto;
     background-color: #b23b3b;
     color: white;
     width: 70%;
@@ -115,13 +125,6 @@ $userRole = $session->get('role') ?? 'user';
     color: white;
 }
 
-.sidebar a {
-    font-weight: normal;
-    color: #ffffff; /* fixed */
-    text-decoration: none;
-}
-
-/* Keep hover consistent */
 .sidebar a:hover {
     color: #ECB439;
     text-decoration: none;
@@ -131,6 +134,4 @@ $userRole = $session->get('role') ?? 'user';
     color: #ECB439 !important;
     font-weight: 600;
 }
-
-
 </style>
