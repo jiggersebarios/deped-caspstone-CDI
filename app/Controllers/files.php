@@ -458,23 +458,17 @@ public function renameFile()
         return redirect()->back()->with('error', 'File not found.');
     }
 
-    // Get original file name regardless of return type (array or object)
-    if (is_array($file)) {
-        $originalName = $file['file_name'] ?? '';
-    } elseif (is_object($file)) {
-        // support stdClass, Eloquent models, or CI model objects with properties
-        $originalName = $file->file_name ?? (property_exists($file, 'file_name') ? $file->file_name : '');
-    } else {
-        $originalName = '';
+    // Normalize access for model results that may be returned as array or object
+    $status = is_array($file) ? ($file['status'] ?? null) : ($file->status ?? null);
+    $fileName = is_array($file) ? ($file['file_name'] ?? '') : ($file->file_name ?? '');
+
+    // Prevent renaming archived or expired files
+    if (in_array($status, ['archived', 'expired'])) {
+        return redirect()->back()->with('error', 'Archived or expired files are immutable and cannot be renamed.');
     }
 
-    // Get original file extension
-    $extension = pathinfo($originalName, PATHINFO_EXTENSION);
-
-    // Remove any extension typed by user to avoid overriding original type
+    $extension = pathinfo($fileName, PATHINFO_EXTENSION);
     $newBaseName = pathinfo($newName, PATHINFO_FILENAME);
-
-    // Optional: sanitize new filename to remove invalid characters
     $newBaseName = preg_replace('/[^A-Za-z0-9_\- ]/', '', $newBaseName);
 
     if (empty($newBaseName)) {
@@ -490,6 +484,7 @@ public function renameFile()
         return redirect()->back()->with('error', 'Failed to rename file.');
     }
 }
+
 
 
 

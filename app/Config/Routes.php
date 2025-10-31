@@ -7,47 +7,63 @@ use CodeIgniter\Router\RouteCollection;
  */
 $routes->get('/', 'Home::index');
 
-// -------------------- Authentication --------------------
+// =============================================================
+// 🔐 AUTHENTICATION
+// =============================================================
 $routes->get('/login', 'Login::index');
 $routes->post('/login/auth', 'Login::auth');
 $routes->get('/logout', 'Login::logout');
 
-// -------------------- USER DASHBOARD --------------------
+// =============================================================
+// 🧭 DASHBOARDS
+// =============================================================
 $routes->get('/dashboard', 'Dashboard::index');
-
-// -------------------- ADMIN DASHBOARD --------------------
-// Use correct namespaced controller
 $routes->get('/admin/dashboard', 'Admin\Dashboard::index');
 
-// -------------------- ADMIN ROUTES --------------------
+// =============================================================
+// 📂 ADMIN ROUTES
+// =============================================================
 $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'auth'], function ($routes) {
+
+    // Dashboard
     $routes->get('dashboard', 'Dashboard::index');
 
-    // Shared Files Controller (from App\Controllers)
+    // 🔹 FILE MANAGEMENT
     $routes->get('files', '\App\Controllers\Files::index');
+    $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
     $routes->post('files/add', '\App\Controllers\Files::add');
+    $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
     $routes->post('files/delete', '\App\Controllers\Files::delete');
     $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
-    $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
-    $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
     $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
-    $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 
-     $routes->get('category', 'Category::index');
- 
+    // 🔹 CATEGORY
+    $routes->get('category', 'Category::index');
 
+        // 🔹 MANAGE UPLOADS (Admin)
+$routes->get('manage_uploads', '\App\Controllers\ManageUploads::index');
+$routes->get('manage_uploads/accept/(:num)', '\App\Controllers\ManageUploads::accept/$1');
+$routes->get('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::reject/$1');
 
-    
+    // 🔹 FILE REQUESTS (Admin)
+    $routes->get('manage_request', '\App\Controllers\Request::manage');  // Manage list page
+    $routes->post('request/submit', '\App\Controllers\Request::submit'); // File request submission
+    $routes->get('manage_request/approve/(:num)', '\App\Controllers\Request::approve/$1');
+    $routes->get('manage_request/deny/(:num)', '\App\Controllers\Request::deny/$1');
 });
 
-// -------------------- SUPERADMIN ROUTES --------------------
+// =============================================================
+// 📂 SUPERADMIN ROUTES
+// =============================================================
 $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filter' => 'auth'], function ($routes) {
+
+    // Dashboard
     $routes->get('dashboard', 'Dashboard::index');
 
-    // Shared Files Controller
+    // 🔹 FILE MANAGEMENT
     $routes->get('files', '\App\Controllers\Files::index');
     $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
     $routes->post('files/add', '\App\Controllers\Files::add');
@@ -55,60 +71,58 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->post('files/delete', '\App\Controllers\Files::delete');
     $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
     $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
-    $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
-
     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 
-
-
-    // Global Config
-    $routes->get('globalconfig', 'Globalconfig::index');
-    $routes->post('globalconfig/toggle', 'Globalconfig::toggle');
-
-    // Category Management
+    // 🔹 CATEGORY
     $routes->get('category', 'Category::index');
-    $routes->get('category/create', 'Category::create');
-    $routes->post('category/store', 'Category::store');
-    $routes->get('category/edit/(:num)', 'Category::edit/$1');
-    $routes->post('category/update/(:num)', 'Category::update/$1');
-    $routes->post('category/delete/(:num)', 'Category::delete/$1');
 
-    // Manage Users
+    // 🔹 MANAGE USERS
     $routes->get('manage_users', 'ManageUsers::index');
     $routes->post('manage_users/store', 'ManageUsers::store');
     $routes->post('manage_users/update/(:num)', 'ManageUsers::update/$1');
     $routes->get('manage_users/delete/(:num)', 'ManageUsers::delete/$1');
+
+// 🔹 MANAGE UPLOADS (Superadmin)
+$routes->get('manage_uploads', '\App\Controllers\ManageUploads::index');
+$routes->get('manage_uploads/accept/(:num)', '\App\Controllers\ManageUploads::accept/$1');
+$routes->get('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::reject/$1');
+
+    // 🔹 FILE REQUESTS (Superadmin)
+    $routes->get('manage_request', '\App\Controllers\Request::manage');
+    $routes->post('request/submit', '\App\Controllers\Request::submit');
+    $routes->get('manage_request/approve/(:num)', '\App\Controllers\Request::approve/$1');
+    $routes->get('manage_request/deny/(:num)', '\App\Controllers\Request::deny/$1');
+
+        // Global Configuration
+    $routes->get('globalconfig', 'Globalconfig::index');       // View settings
+    $routes->post('globalconfig/toggle', 'Globalconfig::toggle'); // Toggle a setting via AJAX
 });
 
-// -------------------- FILE MANAGEMENT --------------------
-$routes->post('superadmin/files/deleteMainFolder', 'Superadmin\Files::deleteMainFolder');
-$routes->post('admin/files/deleteMainFolder', 'Admin\Files::deleteMainFolder');
-
-// -------------------- MANAGE UPLOADS (shared) --------------------
-$routes->get('manage-uploads', 'ManageUploads::index');
-$routes->get('manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
-$routes->get('manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
-
-$routes->get('admin/manage-uploads', 'ManageUploads::index');
-$routes->get('admin/manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
-$routes->get('admin/manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
-
-$routes->get('superadmin/manage-uploads', 'ManageUploads::index');
-$routes->get('superadmin/manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
-$routes->get('superadmin/manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
-
-// -------------------- USER ROUTES --------------------
+// =============================================================
+// 👤 USER ROUTES
+// =============================================================
 $routes->group('user', ['namespace' => 'App\Controllers\User', 'filter' => 'auth'], function ($routes) {
+
+    // Dashboard
     $routes->get('dashboard', 'Dashboard::index');
 
-    // Shared Files Controller
+    // 🔹 FILE MANAGEMENT
     $routes->get('files', '\App\Controllers\Files::index');
     $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
     $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
     $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
     $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
-     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+    $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+
+    // 🔹 FILE REQUESTS (User)
+    $routes->get('request', '\App\Controllers\Request::userRequests');
+    $routes->post('request/submit', '\App\Controllers\Request::submit');
 });
+
+// =============================================================
+// 🧩 ONE-TIME DOWNLOAD HANDLER
+// =============================================================
+$routes->get('request/download/(:segment)', 'Request::download/$1');

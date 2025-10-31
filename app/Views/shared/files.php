@@ -311,7 +311,11 @@ if ($role === 'superadmin') {
                                 </td>
                                 
                                 <td>
-                                    <a href="<?= site_url($role . '/requests/create/' . $file['id']) ?>" class="btn btn-sm btn-info">Request</a>
+                                    <button class="btn btn-sm btn-info" 
+                                     data-toggle="modal" 
+                                    data-target="#requestModal"
+                                    data-file-id="<?= $file['id'] ?>"
+                                    data-file-name="<?= esc($file['file_name']) ?>">Request </button>
                                 </td>
                             </tr>
                         <?php endforeach; ?>
@@ -542,6 +546,41 @@ if ($role === 'superadmin') {
   </div>
 </div>
 
+<!-- 📄 Request File Modal -->
+<div class="modal fade" id="requestModal" tabindex="-1" role="dialog" aria-labelledby="requestModalLabel" aria-hidden="true">
+  <div class="modal-dialog" role="document">
+   <form action="<?= site_url('superadmin/request/submit') ?>" method="post">
+
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title" id="requestModalLabel">Request File</h5>
+          <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+            <span>&times;</span>
+          </button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="file_id" id="request-file-id">
+
+          <div class="form-group">
+            <label>File Name</label>
+            <input type="text" class="form-control" id="request-file-name" readonly>
+          </div>
+
+          <div class="form-group">
+            <label for="request-reason">Reason for Request</label>
+            <textarea name="reason" id="request-reason" class="form-control" rows="4" required placeholder="Please explain why you are requesting this file..."></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-dismiss="modal">Cancel</button>
+          <button type="submit" class="btn btn-primary">Submit Request</button>
+        </div>
+      </div>
+    </form>
+  </div>
+</div>
+
+
 <!-- 🟡 Rename File Modal -->
 <div class="modal fade" id="renameModal" tabindex="-1" role="dialog" aria-labelledby="renameModalLabel" aria-hidden="true">
   <div class="modal-dialog" role="document">
@@ -586,6 +625,16 @@ $('#renameModal').on('show.bs.modal', function (event) {
     modal.find('#rename-file-name').val(fileName);
 });
 
+//request\
+$('#requestModal').on('show.bs.modal', function (event) {
+    var button = $(event.relatedTarget);
+    var fileId = button.data('file-id');
+    var fileName = button.data('file-name');
+
+    var modal = $(this);
+    modal.find('#request-file-id').val(fileId);
+    modal.find('#request-file-name').val(fileName);
+});
 
 
 </script>

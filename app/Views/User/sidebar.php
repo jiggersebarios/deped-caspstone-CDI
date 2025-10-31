@@ -3,7 +3,7 @@ $session = session();
 $userName = $session->get('username');
 $userRole = $session->get('role') ?? 'user';
 
-// Get current URL segment to highlight active links
+// Get current URL path to highlight active links
 $uri = service('uri');
 $currentPath = $uri->getPath();
 ?>
@@ -27,19 +27,21 @@ $currentPath = $uri->getPath();
             <a href="<?= site_url('user/dashboard') ?>" class="nav-link <?= ($currentPath === 'user/dashboard') ? 'active' : '' ?>">
                 <i class="fas fa-tachometer-alt"></i> DASHBOARD
             </a>
- <a href="<?= site_url('admin/files') ?>" class="nav-link">
-        <i class="fas fa-folder"></i> FILES
-    </a>
+            <a href="<?= site_url('user/files') ?>" class="nav-link <?= ($currentPath === 'user/files') ? 'active' : '' ?>">
+                <i class="fas fa-folder"></i> FILES
+            </a>
+            <a href="<?= site_url('user/request') ?>" class="nav-link <?= ($currentPath === 'user/request') ? 'active' : '' ?>">
+                <i class="fas fa-tasks"></i> REQUESTS
+            </a>
             <a href="<?= site_url('user/profile') ?>" class="nav-link <?= ($currentPath === 'user/profile') ? 'active' : '' ?>">
                 <i class="fas fa-user"></i> PROFILE
             </a>
         <?php endif; ?>
     </nav>
 
-<a href="<?= site_url('logout') ?>" class="logout-btn">
-    <i class="fas fa-sign-out-alt"></i> Logout
-</a>
-
+    <a href="<?= site_url('logout') ?>" class="logout-btn">
+        <i class="fas fa-sign-out-alt"></i> Logout
+    </a>
 </div>
 
 <style>

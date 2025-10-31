@@ -1,4 +1,10 @@
 <?php
+$uri = service('uri');
+$currentSegment1 = $uri->getSegment(1); // e.g., 'admin' or 'superadmin'
+$currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
+?>
+
+<?php
 $session = session();
 $userName = $session->get('username');
 $userRole = $session->get('role') ?? 'user';
@@ -24,12 +30,18 @@ $userRole = $session->get('role') ?? 'user';
             <a href="<?= site_url('admin/files') ?>" class="nav-link">
                 <i class="fas fa-folder"></i> FILES
             </a>
-            <a href="<?= site_url('admin/manage-uploads') ?>" class="nav-link">
-                <i class="fas fa-upload"></i> MANAGE UPLOADS
-            </a>
-            <a href="<?= site_url('managereq') ?>" class="nav-link">
-                <i class="fas fa-tasks"></i> MANAGE REQUEST
-            </a>
+            
+<a href="<?= site_url('admin/manage_uploads') ?>" 
+   class="nav-link <?= ($currentSegment2 === 'manage_uploads') ? 'active' : '' ?>">
+    <i class="fas fa-upload"></i> MANAGE UPLOADS
+</a>
+
+     
+            <a href="<?= site_url('admin/manage_request') ?>" 
+   class="nav-link <?= ($currentSegment1 === 'manage_request') ? 'active' : '' ?>">
+    <i class="fas fa-tasks"></i> REQUESTS
+</a>
+
 
 
 <a href="<?= site_url('admin/category') ?>" class="nav-link">

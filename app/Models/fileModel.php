@@ -26,9 +26,9 @@ class FileModel extends Model
 
     public $timestamps = false;
 
-    /**
-     * Get files with category and uploader info
-     */
+    
+     //Get files with category and uploader info
+     
     public function getFilesWithDetails($folderId = null)
     {
         return $this->select('
@@ -43,9 +43,9 @@ class FileModel extends Model
         ->findAll();
     }
 
-    /**
-     * Get active or pending files
-     */
+    
+     //Get active or pending files
+     
     public function getActiveFilesByFolder($folderId)
     {
         return $this->select('
@@ -62,9 +62,9 @@ class FileModel extends Model
         ->findAll();
     }
 
-    /**
-     * Get archived files
-     */
+    
+     //Get archived files
+     
     public function getArchivedFilesByFolder($folderId)
     {
         return $this->select('
@@ -81,9 +81,9 @@ class FileModel extends Model
         ->findAll();
     }
 
-    /**
-     * Activate a file: set archive & expire dates and move file
-     */
+    
+     // Activate a file: set archive & expire dates and move file
+     
     public function activateFile($fileId)
     {
         $file = $this->find($fileId);
@@ -112,9 +112,8 @@ class FileModel extends Model
         return true;
     }
 
-    /**
-     * Automatically archive or expire files
-     */
+    ///Automatically archive or expire files
+
     public function autoArchiveAndExpire()
     {
         $now = date('Y-m-d H:i:s');
@@ -146,9 +145,9 @@ class FileModel extends Model
         }
     }
 
-    /**
-     * Move a file physically based on status
-     */
+    
+      //Move a file physically based on status
+    
     public function moveFileByStatus($fileId, $newStatus)
     {
         $file = $this->find($fileId);
@@ -190,31 +189,51 @@ class FileModel extends Model
         return true;
     }
 
-    /**
-     * Rename a file on disk and in database
-     */
-    public function renameFile($fileId, $newName)
-    {
-        $file = $this->find($fileId);
-        if (!$file) throw new \Exception("File not found.");
-
-        $oldPath = FCPATH . $file['file_path'];
-        if (!file_exists($oldPath)) throw new \Exception("File does not exist on server.");
-
-        $extension = pathinfo($file['file_name'], PATHINFO_EXTENSION);
-        $newFileName = $newName . '.' . $extension;
-        $folderPath = dirname($oldPath);
-        $newPath = $folderPath . '/' . $newFileName;
-
-        if (file_exists($newPath)) throw new \Exception("A file with the same name already exists.");
-
-        if (!rename($oldPath, $newPath)) throw new \Exception("Failed to rename file on server.");
-
-        return $this->update($fileId, [
-            'file_name' => $newFileName,
-            'file_path' => str_replace(FCPATH, '', $newPath)
-        ]);
+    
+ //Rename a file on disk and in database
+public function renameFile($fileId, $newName)
+{
+    $file = $this->find($fileId);
+    if (!$file) {
+        throw new \Exception("File not found.");
     }
+
+    // Prevent renaming immutable files
+    if (in_array($file['status'], ['archived', 'expired'])) {
+        throw new \Exception("This file is immutable and cannot be renamed.");
+    }
+
+    $oldPath = FCPATH . $file['file_path'];
+    if (!file_exists($oldPath)) {
+        throw new \Exception("File does not exist on the server.");
+    }
+
+    // Sanitize and rebuild new filename (keep same extension)
+    $extension = pathinfo($file['file_name'], PATHINFO_EXTENSION);
+    $newName = preg_replace('/[^A-Za-z0-9_\-]/', '_', trim($newName)); // safety
+    $newFileName = $newName . '.' . $extension;
+
+    $folderPath = dirname($oldPath);
+    $newPath = $folderPath . '/' . $newFileName;
+
+    if (file_exists($newPath)) {
+        throw new \Exception("A file with the same name already exists.");
+    }
+
+    // Perform rename operation
+    if (!rename($oldPath, $newPath)) {
+        throw new \Exception("Failed to rename the file on the server.");
+    }
+
+    //  Update database with new file name and path
+    $this->update($fileId, [
+        'file_name' => $newFileName,
+        'file_path' => str_replace(FCPATH, '', $newPath)
+    ]);
+
+    return true;
+}
+
 
     /**
      * Helper: add time to date
