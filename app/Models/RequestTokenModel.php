@@ -15,9 +15,12 @@ class RequestTokenModel extends Model
         'used'
     ];
 
+    /**
+     * Create a new one-time token for a given file request.
+     */
     public function createToken($requestId, $hours = 24)
     {
-        $token = bin2hex(random_bytes(16));
+        $token = bin2hex(random_bytes(32)); // 64-character secure token
         $expiresAt = date('Y-m-d H:i:s', strtotime("+{$hours} hours"));
 
         $this->insert([
@@ -30,18 +33,24 @@ class RequestTokenModel extends Model
         return $token;
     }
 
+    /**
+     * Validate a token (must be unused and not expired).
+     */
     public function validateToken($token)
     {
-        $data = $this->where('token', $token)
-                     ->where('used', 0)
-                     ->where('expires_at >=', date('Y-m-d H:i:s'))
-                     ->first();
-        return $data;
+        return $this->where('token', $token)
+                    ->where('used', 0)
+                    ->where('expires_at >=', date('Y-m-d H:i:s'))
+                    ->first();
     }
 
+    /**
+     * Mark a token as used (single use enforcement).
+     */
     public function markUsed($token)
     {
-        return $this->where('token', $token)->set('used', 1)->update();
+        return $this->where('token', $token)
+                    ->set('used', 1)
+                    ->update();
     }
-    
 }

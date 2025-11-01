@@ -62,17 +62,20 @@
                     </td>
                     <td><?= esc($req['requested_at']) ?></td>
                     <td><?= esc($req['approved_at'] ?? '—') ?></td>
-                    <td>
-                        <?php if ($req['status'] == 'approved' && !empty($req['download_token'])): ?>
-                            <a href="<?= site_url('request/download/'.$req['download_token']) ?>" 
-                               class="btn btn-success btn-sm btn-action"
-                               onclick="return confirm('Download this file?');">
-                               <i class="fa fa-download"></i> Download
-                            </a>
-                        <?php else: ?>
-                            <span class="text-muted">No action</span>
-                        <?php endif; ?>
-                    </td>
+<td>
+    <?php if ($req['status'] == 'pending'): ?>
+        <span class="badge bg-warning text-dark">Pending</span>
+    <?php elseif ($req['status'] == 'approved'): ?>
+<a href="<?= site_url('request/download/'.$req['download_token']) ?>" 
+   class="btn btn-primary btn-sm" title="Download File">
+   <i class="fa fa-download"></i> Download
+</a>
+
+    <?php elseif ($req['status'] == 'denied'): ?>
+        <span class="badge bg-danger">Denied</span>
+    <?php endif; ?>
+</td>
+
                 </tr>
                 <?php endforeach; ?>
             <?php else: ?>

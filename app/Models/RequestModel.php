@@ -26,6 +26,15 @@ class RequestModel extends Model
     // --------------------------
     public function createRequest($fileId, $userId, $reason)
     {
+        $existing = $this->where('file_id', $fileId)
+                         ->where('user_id', $userId)
+                         ->whereIn('status', ['pending', 'approved'])
+                         ->first();
+
+        if ($existing) {
+            return false; // Prevent duplicate requests
+        }
+
         return $this->insert([
             'file_id'      => $fileId,
             'user_id'      => $userId,
@@ -35,45 +44,44 @@ class RequestModel extends Model
         ]);
     }
 
-// Fetch requests that are pending or approved (not downloaded)
-public function getUserActiveRequests($userId)
-{
-    return $this->select('file_requests.*, files.file_name')
-                ->join('files', 'files.id = file_requests.file_id', 'left')
-                ->where('file_requests.user_id', $userId)
-                ->whereIn('file_requests.status', ['pending', 'approved'])
-                ->orderBy('file_requests.requested_at', 'DESC')
-                ->findAll();
-}
-
-
-  // Fetch all completed/downloaded files for a user
-// RequestModel.php
-public function getUserCompletedFiles($userId)
-{
-    return $this->select('file_requests.*, files.file_name')
-                ->join('files', 'files.id = file_requests.file_id', 'left')
-                ->where('file_requests.user_id', $userId)
-                ->where('file_requests.status', 'downloaded') // now valid
-                ->orderBy('file_requests.downloaded_at', 'DESC')
-                ->findAll();
-}
-
-
     // --------------------------
-    // APPROVE REQUEST
+    // USER: Active + Completed
     // --------------------------
-    public function approveRequest($id)
+    public function getUserActiveRequests($userId)
     {
-        return $this->update($id, [
-            'status'      => 'approved',
-            'approved_at' => date('Y-m-d H:i:s')
-        ]);
+        return $this->select('file_requests.*, files.file_name')
+                    ->join('files', 'files.id = file_requests.file_id', 'left')
+                    ->where('file_requests.user_id', $userId)
+                    ->whereIn('file_requests.status', ['pending', 'approved'])
+                    ->orderBy('file_requests.requested_at', 'DESC')
+                    ->findAll();
+    }
+
+    public function getUserCompletedFiles($userId)
+    {
+        return $this->select('file_requests.*, files.file_name')
+                    ->join('files', 'files.id = file_requests.file_id', 'left')
+                    ->where('file_requests.user_id', $userId)
+                    ->where('file_requests.status', 'downloaded')
+                    ->orderBy('file_requests.downloaded_at', 'DESC')
+                    ->findAll();
     }
 
     // --------------------------
-    // DENY REQUEST
+    // ADMIN ACTIONS
     // --------------------------
+    public function approveRequest($id)
+    {
+        $this->update($id, [
+            'status'      => 'approved',
+            'approved_at' => date('Y-m-d H:i:s')
+        ]);
+
+        // Auto-generate token for approved request
+        $tokenModel = new \App\Models\RequestTokenModel();
+        $tokenModel->createToken($id);
+    }
+
     public function denyRequest($id)
     {
         return $this->update($id, [
@@ -82,13 +90,23 @@ public function getUserCompletedFiles($userId)
         ]);
     }
 
-    // --------------------------
-    // FETCH ALL REQUESTS (ADMIN)
-    // --------------------------
-    public function getAllRequestWithFiles()
+    public function markAsDownloaded($id)
     {
-        return $this->select('file_requests.*, files.file_name')
+        return $this->update($id, [
+            'status'        => 'downloaded',
+            'downloaded_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    // --------------------------
+    // GENERIC FETCHERS
+    // --------------------------
+    public function getRequestsByStatus(array $statuses)
+    {
+        return $this->select('file_requests.*, files.file_name, users.username')
                     ->join('files', 'files.id = file_requests.file_id', 'left')
+                    ->join('users', 'users.id = file_requests.user_id', 'left')
+                    ->whereIn('file_requests.status', $statuses)
                     ->orderBy('file_requests.requested_at', 'DESC')
                     ->findAll();
     }

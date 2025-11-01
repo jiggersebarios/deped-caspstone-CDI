@@ -41,7 +41,8 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'au
     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 
     // 🔹 CATEGORY
-    $routes->get('category', 'Category::index');
+
+    
 
         // 🔹 MANAGE UPLOADS (Admin)
 $routes->get('manage_uploads', '\App\Controllers\ManageUploads::index');
@@ -76,7 +77,7 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 
     // 🔹 CATEGORY
-    $routes->get('category', 'Category::index');
+    
 
     // 🔹 MANAGE USERS
     $routes->get('manage_users', 'ManageUsers::index');
@@ -126,3 +127,33 @@ $routes->group('user', ['namespace' => 'App\Controllers\User', 'filter' => 'auth
 // 🧩 ONE-TIME DOWNLOAD HANDLER
 // =============================================================
 $routes->get('request/download/(:segment)', 'Request::download/$1');
+
+// -------------------- MANAGE UPLOADS (shared) --------------------
+$routes->get('manage-uploads', 'ManageUploads::index');
+$routes->get('manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
+$routes->get('manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
+
+$routes->get('admin/manage-uploads', 'ManageUploads::index');
+$routes->get('admin/manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
+$routes->get('admin/manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
+
+$routes->get('superadmin/manage-uploads', 'ManageUploads::index');
+$routes->get('superadmin/manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
+$routes->get('superadmin/manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
+
+// 🔹 CATEGORY ROUTES (Shared Controller)
+
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
+    $routes->get('category', 'Category::index');
+    $routes->post('category/store', 'Category::store');
+    $routes->post('category/update/(:num)', 'Category::update/$1');
+    $routes->post('category/delete/(:num)', 'Category::delete/$1');
+});
+
+$routes->group('superadmin', ['filter' => 'auth'], function($routes) {
+    $routes->get('category', 'Category::index');
+    $routes->post('category/store', 'Category::store');
+    $routes->post('category/update/(:num)', 'Category::update/$1');
+    $routes->post('category/delete/(:num)', 'Category::delete/$1');
+});
+

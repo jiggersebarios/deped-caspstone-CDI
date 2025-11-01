@@ -370,9 +370,7 @@ if ($role === 'superadmin') {
                                 <td><span class="badge badge-danger">Expired</span></td>
                                 <td class="text-center">
                                     <div class="btn-group btn-group-sm" role="group">
-                                        <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" target="_blank" class="btn btn-info">
-                                            <i class="fa fa-eye"></i> View
-                                        </a>
+
                                         <?php if ($enableDelete): ?>
                                             <form action="<?= site_url($role . '/files/deleteFile/' . $file['id']) ?>" method="post" class="d-inline">
                                             <button type="submit" class="btn btn-danger" onclick="return confirm('Delete this expired file permanently?')">

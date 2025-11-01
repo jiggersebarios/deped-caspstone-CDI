@@ -44,9 +44,10 @@ $userRole = $session->get('role') ?? 'user';
 
 
 
-<a href="<?= site_url('admin/category') ?>" class="nav-link">
+<a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
     <i class="fas fa-tags"></i> CATEGORIES
 </a>
+
 
 
 

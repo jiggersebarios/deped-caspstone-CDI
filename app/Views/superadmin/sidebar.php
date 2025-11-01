@@ -38,9 +38,10 @@ $currentSegment1 = $uri->getSegment(2); // 1 = 'superadmin', 2 = 'dashboard' or 
 </a>
 
 
-    <a href="<?= site_url('superadmin/category') ?>" class="nav-link <?= ($currentSegment1 === 'category') ? 'active' : '' ?>">
-        <i class="fas fa-tags"></i> CATEGORIES
-    </a>
+<a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
+    <i class="fas fa-tags"></i> CATEGORIES
+</a>
+
 
 
         <a href="<?= site_url('superadmin/manage_users') ?>" class="nav-link <?= ($currentSegment1 === 'manage_users') ? 'active' : '' ?>">

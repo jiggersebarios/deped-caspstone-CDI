@@ -81,70 +81,62 @@
     <i class="fa fa-download"></i> View Downloaded Files
 </button>
 
-        <!-- Table -->
-        <table class="table table-bordered requests-table">
-            <thead>
+<!-- Pending & Approved Requests Table -->
+<table class="table table-bordered requests-table">
+    <thead>
+        <tr>
+            <th>ID</th>
+            <th>File Name</th>
+            <th>Requested By</th>
+            <th>Reason</th>
+            <th>Status</th>
+            <th>Requested At</th>
+            <th>Approved At</th>
+            <th>Actions</th>
+        </tr>
+    </thead>
+    <tbody>
+        <?php if (!empty($requests)): ?>
+            <?php foreach ($requests as $req): ?>
                 <tr>
-                    <th>ID</th>
-                    <th>File Name</th>
-                    <th>Requested By</th>
-                    <th>Reason</th>
-                    <th>Status</th>
-                    <th>Requested At</th>
-                    <th>Approved At</th>
-                    <th>Actions</th>
+                    <td><?= esc($req['id']) ?></td>
+                    <td><?= esc($req['file_name'] ?? 'Unknown') ?></td>
+                    <td><?= esc($req['username'] ?? 'Unknown') ?></td>
+                    <td><?= esc($req['reason'] ?? '-') ?></td>
+                    <td>
+                        <?php if ($req['status'] == 'pending'): ?>
+                            <span class="badge bg-warning text-dark">Pending</span>
+                        <?php elseif ($req['status'] == 'approved'): ?>
+                            <span class="badge bg-success">Approved</span>
+                        <?php endif; ?>
+                    </td>
+                    <td><?= esc($req['requested_at']) ?></td>
+                    <td><?= esc($req['approved_at'] ?? '—') ?></td>
+                    <td>
+                        <?php if ($req['status'] == 'pending'): ?>
+                            <a href="<?= site_url($role.'/manage_request/approve/'.$req['id']) ?>" 
+                               class="btn btn-success btn-sm btn-action"
+                               onclick="return confirm('Approve this request?')">
+                               <i class="fa fa-check"></i>
+                            </a>
+                            <a href="<?= site_url($role.'/manage_request/deny/'.$req['id']) ?>" 
+                               class="btn btn-danger btn-sm btn-action"
+                               onclick="return confirm('Deny this request?')">
+                               <i class="fa fa-times"></i>
+                            </a>
+
+                        <?php endif; ?>
+                    </td>
                 </tr>
-            </thead>
-            <tbody>
-                <?php if (!empty($requests)): ?>
-                    <?php foreach ($requests as $req): ?>
-                        <tr>
-                            <td><?= esc($req['id']) ?></td>
-                            <td><?= esc($req['file_name'] ?? 'Unknown') ?></td>
-                            <td><?= esc($req['username'] ?? 'Unknown') ?></td>
-                            <td><?= esc($req['reason']) ?></td>
-                            <td>
-                                <?php if ($req['status'] == 'pending'): ?>
-                                    <span class="badge bg-warning text-dark">Pending</span>
-                                <?php elseif ($req['status'] == 'approved'): ?>
-                                    <span class="badge bg-success">Approved</span>
-                                <?php elseif ($req['status'] == 'denied'): ?>
-                                    <span class="badge bg-danger">Denied</span>
-                                <?php else: ?>
-                                    <span class="badge bg-secondary">downloaded</span>
-                                <?php endif; ?>
-                            </td>
-                            <td><?= esc($req['requested_at']) ?></td>
-                            <td><?= esc($req['approved_at'] ?? '—') ?></td>
-                            <td>
-                                <?php if ($req['status'] == 'pending'): ?>
-                                    <a href="<?= site_url($role.'/manage_request/approve/'.$req['id']) ?>" 
-                                       class="btn btn-success btn-sm btn-action"
-                                       onclick="return confirm('Approve this request?')">
-                                       <i class="fa fa-check"></i>
-                                    </a>
-                                    <a href="<?= site_url($role.'/manage_request/deny/'.$req['id']) ?>" 
-                                       class="btn btn-danger btn-sm btn-action"
-                                       onclick="return confirm('Deny this request?')">
-                                       <i class="fa fa-times"></i>
-                                    </a>
-                                <?php elseif ($req['status'] == 'approved'): ?>
-                                    <a href="<?= site_url($role.'/manage_request/complete/'.$req['id']) ?>" 
-                                       class="btn btn-primary btn-sm btn-action"
-                                       onclick="return confirm('Mark this request as completed?')">
-                                       <i class="fa fa-box-archive"></i>
-                                    </a>
-                                <?php endif; ?>
-                            </td>
-                        </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="8" class="text-center text-muted">No file requests found.</td>
-                    </tr>
-                <?php endif; ?>
-            </tbody>
-        </table>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <tr>
+                <td colspan="8" class="text-center text-muted">No pending or approved requests.</td>
+            </tr>
+        <?php endif; ?>
+    </tbody>
+</table>
+
     </div>
 
 <div class="modal fade" id="completedFilesModal" tabindex="-1">
