@@ -39,7 +39,8 @@ public function index()
         $query = $folderModel->where('parent_folder_id', $userFolderId);
         if ($search) $query = $query->like('folder_name', $search);
 
-        $folders      = $query->findAll();
+        $folders = $query->orderBy('folder_name', 'ASC')->findAll();
+
         $parentFolder = $folderModel->find($userFolderId);
     } else {
         $query = $folderModel
@@ -49,7 +50,8 @@ public function index()
             ->groupEnd();
         if ($search) $query = $query->like('folder_name', $search);
 
-        $folders      = $query->findAll();
+       $folders = $query->orderBy('folder_name', 'ASC')->findAll();
+
         $parentFolder = null;
     }
 
@@ -210,6 +212,7 @@ public function deleteSubfolder()
 
 public function view($id)
 {
+    // ==== Initialize Models ====
     $folderModel   = new FolderModel();
     $fileModel     = new FileModel();
     $categoryModel = new CategoryModel();
@@ -217,47 +220,82 @@ public function view($id)
     $session       = session();
     $role          = $session->get('role');
 
+    // ==== Check if Folder Exists ====
     $folder = $folderModel->find($id);
     if (!$folder) {
-        return redirect()->to($this->role . '/files')->with('error', 'Folder not found.');
+        return redirect()->to($this->role . '/files')
+            ->with('error', 'Folder not found.');
     }
 
-    // Restrict normal users to their own main folder and its subfolders
+    // ==== Restrict Normal Users to Their Own Main Folder/Subfolders ====
     if ($role === 'user') {
         $userFolderId = $session->get('main_folder_id');
 
         if (!$userFolderId) {
-            return redirect()->to('/login')->with('error', 'No main folder assigned to your account.');
+            return redirect()->to('/login')
+                ->with('error', 'No main folder assigned to your account.');
         }
 
+        // Ensure the user can only access folders under their main folder
         if (!$this->isFolderWithinUserScope($id, $userFolderId, $folderModel)) {
-            return redirect()->to('/user/files')->with('error', 'You are not authorized to view this folder.');
+            return redirect()->to('/user/files')
+                ->with('error', 'You are not authorized to view this folder.');
         }
     }
 
-    // Build breadcrumb
+    // ==== Breadcrumb (for Navigation Path) ====
     $breadcrumb = $this->buildBreadcrumb($id);
     $depth      = count($breadcrumb);
 
-    // Auto-update archive and expiry statuses
+    // ==== Auto Update Archive and Expiry Statuses ====
     $fileModel->autoArchiveAndExpire();
 
-    // Load files and subfolders
+    // ==== Load Files ====
     $activeFiles   = $fileModel->getActiveFilesByFolder($id);
     $archivedFiles = $fileModel->getArchivedFilesByFolder($id);
-    $expiredFiles  = $fileModel->where('folder_id', $id)->where('status', 'expired')->findAll();
-    $subfolders    = $folderModel->where('parent_folder_id', $id)->findAll();
+    $expiredFiles  = $fileModel->where('folder_id', $id)
+                               ->where('status', 'expired')
+                               ->findAll();
 
-    // Load global config toggles
+    // ==== Load Subfolders ====
+    $subfolders = $folderModel->where('parent_folder_id', $id)->findAll();
+
+    // ==== Custom Sort Subfolders ====
+    usort($subfolders, function($a, $b) {
+        $pattern = '/(\d{4})-(\d{4})/'; // Matches year ranges like 2023-2025
+
+        $aMatch = [];
+        $bMatch = [];
+
+        preg_match($pattern, $a['folder_name'], $aMatch);
+        preg_match($pattern, $b['folder_name'], $bMatch);
+
+        if ($aMatch && $bMatch) {
+            // Both are year ranges → compare by ending year descending
+            return (int)$bMatch[2] <=> (int)$aMatch[2];
+        } elseif ($aMatch) {
+            // Only a is year range → it comes first
+            return -1;
+        } elseif ($bMatch) {
+            // Only b is year range → it comes first
+            return 1;
+        } else {
+            // Neither is year range → alphabetical, case-insensitive
+            return strcasecmp($a['folder_name'], $b['folder_name']);
+        }
+    });
+
+    // ==== Load Global Config Toggles ====
     $rawEnableUpload = $configModel->isEnabled('enable_file_uploads');
     $rawEnableEdit   = $configModel->isEnabled('enable_file_edit');
     $rawEnableDelete = $configModel->isEnabled('enable_file_delete');
 
-    // Role-aware
+    // ==== Apply Role-Based Controls ====
     $enableUpload = ($role === 'user') ? $rawEnableUpload : 1;
     $enableEdit   = ($role === 'user') ? $rawEnableEdit   : 1;
     $enableDelete = ($role === 'user') ? $rawEnableDelete : 1;
 
+    // ==== Render View ====
     return view('shared/files', [
         'folders'            => $subfolders,
         'parentFolder'       => $folder,
@@ -269,18 +307,19 @@ public function view($id)
         'categories'         => $categoryModel->findAll(),
         'role'               => $role,
 
-        // Admin controls
+        // Admin Permissions
         'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
         'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
         'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
         'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
 
-        // User controls
+        // User Permissions
         'enableUpload'       => $enableUpload,
         'enableEdit'         => $enableEdit,
         'enableDelete'       => $enableDelete,
     ]);
 }
+
 
 
 public function upload($folderId)

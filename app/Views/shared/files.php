@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/all.css">
     <!-- Bootstrap 4 -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+
 
 </head>
 <body>
@@ -29,51 +31,56 @@ if ($role === 'superadmin') {
 
 <div class="main-container">
 
-<!-- Search -->
+<!-- Top bar: Buttons + Search Bar -->
 <?php if (!isset($parentFolder) || (isset($depth) && $depth < 3)): ?>
-    <?php if (!isset($parentFolder)): ?>
-        <form action="<?= base_url($role . '/files') ?>" method="get" class="form-inline mb-3">
-            <input type="text" name="search" class="form-control mr-2" placeholder="Search folders..." value="<?= esc($search ?? '') ?>">
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
-    <?php else: ?>
-        <form action="<?= site_url($role . '/files/view/' . $parentFolder['id']) ?>" method="get" class="form-inline mb-3">
-            <input type="text" name="search" class="form-control mr-2" placeholder="Search subfolders..." value="<?= esc($search ?? '') ?>">
-            <button type="submit" class="btn btn-primary">Search</button>
-        </form>
-    <?php endif; ?>
+    <div class="top-bar d-flex justify-content-between align-items-center mb-3">
+
+        <!-- Folder / Subfolder Buttons -->
+        <div class="button-container">
+            <?php if (!isset($parentFolder)): ?>
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canAddFolder)): ?>
+    <button class="add-folder-btn" data-toggle="modal" data-target="#addFolderModal">
+        <i class="fas fa-folder-plus"></i> Add Folder
+    </button>
+                <?php endif; ?>
+
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteFolder)): ?>
+
+    <button class="delete-folder-btn" data-toggle="modal" data-target="#deleteFolderModal">
+        <i class="fas fa-trash-alt"></i> Delete Folder
+    </button>
+                <?php endif; ?>
+
+            <?php else: ?>
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canAddSubfolder)): ?>
+<button class="add-subfolder-btn" data-toggle="modal" data-target="#addSubFolderModal">
+    <i class="fa-solid fa-folder-tree"></i> Add Subfolder
+</button>
 <?php endif; ?>
 
 
-  <!-- Folder / Subfolder Buttons -->
-<?php if (!isset($parentFolder)): ?>
-    <div class="button-container">
-        <?php if ($role === 'superadmin' || ($role === 'admin' && $canAddFolder)): ?>
-            <button class="btn btn-primary mb-2" data-toggle="modal" data-target="#addFolderModal">
-                <i class="fa fa-plus me-2"></i> ADD FOLDER
-            </button>
-        <?php endif; ?>
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteSubfolder)): ?>
+<button class="delete-btn" data-toggle="modal" data-target="#deleteSubFolderModal">
+    <i class="fa-solid fa-trash"></i> Delete Subfolder
+</button>
+                <?php endif; ?>
+            <?php endif; ?>
+        </div>
 
-        <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteFolder)): ?>
-            <button class="btn btn-danger mb-2  " data-toggle="modal" data-target="#deleteFolderModal">
-                <i class="fa fa-trash me-2"></i> DELETE FOLDER
-            </button>
-        <?php endif; ?>
-    </div>
+        <!-- Search Bar -->
+        <div class="search-bar">
+            <form action="<?= isset($parentFolder) ? site_url($role . '/files/view/' . $parentFolder['id']) : base_url($role . '/files') ?>" method="get">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control"
+                        placeholder="<?= isset($parentFolder) ? 'Search subfolders...' : 'Search folders...' ?>"
+                        value="<?= esc($search ?? '') ?>" aria-label="Search" aria-describedby="search-addon">
+                    <button class="btn btn-outline-secondary" type="submit" id="search-addon">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
 
-<?php elseif (isset($depth) && $depth < 3): ?>
-    <div class="button-container">
-        <?php if ($role === 'superadmin' || ($role === 'admin' && $canAddSubfolder)): ?>
-            <button class="btn btn-warning d-flex align-items-center mb-2" data-toggle="modal" data-target="#addSubFolderModal">
-                <i class="fa fa-plus me-2"></i> ADD SUBFOLDER
-            </button>
-        <?php endif; ?>
-
-        <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteSubfolder)): ?>
-            <button class="btn btn-danger d-flex align-items-center mb-2" data-toggle="modal" data-target="#deleteSubFolderModal">
-                <i class="fa fa-trash me-2"></i> DELETE SUBFOLDER
-            </button>
-        <?php endif; ?>
     </div>
 <?php endif; ?>
 
@@ -682,40 +689,73 @@ $(document).ready(function () {
     color: #3550A0;
 }
 
-/* ====== Folder Buttons ====== */
+/* ====== Unified Folder Button Styling ====== */
 .add-folder-btn,
-.add-subfolder-btn {
+.add-subfolder-btn,
+.delete-folder-btn,
+.delete-btn {
+    min-width: 180px; /* ensures equal width */
+    height: 46px; /* equal height */
     border: none;
-    border-radius: 5px;
+    border-radius: 8px;
     cursor: pointer;
-    margin-bottom: 20px;
-    padding: 10px 20px;
-    font-size: 16px;
-    font-weight: bold;
-    display: flex;
+    font-size: 15px;
+    font-weight: 600;
+    display: inline-flex;
     align-items: center;
     justify-content: center;
-    margin-top: 20px;
-    transition: background-color 0.3s ease;
+    gap: 10px;
+    padding: 0 20px;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
 }
 
+/* ====== Individual Button Colors ====== */
 .add-folder-btn {
-    background-color: #3550A0;
-    color: white;
+    background: linear-gradient(135deg, #3550A0, #4A68C0);
+    color: #fff;
 }
-
 .add-folder-btn:hover {
-    background-color: #4A68C0;
+    background: linear-gradient(135deg, #4A68C0, #5c7dd6);
+    transform: translateY(-2px);
 }
 
-.add-folder-btn i {
-    margin-right: 10px;
+/* ✅ Add Subfolder */
+.add-subfolder-btn {
+    background: linear-gradient(135deg, #34c759, #28a745);
+    color: #fff;
+}
+.add-subfolder-btn:hover {
+    background: linear-gradient(135deg, #28a745, #34c759);
+    transform: translateY(-2px);
+}
+
+/* 🗑 Delete Folder */
+.delete-folder-btn,
+.delete-btn {
+    background: linear-gradient(135deg, #dc3545, #b52d2d);
+    color: #fff;
+}
+.delete-folder-btn:hover,
+.delete-btn:hover {
+    background: linear-gradient(135deg, #b52d2d, #dc3545);
+    transform: translateY(-2px);
+}
+
+/* ====== Ensure buttons align perfectly in top-bar ====== */
+.button-container {
+    display: flex;
+    gap: 12px;
+    align-items: center;
 }
 
 
 
-.add-subfolder-btn i {
-    margin-right: 10px;
+/* ====== Icon Size ====== */
+.add-folder-btn i,
+.add-subfolder-btn i,
+.delete-btn i {
+    font-size: 18px;
 }
 
 /* ====== Folder Grid ====== */
@@ -867,9 +907,83 @@ td .btn-group {
     gap: 5px;
 }
 
+.search-bar {
+    max-width: 800px;
+    margin-bottom: 25px;
+}
+
+.search-bar .input-group {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+}
+
+.search-bar .form-control {
+    border: none;
+    padding-left: 20px;
+}
+
+.search-bar .btn {
+    border: none;
+    padding: 10px 20px;
+    background-color: #3550A0;
+    color: white;
+    transition: background-color 0.3s ease;
+}
+
+.search-bar .btn:hover {
+    background-color: #4A68C0;
+}
+
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    width: 100%;
+}
+
+.button-container {
+    display: flex;
+    gap: 5px;
+}
+
+.search-bar {
+    width:400px; 
+}
+
+.search-bar .input-group {
+    border-radius: 30px;
+    overflow: hidden;
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32);
+}
+
 </style>
 
+<style>
+    /* ====== Delete Folder Button ====== */
+.delete-folder-btn {
+    background: linear-gradient(135deg, #dc3545, #b52d2d);
+    color: #fff;
+    border: none;
+    border-radius: 8px;
+    padding: 12px 20px;
+    font-size: 15px;
+    font-weight: 600;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 3px 6px rgba(220, 53, 69, 0.3);
+}
 
+.delete-folder-btn:hover {
+    background: linear-gradient(135deg, #b52d2d, #dc3545);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 10px rgba(220, 53, 69, 0.45);
+}
+</style>
 
 </html>
 
