@@ -28,6 +28,7 @@
         gap: 20px; /* space between cards */
         width: 100%;
         max-width: 1200px; /* contain cards on large screens */
+        
     }
 .card-link-wrapper {
     text-decoration: none !important;
@@ -48,6 +49,7 @@
     cursor: pointer;
     padding: 20px;
     transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+ 
 }
 
 .card i {

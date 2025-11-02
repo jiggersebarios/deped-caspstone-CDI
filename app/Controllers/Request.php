@@ -96,17 +96,21 @@ public function manage()
 
     // Fetch pending or approved requests (main table)
     $requests = $this->requestModel
-        ->select('file_requests.id, file_requests.reason, file_requests.status, file_requests.requested_at, file_requests.approved_at, files.file_name, users.username')
+        ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
+                  file_requests.status, file_requests.requested_at, file_requests.approved_at, 
+                  files.file_name, users.username')
         ->join('files', 'files.id = file_requests.file_id', 'left')
         ->join('users', 'users.id = file_requests.user_id', 'left')
         ->whereIn('file_requests.status', ['pending', 'approved'])
-        ->groupBy('file_requests.id') // <-- prevent duplicates
+        ->groupBy('file_requests.id') // prevent duplicates
         ->orderBy('file_requests.requested_at', 'DESC')
         ->findAll();
 
     // Fetch downloaded requests (modal)
     $completedFiles = $this->requestModel
-        ->select('file_requests.id, file_requests.reason, file_requests.status, file_requests.requested_at, file_requests.downloaded_at, files.file_name, users.username')
+        ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
+                  file_requests.status, file_requests.requested_at, file_requests.downloaded_at, 
+                  files.file_name, users.username')
         ->join('files', 'files.id = file_requests.file_id', 'left')
         ->join('users', 'users.id = file_requests.user_id', 'left')
         ->where('file_requests.status', 'downloaded')
@@ -120,6 +124,7 @@ public function manage()
         'role' => $role
     ]);
 }
+
 
 
 
@@ -147,52 +152,55 @@ public function manage()
         return redirect()->back()->with('error', 'Request denied.');
     }
 
-    // ============================================================
-    // ⬇️ SECURE DOWNLOAD HANDLER
-    // ============================================================
-   public function download($token)
+// ============================================================
+// 🔽 ADMIN / SUPERADMIN DIRECT DOWNLOAD BY REQUEST ID (Secure)
+// ============================================================
+public function directDownload($requestId)
 {
-    // 1️⃣ Validate token
-    $tokenData = $this->tokenModel->validateToken($token);
-    if (!$tokenData) {
-        return redirect()->back()->with('error', 'This download link has expired or is invalid.');
-    }
+    $role = session()->get('role');
+    $userId = session()->get('id');
 
-    // 2️⃣ Validate associated request
-    $request = $this->requestModel->find($tokenData['request_id']);
+    // 1️⃣ Fetch the request record
+    $request = $this->requestModel->find($requestId);
     if (!$request) {
-        return redirect()->back()->with('error', 'Invalid request reference.');
+        return redirect()->back()->with('error', 'Request not found.');
     }
 
-    // 3️⃣ Fetch file
+    // 2️⃣ Ensure only the requester can download their own request
+    if ((int)$request['user_id'] !== (int)$userId) {
+        return redirect()->back()->with('error', 'You are not authorized to download this file.');
+    }
+
+    // 3️⃣ Ensure the request is approved
+    if (!in_array($request['status'], ['approved', 'downloaded'])) {
+        return redirect()->back()->with('error', 'This file is not yet approved for download.');
+    }
+
+    // 4️⃣ Fetch the file record
     $file = $this->fileModel->find($request['file_id']);
     if (!$file) {
         return redirect()->back()->with('error', 'File record not found.');
     }
+
+    // Convert to array if needed
     if (is_object($file)) $file = (array)$file;
 
     if (empty($file['file_path']) || !file_exists($file['file_path'])) {
         return redirect()->back()->with('error', 'File not found on the server.');
     }
 
-    // 4️⃣ Mark token + request as used/downloaded
-    $this->tokenModel->markUsed($token);
+    // 5️⃣ Mark request as downloaded (for tracking)
     $this->requestModel->update($request['id'], [
-        'status' => 'downloaded',
+        'status'        => 'downloaded',
         'downloaded_at' => date('Y-m-d H:i:s')
     ]);
 
-    // 5️⃣ Serve the file securely
+    // 6️⃣ Serve file securely
     if (ob_get_level()) ob_end_clean();
 
-    $response = $this->response->download($file['file_path'], null, true);
-
-    if (!$response) {
-        return redirect()->back()->with('error', 'Failed to serve file for download.');
-    }
-
-    // 6️⃣ Set the download filename
-    return $response->setFileName($file['file_name']);
+    return $this->response
+        ->download($file['file_path'], null, true)
+        ->setFileName($file['file_name']);
 }
 
 }

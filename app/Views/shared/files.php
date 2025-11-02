@@ -30,6 +30,27 @@ if ($role === 'superadmin') {
 
 
 <div class="main-container">
+<?php if (in_array($role, ['admin', 'superadmin'])): ?>
+    <h3 class="page-header mb-4">
+        <i class="fa-solid fa-folder-open"></i>
+         Files Management
+    </h3>
+<?php endif; ?> 
+
+<div class="top-bar d-flex align-items-center mb-3">
+
+<!-- Page Header (Users only) -->
+<?php if ($role === 'user'):
+    // Ensure we have a username (fetch from session if not provided)
+    $username = $username ?? session()->get('username') ?? session()->get('name') ?? 'User';
+    $username = ucfirst(strtolower($username)); // Capitalize first letter only
+?>
+   <h2 class="page-header">
+       <i class="fa-solid fa-folder-open"></i> 
+       <?= esc($username) ?> Files Management
+   </h2>
+<?php endif; ?>
+
 
 <!-- Top bar: Buttons + Search Bar -->
 <?php if (!isset($parentFolder) || (isset($depth) && $depth < 3)): ?>
@@ -82,8 +103,9 @@ if ($role === 'superadmin') {
         </div>
 
     </div>
-<?php endif; ?>
 
+<?php endif; ?>
+</div>
 
     <!-- Flash Messages -->
     <?php if(session()->getFlashdata('success')): ?>
@@ -93,23 +115,39 @@ if ($role === 'superadmin') {
         <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
 
-    <!-- Breadcrumb -->
-    <?php if (isset($breadcrumb) && !empty($breadcrumb)): ?>
-        <nav aria-label="breadcrumb">
-            <ol class="breadcrumb">
-                <li class="breadcrumb-item"><a href="<?= site_url($role . '/files') ?>">FILES</a></li>
-                <?php foreach ($breadcrumb as $index => $crumb): ?>
-                    <?php if ($index === array_key_last($breadcrumb)): ?>
-                        <li class="breadcrumb-item active"><?= esc($crumb['folder_name']) ?></li>
-                    <?php else: ?>
-                        <li class="breadcrumb-item">
-                            <a href="<?= site_url($role . '/files/view/' . $crumb['id']) ?>"><?= esc($crumb['folder_name']) ?></a>
-                        </li>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </ol>
-        </nav>
-    <?php endif; ?>
+
+<!-- 📂 Breadcrumb Navigation -->
+<?php 
+    if (!empty($breadcrumb)) {
+        $depth = count($breadcrumb);
+    }
+?>
+
+<?php if (!empty($breadcrumb) && $depth < 3): ?>
+    <nav aria-label="breadcrumb" class="custom-breadcrumb" style="margin-left: 20px; margin-top: -40px; ">
+        <ol class="breadcrumb mb-3">
+            <?php foreach ($breadcrumb as $index => $crumb): ?>
+                <?php 
+                    $crumbId = $crumb['id'] ?? null;
+                    $crumbName = $crumb['name'] ?? $crumb['folder_name'] ?? 'Unnamed';
+                ?>
+                <?php if ($index < count($breadcrumb) - 1 && $crumbId): ?>
+                    <li class="breadcrumb-item">
+                        <a href="<?= site_url($role . '/files/view/' . $crumbId) ?>">
+                            <?= esc($crumbName) ?>
+                        </a>
+                    </li>
+                <?php else: ?>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <?= esc($crumbName) ?>
+                    </li>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </ol>
+    </nav>
+<?php endif; ?>
+
+
 
     <!-- Folder List -->
     <div class="folder-container">
@@ -134,15 +172,43 @@ if ($role === 'superadmin') {
     <div class="d-flex justify-content-end mb-3">
         <?php if ($enableUpload): ?>
    <!-- Upload button code -->
-            <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal">
-            <i class="fa fa-upload mr-2"></i> Upload File
+            <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal" style ="margin-left: 20px;">
+            <i class="fa fa-upload mr-2" ></i> Upload File
         </button>
 <?php endif; ?>
 
     </div>
 
+<!-- 📂 Breadcrumb Navigation -->
+<?php if (!empty($breadcrumb)): ?>
+    <nav aria-label="breadcrumb" class="custom-breadcrumb">
+        <ol class="breadcrumb mb-3">
+            <?php foreach ($breadcrumb as $index => $crumb): ?>
+                <?php
+                    // Safely handle array keys
+                    $crumbId   = $crumb['id'] ?? null;
+                    $crumbName = $crumb['name'] ?? $crumb['folder_name'] ?? 'Unnamed';
+                ?>
+                
+                <?php if ($index < count($breadcrumb) - 1 && $crumbId !== null): ?>
+                    <li class="breadcrumb-item">
+                        <a href="<?= site_url($role . '/files/view/' . $crumbId) ?>">
+                            <?= esc($crumbName) ?>
+                        </a>
+                    </li>
+                <?php else: ?>
+                    <li class="breadcrumb-item active" aria-current="page">
+                        <?= esc($crumbName) ?>
+                    </li>
+                <?php endif; ?>
+            <?php endforeach; ?>
+        </ol>
+    </nav>
+<?php endif; ?>
+
+
     <!-- 🧭 Tabs -->
-    <ul class="nav nav-tabs" id="fileTabs" role="tablist">
+    <ul class="nav nav-tabs" id="fileTabs" role="tablist" style ="margin-left: 20px;">
         <li class="nav-item">
             <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active" role="tab">Active Files</a>
         </li>
@@ -157,9 +223,9 @@ if ($role === 'superadmin') {
     <div class="tab-content mt-3" id="fileTabsContent">
 
         <!-- 🟢 ACTIVE FILES TAB -->
-        <div class="tab-pane fade show active" id="active" role="tabpanel">
+        <div class="tab-pane fade show active" id="active" role="tabpanel " >
             <?php if (!empty($activeFiles)): ?>
-                <h4>📂 Active Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <h4 style ="margin-left: 20px;">📂 Active Files in <?= esc($parentFolder['folder_name']) ?></h5>
                 <table class="table table-bordered table-striped">
                     <thead class="thead-dark">
                         <tr>
@@ -681,13 +747,40 @@ $(document).ready(function () {
     overflow-y: auto;
 }
 
-/* ====== Page Title ====== */
-.page-title {
-    margin-bottom: 20px;
-    font-size: 24px;
-    font-weight: bold;
+/* ====== Top Bar Alignment ====== */
+.top-bar {
+    display: flex;
+    justify-content: space-between; /* header on left, search on right */
+    align-items: center;            /* vertical alignment */
+    width: 100%;
+    margin-bottom: 15px;
+    gap: 20px;                      /* space between header and search */
+}
+
+/* Ensure page header stays one line and large */
+.page-header-container {
+    display: flex;
+    align-items: center;
+}
+
+.page-header {
+    font-size: 36px;      /* bigger header */
+    font-weight: 700;
+    color: #3550A0;
+    display: flex;
+    align-items: center;
+    white-space: nowrap;
+    margin-left: 20px;
+}
+
+.page-header i {
+    font-size: 42px;
+    margin-right: 12px;
     color: #3550A0;
 }
+
+
+
 
 /* ====== Unified Folder Button Styling ====== */
 .add-folder-btn,
@@ -708,6 +801,8 @@ $(document).ready(function () {
     padding: 0 20px;
     transition: all 0.3s ease;
     box-shadow: 0 3px 6px rgba(0, 0, 0, 0.15);
+    margin-left: 20px;
+    margin-top: -20px;
 }
 
 /* ====== Individual Button Colors ====== */
@@ -745,7 +840,6 @@ $(document).ready(function () {
 /* ====== Ensure buttons align perfectly in top-bar ====== */
 .button-container {
     display: flex;
-    gap: 12px;
     align-items: center;
 }
 
@@ -762,7 +856,7 @@ $(document).ready(function () {
 .folder-container {
     display: flex;
     flex-wrap: wrap;
-    gap: 35px;
+    gap: 20px;
     width: 100%;
 }
 
@@ -774,6 +868,7 @@ $(document).ready(function () {
     border: 1px solid #e1e5ee;
     border-radius: 6px;
     width: 200px;
+    margin-left: 20px;
     text-align: center;
     padding: 30px 30px;
     cursor: pointer;
@@ -807,8 +902,7 @@ $(document).ready(function () {
 /* ====== Button Containers ====== */
 .button-container {
     display: flex;
-    gap: 20px;
-    margin-bottom: 20px;
+    margin-bottom: 15px;
 }
 
 /* ====== Delete Button (Non-Bootstrap) ====== */
@@ -871,32 +965,62 @@ td .btn-group {
 }
 
 /* ====== Table General ====== */
+/* Table Consistency */
 .table {
-    width: 100%;
+    max-width: 100%;
+    font-size: 0.95rem;
     border-collapse: collapse;
-    font-size: 14px;
-    color: #333;
-    background-color: #fff;
+    border-spacing: 0;
+    margin-left: 20px;
 }
 
-.table th,
-.table td {
-    padding: 13px 12px;
+.table thead th {
+    background-color: #343a40;
+    color: white;
     text-align: center;
     vertical-align: middle;
-    white-space: nowrap; /* everything stays on one line except file name */
 }
 
-
-/*  Allow long file names to wrap properly */
-.table td.file-name {
-    white-space: normal !important;
-    word-wrap: break-word;
-    word-break: break-word;
-    max-width: 300px; /* adjust width as needed */
-    text-align: left; /* looks cleaner for text wrapping */
+.table td, .table th {
+    vertical-align: middle;
+    padding: 9px;
 }
 
+/* Button Spacing */
+.btn-group-sm .btn {
+    margin-right: 6px;
+   
+}
+
+/* Folder Layout */
+.folder-container {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 15px;
+}
+
+.folder {
+    text-align: center;
+    padding: 15px;
+    border: 1px solid #dee2e6;
+    border-radius: 8px;
+    width: 160px;
+    background-color: #f8f9fa;
+    transition: all 0.3s;
+}
+
+.folder:hover {
+    background-color: #e9ecef;
+    transform: scale(1.03);
+}
+
+/* Improve top bar alignment */
+.top-bar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    flex-wrap: wrap;
+}
 /* Buttons */
 .btn-group-sm .btn {
     padding: 4px 8px;
@@ -908,27 +1032,38 @@ td .btn-group {
 }
 
 .search-bar {
+    width: 500px;
     max-width: 800px;
-    margin-bottom: 25px;
+    margin-top: -20px;
+    margin-bottom: 13px;
+    margin-right: 400px;
 }
 
 .search-bar .input-group {
-    border-radius: 30px;
+    display: flex;
+    flex-direction: row-reverse; /* puts button on the left */
+    align-items: center;
+    border-radius: 5px;
     overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.1);
+    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32);
 }
 
 .search-bar .form-control {
     border: none;
-    padding-left: 20px;
+    padding-left: 15px;
+    padding-right: 15px;
+    height: 42px;
 }
 
 .search-bar .btn {
     border: none;
-    padding: 10px 20px;
+    padding: 13px 20px;
     background-color: #3550A0;
     color: white;
     transition: background-color 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
 }
 
 .search-bar .btn:hover {
@@ -941,49 +1076,34 @@ td .btn-group {
     align-items: center;
     margin-bottom: 20px;
     width: 100%;
+    margin-top: 15px;
 }
 
 .button-container {
     display: flex;
     gap: 5px;
 }
-
-.search-bar {
-    width:400px; 
+.custom-breadcrumb {
+    background: transparent;
+    margin-left: 20px;
 }
 
-.search-bar .input-group {
-    border-radius: 30px;
-    overflow: hidden;
-    box-shadow: 0 2px 6px rgba(0, 0, 0, 0.32);
+.custom-breadcrumb .breadcrumb-item a {
+    color: #3550A0;
+    text-decoration: none;
+    font-weight: 500;
 }
 
-</style>
+.custom-breadcrumb .breadcrumb-item a:hover {
+    text-decoration: underline;
+}
 
-<style>
-    /* ====== Delete Folder Button ====== */
-.delete-folder-btn {
-    background: linear-gradient(135deg, #dc3545, #b52d2d);
-    color: #fff;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 20px;
-    font-size: 15px;
+.custom-breadcrumb .breadcrumb-item.active {
+    color: #555;
     font-weight: 600;
-    display: inline-flex;
-    align-items: center;
-    gap: 10px;
-    cursor: pointer;
-    transition: all 0.3s ease;
-    box-shadow: 0 3px 6px rgba(220, 53, 69, 0.3);
 }
 
-.delete-folder-btn:hover {
-    background: linear-gradient(135deg, #b52d2d, #dc3545);
-    transform: translateY(-2px);
-    box-shadow: 0 6px 10px rgba(220, 53, 69, 0.45);
-}
+
 </style>
-
 </html>
 

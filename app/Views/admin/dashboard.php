@@ -104,27 +104,28 @@
                 </div>
             </a>
 
-            <!-- Pending Requests -->
-            <a href="<?= site_url('admin/manage_request') ?>" class="card-link-wrapper">
-                <div class="card shadow-sm text-center">
-                    <div class="card-body">
-                        <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
-                        <h5>Pending Requests</h5>
-                        <h2><?= esc($pendingRequests ?? 0) ?></h2>
-                    </div>
-                </div>
-            </a>
+<!-- New Uploaded Files (Pending) -->
+<a href="<?= site_url('admin/manage-uploads?status=pending') ?>" class="card-link-wrapper">
+    <div class="card shadow-sm text-center">
+        <div class="card-body">
+            <i class="fas fa-upload fa-2x text-info mb-2"></i>
+            <h5>New Uploaded Files</h5>
+            <h2><?= esc($newUploadedFiles ?? 0) ?></h2>
+        </div>
+    </div>
+</a>
 
-            <!-- New Uploaded Files -->
-            <a href="<?= site_url('admin/manage-uploads') ?>" class="card-link-wrapper">
-                <div class="card shadow-sm text-center">
-                    <div class="card-body">
-                        <i class="fas fa-upload fa-2x text-info mb-2"></i>
-                        <h5>New Uploaded Files</h5>
-                        <h2><?= esc($newUploadedFiles ?? 0) ?></h2>
-                    </div>
-                </div>
-            </a>
+<!-- Pending Requests -->
+<a href="<?= site_url('admin/requests?status=pending') ?>" class="card-link-wrapper">
+    <div class="card shadow-sm text-center">
+        <div class="card-body">
+            <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
+            <h5>Pending Requests</h5>
+            <h2><?= esc($pendingRequests ?? 0) ?></h2>
+        </div>
+    </div>
+</a>
+
 
         </div>
     </div>

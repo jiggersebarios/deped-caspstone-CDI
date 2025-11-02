@@ -29,16 +29,19 @@ $routes->group('admin', ['namespace' => 'App\Controllers\Admin', 'filter' => 'au
     $routes->get('dashboard', 'Dashboard::index');
 
     // 🔹 FILE MANAGEMENT
-    $routes->get('files', '\App\Controllers\Files::index');
-    $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
-    $routes->post('files/add', '\App\Controllers\Files::add');
-    $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
-    $routes->post('files/delete', '\App\Controllers\Files::delete');
-    $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
-    $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
-    $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
-    $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
-    $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+// SUPERADMIN FILE MANAGEMENT
+$routes->get('files', '\App\Controllers\Files::index');
+$routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
+$routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
+$routes->post('files/add', '\App\Controllers\Files::add');
+$routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
+$routes->post('files/delete', '\App\Controllers\Files::delete');
+$routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
+$routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
+$routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
+$routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
+$routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+
 
     // 🔹 CATEGORY
 
@@ -65,16 +68,19 @@ $routes->group('superadmin', ['namespace' => 'App\Controllers\Superadmin', 'filt
     $routes->get('dashboard', 'Dashboard::index');
 
     // 🔹 FILE MANAGEMENT
-    $routes->get('files', '\App\Controllers\Files::index');
-    $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
-    $routes->post('files/add', '\App\Controllers\Files::add');
-    $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
-    $routes->post('files/delete', '\App\Controllers\Files::delete');
-    $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
-    $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
-    $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
-    $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
-    $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+// SUPERADMIN FILE MANAGEMENT (shared Files controller)
+$routes->get('files', '\App\Controllers\Files::index');
+$routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
+$routes->post('files/add', '\App\Controllers\Files::add');
+$routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
+$routes->post('files/delete', '\App\Controllers\Files::delete');
+$routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
+$routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
+$routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1'); 
+$routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
+$routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
+$routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+
 
     // 🔹 CATEGORY
     
@@ -95,6 +101,7 @@ $routes->get('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::re
     $routes->post('request/submit', '\App\Controllers\Request::submit');
     $routes->get('manage_request/approve/(:num)', '\App\Controllers\Request::approve/$1');
     $routes->get('manage_request/deny/(:num)', '\App\Controllers\Request::deny/$1');
+    
 
         // Global Configuration
     $routes->get('globalconfig', 'Globalconfig::index');       // View settings
@@ -121,6 +128,9 @@ $routes->group('user', ['namespace' => 'App\Controllers\User', 'filter' => 'auth
     // 🔹 FILE REQUESTS (User)
     $routes->get('request', '\App\Controllers\Request::userRequests');
     $routes->post('request/submit', '\App\Controllers\Request::submit');
+
+
+
 });
 
 // =============================================================
@@ -156,4 +166,12 @@ $routes->group('superadmin', ['filter' => 'auth'], function($routes) {
     $routes->post('category/update/(:num)', 'Category::update/$1');
     $routes->post('category/delete/(:num)', 'Category::delete/$1');
 });
+
+$routes->get('superadmin/manage_request/download/(:num)', 'Request::directDownload/$1');
+$routes->get('admin/manage_request/download/(:num)', 'Request::directDownload/$1');
+    // Request downloads (direct)
+$routes->get('request/directDownload/(:num)', 'Request::directDownload/$1');
+$routes->get('superadmin/manage_request/directDownload/(:num)', 'Request::directDownload/$1');
+$routes->get('admin/manage_request/directDownload/(:num)', 'Request::directDownload/$1');
+
 

@@ -66,10 +66,11 @@
     <?php if ($req['status'] == 'pending'): ?>
         <span class="badge bg-warning text-dark">Pending</span>
     <?php elseif ($req['status'] == 'approved'): ?>
-<a href="<?= site_url('request/download/'.$req['download_token']) ?>" 
+<a href="<?= site_url('request/directDownload/'.$req['id']) ?>" 
    class="btn btn-primary btn-sm" title="Download File">
    <i class="fa fa-download"></i> Download
 </a>
+
 
     <?php elseif ($req['status'] == 'denied'): ?>
         <span class="badge bg-danger">Denied</span>

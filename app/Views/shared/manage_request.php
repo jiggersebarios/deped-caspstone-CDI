@@ -82,6 +82,7 @@
 </button>
 
 <!-- Pending & Approved Requests Table -->
+<!-- Pending & Approved Requests Table -->
 <table class="table table-bordered requests-table">
     <thead>
         <tr>
@@ -95,47 +96,59 @@
             <th>Actions</th>
         </tr>
     </thead>
-    <tbody>
-        <?php if (!empty($requests)): ?>
-            <?php foreach ($requests as $req): ?>
-                <tr>
-                    <td><?= esc($req['id']) ?></td>
-                    <td><?= esc($req['file_name'] ?? 'Unknown') ?></td>
-                    <td><?= esc($req['username'] ?? 'Unknown') ?></td>
-                    <td><?= esc($req['reason'] ?? '-') ?></td>
-                    <td>
-                        <?php if ($req['status'] == 'pending'): ?>
-                            <span class="badge bg-warning text-dark">Pending</span>
-                        <?php elseif ($req['status'] == 'approved'): ?>
-                            <span class="badge bg-success">Approved</span>
-                        <?php endif; ?>
-                    </td>
-                    <td><?= esc($req['requested_at']) ?></td>
-                    <td><?= esc($req['approved_at'] ?? '—') ?></td>
-                    <td>
-                        <?php if ($req['status'] == 'pending'): ?>
-                            <a href="<?= site_url($role.'/manage_request/approve/'.$req['id']) ?>" 
-                               class="btn btn-success btn-sm btn-action"
-                               onclick="return confirm('Approve this request?')">
-                               <i class="fa fa-check"></i>
-                            </a>
-                            <a href="<?= site_url($role.'/manage_request/deny/'.$req['id']) ?>" 
-                               class="btn btn-danger btn-sm btn-action"
-                               onclick="return confirm('Deny this request?')">
-                               <i class="fa fa-times"></i>
-                            </a>
-
-                        <?php endif; ?>
-                    </td>
-                </tr>
-            <?php endforeach; ?>
-        <?php else: ?>
+<tbody>
+    <?php if (!empty($requests)): ?>
+        <?php foreach ($requests as $req): ?>
             <tr>
-                <td colspan="8" class="text-center text-muted">No pending or approved requests.</td>
+                <td><?= esc($req['id']) ?></td>
+                <td><?= esc($req['file_name'] ?? 'Unknown') ?></td>
+                <td><?= esc($req['username'] ?? 'Unknown') ?></td>
+                <td><?= esc($req['reason'] ?? '-') ?></td>
+                <td>
+                    <?php if ($req['status'] == 'pending'): ?>
+                        <span class="badge bg-warning text-dark">Pending</span>
+                    <?php elseif ($req['status'] == 'approved'): ?>
+                        <span class="badge bg-success">Approved</span>
+                    <?php elseif ($req['status'] == 'denied'): ?>
+                        <span class="badge bg-danger">Denied</span>
+                    <?php endif; ?>
+                </td>
+                <td><?= esc($req['requested_at']) ?></td>
+                <td><?= esc($req['approved_at'] ?? '—') ?></td>
+                <td>
+                    <?php if ($req['status'] == 'pending'): ?>
+                        <!-- Approve / Deny Buttons -->
+                        <a href="<?= site_url($role.'/manage_request/approve/'.$req['id']) ?>" 
+                           class="btn btn-success btn-sm btn-action"
+                           onclick="return confirm('Approve this request?')">
+                           <i class="fa fa-check"></i>
+                        </a>
+                        <a href="<?= site_url($role.'/manage_request/deny/'.$req['id']) ?>" 
+                           class="btn btn-danger btn-sm btn-action"
+                           onclick="return confirm('Deny this request?')">
+                           <i class="fa fa-times"></i>
+                        </a>
+
+<?php elseif ($req['status'] == 'approved' && isset($req['user_id']) && $req['user_id'] == session()->get('id')): ?>
+    <!-- Download Button (only for requester) -->
+    <a href="<?= site_url($role.'/manage_request/directDownload/'.$req['id']) ?>" 
+       class="btn btn-primary btn-sm btn-action">
+       <i class="fa fa-download"></i> Download
+    </a>
+<?php endif; ?>
+
+                </td>
             </tr>
-        <?php endif; ?>
-    </tbody>
+        <?php endforeach; ?>
+    <?php else: ?>
+        <tr>
+            <td colspan="8" class="text-center text-muted">No pending or approved requests.</td>
+        </tr>
+    <?php endif; ?>
+</tbody>
+
 </table>
+
 
     </div>
 
