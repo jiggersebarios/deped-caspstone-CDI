@@ -239,7 +239,7 @@ public function view($id)
 
         $model->insert(['folder_name' => $folderName, 'parent_folder_id' => $parentId]);
 
-        return redirect()->to($this->role . '/files/view/' . $parentId)->with('success', 'Subfolder added successfully');
+        return redirect()->to($this->role . '/files/view/' . $parentId);
     }
 
     // Deleting mainfolder 
@@ -289,7 +289,7 @@ public function delete()
         ? $this->role . '/files'
         : $this->role . '/files/view/' . $parentId;
 
-    return redirect()->to($redirect)->with('success', 'Folder deleted successfully.');
+    return redirect()->to($redirect);
 }
 
 
@@ -316,7 +316,7 @@ public function deleteSubfolder()
     }
 
     $model->delete($folderId);
-    return redirect()->to($this->role . '/files/view/' . $parentId)->with('success', 'Subfolder deleted successfully');
+    return redirect()->to($this->role . '/files/view/' . $parentId);
 }
 
 

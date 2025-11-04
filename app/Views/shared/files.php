@@ -5,9 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Files - HR Archiving System</title>
 
-    <!-- Font Awesome Pro v5.15.4 -->
+
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/all.css">
-    <!-- Bootstrap 4 -->
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
 
@@ -116,7 +115,7 @@ if ($role === 'superadmin') {
     <?php endif; ?>
 
 
-<!-- 📂 Breadcrumb Navigation -->
+<!--  Breadcrumb  -->
 <?php 
     if (!empty($breadcrumb)) {
         $depth = count($breadcrumb);
@@ -179,7 +178,7 @@ if ($role === 'superadmin') {
 
     </div>
 
-<!-- 📂 Breadcrumb Navigation -->
+<!-- Breadcrumb inside -->
 <?php if (!empty($breadcrumb)): ?>
     <nav aria-label="breadcrumb" class="custom-breadcrumb">
         <ol class="breadcrumb mb-3">
@@ -207,7 +206,7 @@ if ($role === 'superadmin') {
 <?php endif; ?>
 
 
-    <!-- 🧭 Tabs -->
+    <!-- Tabs -->
     <ul class="nav nav-tabs" id="fileTabs" role="tablist" style ="margin-left: 20px;">
         <li class="nav-item">
             <a class="nav-link active" id="active-tab" data-toggle="tab" href="#active" role="tab">Active Files</a>
@@ -225,7 +224,7 @@ if ($role === 'superadmin') {
         <!-- 🟢 ACTIVE FILES TAB -->
         <div class="tab-pane fade show active" id="active" role="tabpanel " >
             <?php if (!empty($activeFiles)): ?>
-                <h4 style ="margin-left: 20px;">📂 Active Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <h4 style ="margin-left: 20px;">📂 Active Files in <?= esc($parentFolder['folder_name']) ?> </h5>
                 <table class="table table-bordered table-striped">
                     <thead class="thead-dark">
                         <tr>
@@ -248,7 +247,7 @@ if ($role === 'superadmin') {
                                 <td><?= esc($file['file_name']) ?></td>
                                 <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
 
-                                <!-- ✅ File Size -->
+                                <!-- File Size -->
                                 <td>
                                     <?php 
                                         if (!empty($file['file_size'])) {
@@ -267,7 +266,7 @@ if ($role === 'superadmin') {
                                 <td><?= $file['archived_at'] ? date('Y-m-d h:i A', strtotime($file['archived_at'])) : '—' ?></td>
                                 <td><?= $file['expired_at'] ? date('Y-m-d h:i A', strtotime($file['expired_at'])) : '—' ?></td>
 
-                                <!-- ✅ Status Badge -->
+                                <!-- Status Badge -->
                                 <td>
                                     <?php
                                         $status = strtolower($file['status'] ?? 'pending');
@@ -282,7 +281,7 @@ if ($role === 'superadmin') {
                                     <span class="badge <?= $badge ?>"><?= ucfirst($status) ?></span>
                                 </td>
 
-                                <!-- ✅ Actions -->
+                                <!--  Actions -->
                                  <td class="text-center">
     <div class="btn-group btn-group-sm" role="group">
         <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" 
@@ -331,9 +330,9 @@ if ($role === 'superadmin') {
         </div>
 
         <!--📂 ARCHIVED FILES TAB -->
-        <div class="tab-pane fade" id="archived" role="tabpanel">
+        <div  class="tab-pane fade" id="archived" role="tabpanel" >
             <?php if (!empty($archivedFiles)): ?>
-                <h5>🗄️ Archived & Expired Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <h5 style ="margin-left: 20px;">🗄️ Archived & Expired Files in <?= esc($parentFolder['folder_name']) ?></h5>
                 <table class="table table-bordered table-striped">
                     <thead class="thead-dark">
                         <tr>
@@ -356,7 +355,7 @@ if ($role === 'superadmin') {
                                 <td><?= esc($file['file_name']) ?></td>
                                 <td><?= esc($file['category_name'] ?? 'Uncategorized') ?></td>
 
-                                <!-- ✅ File Size -->
+                                <!-- File Size -->
                                 <td>
                                     <?php 
                                         if (!empty($file['file_size'])) {
@@ -395,14 +394,14 @@ if ($role === 'superadmin') {
                     </tbody>
                 </table>
             <?php else: ?>
-                <p class="text-muted">No archived or expired files found in this folder.</p>
+                <p class="text-muted" style ="margin-left: 20px;">No archived or expired files found in this folder.</p>
             <?php endif; ?>
         </div>
 
-                <!-- 🔴 EXPIRED FILES TAB -->
+                <!-- EXPIRED FILES TAB -->
         <div class="tab-pane fade" id="expired" role="tabpanel">
             <?php if (!empty($expiredFiles)): ?>
-                <h5>⚠️ Expired Files in <?= esc($parentFolder['folder_name']) ?></h5>
+                <h5 style ="margin-left: 20px;">⚠️ Expired Files in <?= esc($parentFolder['folder_name']) ?></h5>
                 <table class="table table-bordered table-striped">
                     <thead class="thead-dark">
                         <tr>
@@ -459,7 +458,7 @@ if ($role === 'superadmin') {
                     </tbody>
                 </table>
             <?php else: ?>
-                <p class="text-muted">No expired files found in this folder.</p>
+                <p class="text-muted" style ="margin-left: 20px;">No expired files found in this folder.</p>
             <?php endif; ?>
         </div>
     </div>
@@ -750,11 +749,11 @@ $(document).ready(function () {
 /* ====== Top Bar Alignment ====== */
 .top-bar {
     display: flex;
-    justify-content: space-between; /* header on left, search on right */
-    align-items: center;            /* vertical alignment */
+    justify-content: space-between; 
+    align-items: center;            
     width: 100%;
     margin-bottom: 15px;
-    gap: 20px;                      /* space between header and search */
+    gap: 20px;                      
 }
 
 /* Ensure page header stays one line and large */
@@ -764,7 +763,7 @@ $(document).ready(function () {
 }
 
 .page-header {
-    font-size: 36px;      /* bigger header */
+    font-size: 36px;      
     font-weight: 700;
     color: #3550A0;
     display: flex;
@@ -787,8 +786,8 @@ $(document).ready(function () {
 .add-subfolder-btn,
 .delete-folder-btn,
 .delete-btn {
-    min-width: 180px; /* ensures equal width */
-    height: 46px; /* equal height */
+    min-width: 180px; 
+    height: 46px; 
     border: none;
     border-radius: 8px;
     cursor: pointer;
@@ -1036,7 +1035,7 @@ td .btn-group {
     max-width: 800px;
     margin-top: -20px;
     margin-bottom: 13px;
-    margin-right: 400px;
+    margin-right: 100px;
 }
 
 .search-bar .input-group {

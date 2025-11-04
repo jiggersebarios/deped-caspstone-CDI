@@ -14,7 +14,7 @@ public function index()
     $folderModel = new FolderModel();
 
     $data['users'] = $userModel->findAll();
-    $data['folders'] = $folderModel->findAll(); // ✅ Added so we can show folder list
+    $data['folders'] = $folderModel->findAll(); // Added so we can show folder list
     $data['title'] = 'Manage Users';
 
     return view('superadmin/manage_users', $data);
