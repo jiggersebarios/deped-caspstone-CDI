@@ -27,6 +27,12 @@ $currentSegment1 = $uri->getSegment(2); // 1 = 'superadmin', 2 = 'dashboard' or 
         <i class="fas fa-folder"></i> FILES
     </a>
 
+      <a href="<?= site_url($userRole . '/sharedfiles') ?>" 
+               class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
+                <i class="fas fa-share-alt"></i> SHARED FILES
+        </a>
+            
+
 <a href="<?= site_url('superadmin/manage_uploads') ?>" 
    class="nav-link <?= ($currentSegment2 === 'manage_uploads') ? 'active' : '' ?>">
     <i class="fas fa-upload"></i> MANAGE UPLOADS
@@ -113,7 +119,7 @@ $currentSegment1 = $uri->getSegment(2); // 1 = 'superadmin', 2 = 'dashboard' or 
 }
 
 .sidebar .logout-btn {
-    margin-top: 100px;
+    margin-top: 50px;
     background-color: #b23b3b;
     color: white;
     width: 70%;

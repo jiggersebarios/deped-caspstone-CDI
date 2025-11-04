@@ -164,3 +164,27 @@ $routes->get('superadmin/manage_request/directDownload/(:num)', 'Request::direct
 $routes->get('admin/manage_request/directDownload/(:num)', 'Request::directDownload/$1');
 
 
+// =============================================================
+// SHARED FILES ROUTES
+// =============================================================
+
+// For Admin
+$routes->group('admin', ['filter' => 'auth'], function($routes) {
+    $routes->get('sharedfiles', 'Sharedfiles::index');
+    $routes->post('sharedfiles/share', 'Sharedfiles::share');
+    $routes->get('sharedfiles/delete/(:num)', 'Sharedfiles::delete/$1');
+});
+
+// For Superadmin
+$routes->group('superadmin', ['filter' => 'auth'], function($routes) {
+    $routes->get('sharedfiles', 'Sharedfiles::index');
+    $routes->post('sharedfiles/share', 'Sharedfiles::share');
+    $routes->get('sharedfiles/delete/(:num)', 'Sharedfiles::delete/$1');
+});
+
+// For User
+$routes->group('user', ['filter' => 'auth'], function($routes) {
+    $routes->get('sharedfiles', 'Sharedfiles::index');
+    $routes->post('sharedfiles/share', 'Sharedfiles::share');
+    $routes->get('sharedfiles/delete/(:num)', 'Sharedfiles::delete/$1');
+});

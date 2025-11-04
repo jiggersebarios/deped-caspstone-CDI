@@ -1,9 +1,12 @@
 <?php
 $uri = service('uri');
-$currentSegment1 = $uri->getSegment(1); // e.g., 'admin' or 'superadmin'
-$currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
-?>
+$currentSegment1 = $uri->getSegment(1); // e.g., 'admin', 'superadmin', or 'user'
+$currentSegment2 = $uri->getSegment(2); // e.g., 'files', 'sharedfiles', etc.
 
+$session = session();
+$userName = $session->get('username');
+$userRole = $session->get('role') ?? 'user';
+?>
 <?php
 $session = session();
 $userName = $session->get('username');
@@ -29,6 +32,11 @@ $userRole = $session->get('role') ?? 'user';
             </a>
             <a href="<?= site_url('admin/files') ?>" class="nav-link">
                 <i class="fas fa-folder"></i> FILES
+            </a>
+
+            <a href="<?= site_url($userRole . '/sharedfiles') ?>" 
+               class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
+                <i class="fas fa-share-alt"></i> SHARED FILES
             </a>
             
 <a href="<?= site_url('admin/manage_uploads') ?>" 
