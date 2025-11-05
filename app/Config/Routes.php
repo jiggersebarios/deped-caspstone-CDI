@@ -165,26 +165,33 @@ $routes->get('admin/manage_request/directDownload/(:num)', 'Request::directDownl
 
 
 // =============================================================
-// SHARED FILES ROUTES
+// SHARED FILES ROUTES (All Roles)
 // =============================================================
+$routes->get('sharedfiles', '\App\Controllers\Sharedfiles::index');
+$routes->get('sharedfiles/download/(:num)', '\App\Controllers\Sharedfiles::download/$1');
 
-// For Admin
+// Admin
 $routes->group('admin', ['filter' => 'auth'], function($routes) {
-    $routes->get('sharedfiles', 'Sharedfiles::index');
-    $routes->post('sharedfiles/share', 'Sharedfiles::share');
-    $routes->get('sharedfiles/delete/(:num)', 'Sharedfiles::delete/$1');
+    $routes->get('sharedfiles', '\App\Controllers\Sharedfiles::index');
+    $routes->post('sharedfiles/share', '\App\Controllers\Sharedfiles::share');
+    $routes->get('sharedfiles/unshare/(:num)', 'Sharedfiles::unshare/$1');
+   
 });
 
-// For Superadmin
+// Superadmin
 $routes->group('superadmin', ['filter' => 'auth'], function($routes) {
-    $routes->get('sharedfiles', 'Sharedfiles::index');
-    $routes->post('sharedfiles/share', 'Sharedfiles::share');
-    $routes->get('sharedfiles/delete/(:num)', 'Sharedfiles::delete/$1');
+    $routes->get('sharedfiles', '\App\Controllers\Sharedfiles::index');
+    $routes->post('sharedfiles/share', '\App\Controllers\Sharedfiles::share');
+    $routes->get('sharedfiles/unshare/(:num)', 'Sharedfiles::unshare/$1');
+   
 });
 
-// For User
+// User
 $routes->group('user', ['filter' => 'auth'], function($routes) {
-    $routes->get('sharedfiles', 'Sharedfiles::index');
-    $routes->post('sharedfiles/share', 'Sharedfiles::share');
-    $routes->get('sharedfiles/delete/(:num)', 'Sharedfiles::delete/$1');
+    $routes->get('sharedfiles', '\App\Controllers\Sharedfiles::index');
+    $routes->post('sharedfiles/share', '\App\Controllers\Sharedfiles::share');
+    $routes->get('sharedfiles/delete/(:num)', '\App\Controllers\Sharedfiles::unshare/$1');
+   
 });
+
+

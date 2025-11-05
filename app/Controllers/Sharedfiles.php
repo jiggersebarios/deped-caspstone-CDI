@@ -23,113 +23,171 @@ class Sharedfiles extends BaseController
     // ==============================
     // MAIN PAGE (List + Modal Data)
     // ==============================
-    public function index()
-    {
-        $session = session();
-        $userId  = $session->get('id');
-        $role    = $session->get('role') ?? 'user';
+public function index()
+{
+    $session  = session();
+    $userId   = $session->get('id');
+    $userRole = $session->get('role');
 
-        // ✅ Files shared BY current user
-        $sharedFiles = $this->sharedModel
-            ->select('shared_files.*, files.file_name, categories.category_name, uploader.username as uploader_name')
-            ->join('files', 'files.id = shared_files.file_id', 'left')
-            ->join('categories', 'categories.id = files.category_id', 'left')
-            ->join('users uploader', 'uploader.id = files.uploaded_by', 'left')
-            ->where('shared_files.shared_by', $userId)
-            ->orderBy('shared_files.created_at', 'DESC')
-            ->findAll();
+    // ==============================
+    // Files shared BY current user
+    // ==============================
+    $sharedFiles = $this->sharedModel
+        ->select('shared_files.*, files.file_name, categories.category_name, uploader.username as uploader_name, shared_user.username as shared_to_name')
+        ->join('files', 'files.id = shared_files.file_id', 'left')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users uploader', 'uploader.id = shared_files.shared_by', 'left')
+        ->join('users shared_user', 'shared_user.id = shared_files.shared_to', 'left')
+        ->where('shared_files.shared_by', $userId)
+        ->orderBy('shared_files.created_at', 'DESC')
+        ->findAll();
 
-        // ✅ Files shared TO current user
-        $allShared = $this->sharedModel
-            ->select('shared_files.*, files.file_name, categories.category_name, sharer.username as shared_by')
-            ->join('files', 'files.id = shared_files.file_id', 'left')
-            ->join('categories', 'categories.id = files.category_id', 'left')
-            ->join('users sharer', 'sharer.id = shared_files.shared_by', 'left')
-            ->orderBy('shared_files.created_at', 'DESC')
-            ->findAll();
+    // ==============================
+    // Files shared TO current user
+    // ==============================
+    $sharedWithMe = $this->sharedModel
+        ->select('shared_files.*, files.file_name, categories.category_name, uploader.username as shared_by_name, shared_user.username as shared_to_name')
+        ->join('files', 'files.id = shared_files.file_id', 'left')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users uploader', 'uploader.id = shared_files.shared_by', 'left')
+        ->join('users shared_user', 'shared_user.id = shared_files.shared_to', 'left')
+        ->where('shared_files.shared_to', $userId)
+        ->orderBy('shared_files.created_at', 'DESC')
+        ->findAll();
 
-        $sharedWithMe = [];
-        foreach ($allShared as $share) {
-            $sharedToList = explode(',', $share['shared_to'] ?? '');
-            if (in_array((string) $userId, $sharedToList, true)) {
-                $sharedWithMe[] = $share;
-            }
+    // ==============================
+    // All available files for modal (role-based access)
+    // ==============================
+    $allFilesQuery = $this->fileModel
+        ->select('files.id, files.file_name, categories.category_name, folders.folder_name, users.username as uploader_name, files.folder_id')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('folders', 'folders.id = files.folder_id', 'left')
+        ->join('users', 'users.id = files.uploaded_by', 'left')
+        ->orderBy('files.uploaded_at', 'DESC');
+
+    // Restrict regular users to their accessible folder scope
+    if (!in_array($userRole, ['admin', 'superadmin'])) {
+        $userFolderId = $session->get('main_folder_id');
+
+        if ($userFolderId) {
+            $folderModel = new \App\Models\FolderModel();
+
+            // Collect all folder IDs within user's scope recursively
+            $accessibleFolders = $this->getAllSubfolderIds($userFolderId, $folderModel);
+            $accessibleFolders[] = $userFolderId; // Include main folder
+
+            $allFilesQuery->whereIn('files.folder_id', $accessibleFolders);
+        } else {
+            // No assigned folder → show nothing
+            $allFilesQuery->where('files.id', 0);
         }
-
-        // ✅ All available files for modal
-        $allFiles = $this->fileModel
-            ->select('files.id, files.file_name, categories.category_name, users.username as uploader_name')
-            ->join('categories', 'categories.id = files.category_id', 'left')
-            ->join('users', 'users.id = files.uploaded_by', 'left')
-            ->orderBy('files.uploaded_at', 'DESC')
-            ->findAll();
-
-        // ✅ All users except current one
-        $users = $this->userModel
-            ->select('id, username, role')
-            ->where('id !=', $userId)
-            ->orderBy('role', 'ASC')
-            ->findAll();
-
-        return view('shared/sharedfiles', [
-            'title'         => 'Shared Files',
-            'sharedFiles'   => $sharedFiles,
-            'sharedWithMe'  => $sharedWithMe,
-            'allFiles'      => $allFiles,
-            'users'         => $users,
-            'role'          => $role,
-        ]);
     }
+
+    $allFiles = $allFilesQuery->findAll();
+
+    // ==============================
+    // All users except current one
+    // ==============================
+    $usersQuery = $this->userModel->select('id, username, role')->orderBy('role', 'ASC');
+    if (!empty($userId)) {
+        $usersQuery->where('id !=', $userId);
+    }
+    $users = $usersQuery->findAll();
+
+    return view('shared/sharedfiles', [
+        'title'        => 'Shared Files',
+        'sharedFiles'  => $sharedFiles,
+        'sharedWithMe' => $sharedWithMe,
+        'allFiles'     => $allFiles,
+        'users'        => $users,
+    ]);
+}
+
+/**
+ * Recursively collect all subfolder IDs for a parent folder
+ */
+private function getAllSubfolderIds($parentId, $folderModel)
+{
+    $subfolders = $folderModel->where('parent_folder_id', $parentId)->findAll();
+    $ids = [];
+
+    foreach ($subfolders as $subfolder) {
+        $ids[] = $subfolder['id'];
+        $ids = array_merge($ids, $this->getAllSubfolderIds($subfolder['id'], $folderModel));
+    }
+
+    return $ids;
+}
 
     // ==============================
     // SHARE FILE
     // ==============================
-    public function share()
-    {
-        $session = session();
-        $userId  = $session->get('id');
-        $role    = $session->get('role') ?? 'user';
+public function share()
+{
+    $session = session();
+    $userId  = $session->get('id');
 
-        $fileId      = $this->request->getPost('file_id');
-        $targetUsers = $this->request->getPost('target_users');
+    $fileId      = $this->request->getPost('file_id');
+    $targetUsers = $this->request->getPost('target_users');
 
-        if (empty($fileId) || empty($targetUsers)) {
-            return redirect()->back()->with('error', 'Please select a file and at least one user to share with.');
+    if (empty($fileId) || empty($targetUsers)) {
+        return redirect()->back()->with('error', 'Please select a file and at least one user to share with.');
+    }
+
+    // Ensure $targetUsers is always an array
+    if (!is_array($targetUsers)) {
+        $targetUsers = [$targetUsers];
+    }
+
+    $file = $this->fileModel->find($fileId);
+    if (!$file) {
+        return redirect()->back()->with('error', 'File not found.');
+    }
+
+    // ✅ Get all users this file has already been shared with
+    $existingShares = $this->sharedModel
+        ->where('file_id', $fileId)
+        ->where('shared_by', $userId)
+        ->whereIn('shared_to', $targetUsers)
+        ->findAll();
+
+    $alreadyShared = array_column($existingShares, 'shared_to');
+
+    // ✅ Prepare new shares for users that haven't received this file yet
+    $newShares = [];
+    foreach ($targetUsers as $targetId) {
+        $targetId = (int) $targetId;
+        if (in_array($targetId, $alreadyShared)) {
+            continue;
         }
 
-        $file = $this->fileModel->find($fileId);
-        if (!$file) {
-            return redirect()->back()->with('error', 'File not found.');
-        }
-
-        if ($role === 'user' && (int) $file['uploaded_by'] !== (int) $userId) {
-            return redirect()->back()->with('error', 'You can only share your own uploaded files.');
-        }
-
-        $sharedTo = implode(',', $targetUsers);
-        $exists = $this->sharedModel
-            ->where('file_id', $fileId)
-            ->where('shared_by', $userId)
-            ->where('shared_to', $sharedTo)
-            ->first();
-
-        if ($exists) {
-            return redirect()->back()->with('info', 'You already shared this file with these users.');
-        }
-
-        $this->sharedModel->insert([
+        $newShares[] = [
             'file_id'     => $fileId,
             'file_name'   => $file['file_name'],
             'file_path'   => $file['file_path'],
             'uploaded_by' => $file['uploaded_by'],
             'shared_by'   => $userId,
-            'shared_to'   => $sharedTo,
-            'shared_role' => $role,
+            'shared_to'   => $targetId,
             'created_at'  => date('Y-m-d H:i:s'),
-        ]);
-
-        return redirect()->to('/sharedfiles')->with('success', 'File shared successfully.');
+        ];
     }
+
+    if (!empty($newShares)) {
+        $this->sharedModel->insertBatch($newShares);
+    }
+
+    // ✅ Prepare feedback message
+    $message = '';
+    if (!empty($alreadyShared) && empty($newShares)) {
+        $message = 'This file was already shared with all selected users.';
+    } elseif (!empty($alreadyShared) && !empty($newShares)) {
+        $message = 'File shared successfully with some users. (Some were already shared)';
+    } else {
+        $message = 'File shared successfully!';
+    }
+
+    return redirect()->to('/sharedfiles')->with('success', $message);
+}
 
     // ==============================
     // UNSHARE FILE
@@ -138,14 +196,13 @@ class Sharedfiles extends BaseController
     {
         $session = session();
         $userId  = $session->get('id');
-        $role    = $session->get('role') ?? 'user';
 
         $record = $this->sharedModel->find($sharedId);
         if (!$record) {
             return redirect()->back()->with('error', 'Shared record not found.');
         }
 
-        if (!in_array($role, ['admin', 'superadmin']) && (int) $record['shared_by'] !== (int) $userId) {
+        if ((int) $record['shared_by'] !== (int) $userId) {
             return redirect()->back()->with('error', 'You are not allowed to unshare this file.');
         }
 

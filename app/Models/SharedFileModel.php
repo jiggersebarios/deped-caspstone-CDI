@@ -15,7 +15,8 @@ class SharedFileModel extends Model
         'uploaded_by',
         'shared_by',
         'shared_role',
-        'created_at'
+        'created_at',
+        'shared_to'
     ];
 
     protected $useTimestamps = false;

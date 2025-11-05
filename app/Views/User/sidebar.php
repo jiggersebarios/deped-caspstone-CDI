@@ -7,7 +7,11 @@ $userRole = $session->get('role') ?? 'user';
 $uri = service('uri');
 $currentPath = $uri->getPath();
 ?>
-
+<?php
+$uri = service('uri');
+$currentSegment1 = $uri->getSegment(1); // e.g., 'admin' or 'superadmin'
+$currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
+?>
 <div class="sidebar">
     <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
     <h5 class="hello">Welcome, <?= esc($userName) ?></h5>
@@ -33,8 +37,10 @@ $currentPath = $uri->getPath();
             <a href="<?= site_url('user/request') ?>" class="nav-link <?= ($currentPath === 'user/request') ? 'active' : '' ?>">
                 <i class="fas fa-tasks"></i> REQUESTS
             </a>
-            <a href="<?= site_url('user/profile') ?>" class="nav-link <?= ($currentPath === 'user/profile') ? 'active' : '' ?>">
-                <i class="fas fa-user"></i> PROFILE
+
+                        <a href="<?= site_url($userRole . '/sharedfiles') ?>" 
+               class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
+                <i class="fas fa-share-alt"></i> SHARED FILES
             </a>
         <?php endif; ?>
     </nav>

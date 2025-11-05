@@ -135,15 +135,13 @@
                     <td><?= esc($file['file_name']) ?></td>
                     <td><?= esc($file['category_name'] ?? '-') ?></td>
                     <td><?= esc($file['uploader_name'] ?? '-') ?></td>
-                    <td><?= esc($file['shared_to'] ?? '-') ?></td>
+                    <td><?= esc($file['shared_to_name'] ?? '-') ?></td>
                     <td><?= esc($file['created_at']) ?></td>
                     <td>
-                      <a href="<?= site_url('sharedfiles/download/'.$file['id']) ?>" class="btn btn-primary btn-sm btn-action">
-                        <i class="fa fa-download"></i>
-                      </a>
-                      <a href="<?= site_url('sharedfiles/unshare/'.$file['id']) ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Unshare this file?')">
-                        <i class="fa fa-trash"></i>
-                      </a>
+
+                      <a href="<?= site_url(session()->get('role') . '/sharedfiles/unshare/'.$file['id']) ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Unshare this file?')">
+    <i class="fa fa-share"></i>
+</a>
                     </td>
                   </tr>
                 <?php endforeach; ?>
@@ -178,10 +176,10 @@
                    
                     <td><?= esc($file['file_name']) ?></td>
                     <td><?= esc($file['category_name'] ?? '-') ?></td>
-                    <td><?= esc($file['shared_by'] ?? '-') ?></td>
+                     <td><?= esc($file['shared_to_name'] ?? '-') ?></td>
                     <td><?= esc($file['created_at']) ?></td>
                     <td>
-                      <a href="<?= site_url('sharedfiles/download/'.$file['id']) ?>" class="btn btn-primary btn-sm btn-action">
+                      <a href="<?= base_url('sharedfiles/download/' . $file['id']) ?>" class="btn btn-sm btn-primary">
                         <i class="fa fa-download"></i> Download
                       </a>
                     </td>
@@ -198,9 +196,98 @@
   </div>
 </div>
 
+<!-- Share File Modal -->
+<div class="modal fade" id="shareFileModal" tabindex="-1" aria-labelledby="shareFileModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title" id="shareFileModalLabel"><i class="fa fa-share-alt"></i> Share a File</h5>
+        <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+      </div>
+      <div class="modal-body">
+        <table class="table table-striped file-list-table">
+          <thead>
+            <tr>
+              <th>File Name</th>
+              <th>Uploader</th>
+              <th>Folder</th>
+              <th>Action</th>
+            </tr>
+          </thead>
+          <tbody>
+            <?php if (!empty($allFiles)): ?>
+              <?php foreach ($allFiles as $file): ?>
+                <tr>
+                  <td><?= esc($file['file_name']) ?></td>
+                  <td><?= esc($file['uploader_name']) ?></td>
+                  <td><?= esc($file['folder_name']) ?></td>
+                  <td>
+                    <button class="btn btn-primary btn-sm" data-bs-toggle="modal" 
+                            data-bs-target="#selectUserModal" 
+                            data-file-id="<?= $file['id'] ?>">
+                      <i class="fa fa-share-alt"></i> Share
+                    </button>
+                  </td>
+                </tr>
+              <?php endforeach; ?>
+            <?php else: ?>
+              <tr><td colspan="4" class="text-center text-muted">No files available to share.</td></tr>
+            <?php endif; ?>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+<!-- Select Users Modal -->
+<div class="modal fade" id="selectUserModal" tabindex="-1" aria-labelledby="selectUserModalLabel" aria-hidden="true">
+  <div class="modal-dialog">
+    <div class="modal-content">
+   <form id="shareForm" method="post" action="<?= site_url(session()->get('role') . '/sharedfiles/share') ?>">
+
+
+        <div class="modal-header">
+          <h5 class="modal-title" id="selectUserModalLabel"><i class="fa fa-users"></i> Select Users to Share</h5>
+          <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" name="file_id" id="modalFileId">
+          <?php if (!empty($users)): ?>
+            <div class="form-group">
+              <?php foreach ($users as $user): ?>
+                <div class="form-check mb-2">
+                  <input class="form-check-input" type="checkbox" name="target_users[]" value="<?= esc($user['id']) ?>" id="user<?= esc($user['id']) ?>">
+                  <label class="form-check-label" for="user<?= esc($user['id']) ?>">
+                    <?= esc($user['username']) ?> (<?= esc($user['role']) ?>)
+                  </label>
+                </div>
+              <?php endforeach; ?>
+            </div>
+          <?php else: ?>
+            <p class="text-muted">No users available.</p>
+          <?php endif; ?>
+        </div>
+        <div class="modal-footer">
+          <button type="submit" class="btn btn-success">Share File</button>
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+
 
 <!-- Bootstrap JS -->
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
+<script>
+  const selectUserModal = document.getElementById('selectUserModal');
+  selectUserModal.addEventListener('show.bs.modal', event => {
+    const button = event.relatedTarget;
+    const fileId = button.getAttribute('data-file-id');
+    document.getElementById('modalFileId').value = fileId;
+  });
+</script>
 
 </body>
 </html>
