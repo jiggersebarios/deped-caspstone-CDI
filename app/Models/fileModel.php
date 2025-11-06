@@ -145,6 +145,49 @@ class FileModel extends Model
         }
     }
 
+    public function getExpiredFilesByFolder($folderId)
+{
+    return $this->select('
+            files.*,
+            categories.category_name,
+            users.username AS uploader_name
+        ')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users', 'users.id = files.uploaded_by', 'left')
+        ->where('files.folder_id', $folderId)
+        ->where('files.status', 'expired')
+        ->orderBy('files.expired_at', 'DESC')
+        ->findAll();
+}
+
+public function deleteFileWithAudit($fileId, $deletedBy, $reason = null)
+{
+    $file = $this->find($fileId);
+    if (!$file) return false;
+
+    // Log deletion
+    $deletedFileModel = new \App\Models\DeletedFileModel();
+    $categoryModel = new \App\Models\CategoryModel();
+    $category = $categoryModel->find($file['category_id']);
+
+    $deletedFileModel->insert([
+        'file_id'       => $file['id'],
+        'file_name'     => $file['file_name'],
+        'category_name' => $category['category_name'] ?? 'Uncategorized',
+        'deleted_by'    => $deletedBy,
+        'reason'        => $reason
+    ]);
+
+    // Physically remove the file if it exists
+    $filePath = FCPATH . $file['file_path'];
+    if (file_exists($filePath)) {
+        unlink($filePath);
+    }
+
+    // Remove from main files table
+    return $this->delete($fileId);
+}
+
     
       //Move a file physically based on status
     

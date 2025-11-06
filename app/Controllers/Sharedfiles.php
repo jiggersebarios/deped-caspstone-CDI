@@ -58,32 +58,31 @@ public function index()
     // ==============================
     // All available files for modal (role-based access)
     // ==============================
-    $allFilesQuery = $this->fileModel
-        ->select('files.id, files.file_name, categories.category_name, folders.folder_name, users.username as uploader_name, files.folder_id')
-        ->join('categories', 'categories.id = files.category_id', 'left')
-        ->join('folders', 'folders.id = files.folder_id', 'left')
-        ->join('users', 'users.id = files.uploaded_by', 'left')
-        ->orderBy('files.uploaded_at', 'DESC');
+$allFilesQuery = $this->fileModel
+    ->select('files.id, files.file_name, files.status, categories.category_name, folders.folder_name, users.username as uploader_name, files.folder_id')
+    ->join('categories', 'categories.id = files.category_id', 'left')
+    ->join('folders', 'folders.id = files.folder_id', 'left')
+    ->join('users', 'users.id = files.uploaded_by', 'left')
+    ->orderBy('files.uploaded_at', 'DESC');
 
-    // Restrict regular users to their accessible folder scope
-    if (!in_array($userRole, ['admin', 'superadmin'])) {
-        $userFolderId = $session->get('main_folder_id');
+// Only include active files
+$allFilesQuery->where('files.status', 'active'); // or ->where('files.status', 1);
 
-        if ($userFolderId) {
-            $folderModel = new \App\Models\FolderModel();
+// Restrict for non-admins
+if (!in_array($userRole, ['admin', 'superadmin'])) {
+    $userFolderId = $session->get('main_folder_id');
 
-            // Collect all folder IDs within user's scope recursively
-            $accessibleFolders = $this->getAllSubfolderIds($userFolderId, $folderModel);
-            $accessibleFolders[] = $userFolderId; // Include main folder
-
-            $allFilesQuery->whereIn('files.folder_id', $accessibleFolders);
-        } else {
-            // No assigned folder → show nothing
-            $allFilesQuery->where('files.id', 0);
-        }
+    if ($userFolderId) {
+        $folderModel = new \App\Models\FolderModel();
+        $accessibleFolders = $this->getAllSubfolderIds($userFolderId, $folderModel);
+        $accessibleFolders[] = $userFolderId;
+        $allFilesQuery->whereIn('files.folder_id', $accessibleFolders);
+    } else {
+        $allFilesQuery->where('files.id', 0);
     }
+}
 
-    $allFiles = $allFilesQuery->findAll();
+$allFiles = $allFilesQuery->findAll();
 
     // ==============================
     // All users except current one
@@ -139,9 +138,14 @@ public function share()
         $targetUsers = [$targetUsers];
     }
 
-    $file = $this->fileModel->find($fileId);
+    // ✅ Check if the file exists and is active
+    $file = $this->fileModel
+        ->where('id', $fileId)
+        ->where('status', 'active') // 👈 only allow active files
+        ->first();
+
     if (!$file) {
-        return redirect()->back()->with('error', 'File not found.');
+        return redirect()->back()->with('error', 'The selected file is not active or cannot be shared.');
     }
 
     // ✅ Get all users this file has already been shared with

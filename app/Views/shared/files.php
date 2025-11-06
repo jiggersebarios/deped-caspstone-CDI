@@ -214,9 +214,15 @@ if ($role === 'superadmin') {
         <li class="nav-item">
             <a class="nav-link" id="archived-tab" data-toggle="tab" href="#archived" role="tab">Archived Files</a>
         </li>
-          <li class="nav-item">
-            <a class="nav-link" id="archived-tab" data-toggle="tab" href="#expired" role="tab">Expired Files</a>
-        </li>
+        <li class="nav-item d-flex align-items-center">
+  <a class="nav-link" id="expired-tab" data-toggle="tab" href="#expired" role="tab">Expired Files</a>
+  <!-- Button appears beside Expired Files -->
+<button id="showDeletedBtn" class="btn btn-sm btn-info ml-2 d-none">
+  <i class="fa fa-trash"></i> Deleted Files
+</button>
+</li>
+
+
     </ul>
 
     <div class="tab-content mt-3" id="fileTabsContent">
@@ -678,9 +684,42 @@ if ($role === 'superadmin') {
   </div>
 </div>
 
+<!-- 🗑️ Deleted Files Modal -->
+<div class="modal fade" id="deletedFilesModal" tabindex="-1" aria-labelledby="deletedFilesModalLabel" aria-hidden="true">
+  <div class="modal-dialog modal-dialog-centered" style="max-width: 750px;"> <!-- wider modal -->
+    <div class="modal-content border-0 shadow-sm rounded-3">
+      <div class="modal-header bg-danger text-white py-2">
+        <h6 class="modal-title fw-semibold mb-0" id="deletedFilesModalLabel">
+          <i class="fa-solid fa-trash-can me-2"></i> Deleted Files
+        </h6>
+        
+      </div>
+
+      <div class="modal-body p-0">
+        <!-- Column Headers -->
+        <div class="d-flex fw-semibold text-secondary border-bottom bg-light px-3 py-2 small">
+          <div class="flex-grow-1">File Name</div>
+          <div class="text-nowrap" style="width: 150px;">Category</div>
+          <div class="text-nowrap" style="width: 130px;">Deleted By</div>
+          <div class="text-nowrap" style="width: 170px;">Deleted At</div>
+        </div>
+
+        <!-- Scrollable List -->
+        <div id="deletedFilesList" class="list-group list-group-flush" style="max-height: 320px; overflow-y: auto;">
+          <div class="text-center text-muted py-3">Loading...</div>
+        </div>
+      </div>
+
+      <div class="modal-footer py-2 bg-light">
+        <button type="button" class="btn btn-secondary btn-sm px-3" data-dismiss="modal">Close</button>
+
+      </div>
+    </div>
+  </div>
+</div>
 
 <!-- Scripts -->
-<script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+<script src="https://code.jquery.com/jquery-3.5.1.min.js"></script>
 <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.2/dist/umd/popper.min.js"></script>
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 
@@ -723,11 +762,97 @@ $(document).ready(function () {
     });
 });
 </script>
+<script>
+$(document).ready(function () {
+  const showDeletedBtn = $('#showDeletedBtn');
 
+  // Show "Deleted Files" button only on Expired tab
+  $('#expired-tab').on('shown.bs.tab', function () {
+    showDeletedBtn.removeClass('d-none');
+  });
+
+  // Hide on other tabs
+  $('#active-tab, #archived-tab').on('shown.bs.tab', function () {
+    showDeletedBtn.addClass('d-none');
+  });
+
+  // When "Deleted Files" button clicked
+  showDeletedBtn.on('click', function () {
+    const listContainer = $('#deletedFilesList');
+    listContainer.html('<div class="text-center text-muted py-3">Loading...</div>');
+
+    $.ajax({
+      url: "<?= base_url($role . '/files/getDeletedFiles') ?>",
+      type: "GET",
+      dataType: "json",
+      cache: false,
+      success: function (data) {
+        console.log("Deleted files:", data);
+        listContainer.empty();
+
+        if (!data || data.length === 0) {
+          listContainer.html('<div class="text-center text-muted py-3">No deleted files found.</div>');
+        } else {
+          data.forEach(file => {
+            listContainer.append(`
+              <div class="list-group-item">
+                <div class="file-name">${file.file_name ?? '(Unnamed File)'}</div>
+                <div class="file-category">${file.category_name ?? 'Uncategorized'}</div>
+                <div class="file-deleted-by">${file.deleted_by_name ?? 'Unknown'}</div>
+                <div class="file-deleted-at">${file.deleted_at ? new Date(file.deleted_at).toLocaleString() : '—'}</div>
+              </div>
+            `);
+          });
+        }
+
+        $('#deletedFilesModal').modal('show');
+      },
+      error: function (xhr, status, error) {
+        console.error('❌ Error loading deleted files:', error, xhr.responseText);
+        alert('Failed to load deleted files.');
+      }
+    });
+  });
+});
+</script>
 
 </body>
 </html>
 <style>
+#deletedFilesList .list-group-item {
+  display: flex;
+  align-items: center;
+  font-size: 14px;
+  padding: 8px 12px;
+  border: none;
+  border-bottom: 1px solid #f1f1f1;
+  transition: background-color 0.2s;
+}
+#deletedFilesList .list-group-item:hover {
+  background-color: #f8f9fa;
+}
+#deletedFilesList .file-name {
+  flex-grow: 1;
+  font-weight: 500;
+  color: #212529;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+#deletedFilesList .file-category,
+#deletedFilesList .file-deleted-by,
+#deletedFilesList .file-deleted-at {
+  font-size: 13px;
+  color: #6c757d;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+#deletedFilesList .file-category { width: 150px; }
+#deletedFilesList .file-deleted-by { width: 130px; }
+#deletedFilesList .file-deleted-at { width: 170px; }
+#deletedFilesList::-webkit-scrollbar { width: 6px; }
+#deletedFilesList::-webkit-scrollbar-thumb { background: #ccc; border-radius: 3px; }
 /* ====== General Modal Styling ====== */
 .modal-content {
     border-radius: 8px;

@@ -116,7 +116,7 @@
 </a>
 
 <!-- Pending Requests -->
-<a href="<?= site_url('admin/requests?status=pending') ?>" class="card-link-wrapper">
+  <a href="<?= site_url('admin/manage_request') ?>" class="card-link-wrapper">
     <div class="card shadow-sm text-center">
         <div class="card-body">
             <i class="fas fa-tasks fa-2x text-warning mb-2"></i>

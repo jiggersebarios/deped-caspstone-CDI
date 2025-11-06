@@ -137,9 +137,8 @@ public function view($id)
     // ==== Load Files ====
     $activeFiles   = $fileModel->getActiveFilesByFolder($id);
     $archivedFiles = $fileModel->getArchivedFilesByFolder($id);
-    $expiredFiles  = $fileModel->where('folder_id', $id)
-                               ->where('status', 'expired')
-                               ->findAll();
+    $expiredFiles = $fileModel->getExpiredFilesByFolder($id);
+
 
     // ==== Load Subfolders with Search Applied ====
     $subfoldersQuery = $folderModel->where('parent_folder_id', $id);
@@ -429,32 +428,71 @@ public function viewFile($id)
 public function deleteFile($fileId)
 {
     $fileModel = new FileModel();
-    $file = $fileModel->find($fileId);
+    $deletedFileModel = new \App\Models\DeletedFileModel();
+    $categoryModel = new \App\Models\CategoryModel();
 
+    // 🔹 Find the file first
+    $file = $fileModel->find($fileId);
     if (!$file) {
         return redirect()->back()->with('error', 'File not found in database.');
     }
 
-    // ✅ Correct path - use FCPATH since files are in /public/uploads/
-    $filePath = FCPATH . $file['file_path'];
+    // 🔹 Get category info (optional)
+    $category = $categoryModel->find($file['category_id']);
 
-    // ✅ Check and delete the actual file from disk
+    // 🔹 Delete physical file from server
+    $filePath = FCPATH . $file['file_path'];
     if (is_file($filePath)) {
         if (!unlink($filePath)) {
+            log_message('error', '❌ Failed to delete file: ' . $filePath);
             return redirect()->back()->with('error', 'Failed to delete the file from server.');
         }
     } else {
-        // Optional: log if the file is missing from folder
-        log_message('warning', 'File missing at delete: ' . $filePath);
+        log_message('warning', '⚠️ File missing when deleting: ' . $filePath);
     }
 
-    // ✅ Remove from database
+    // 🔹 Delete from all dependent tables first (to avoid FK errors)
+    $db = \Config\Database::connect();
+    $db->table('request_tokens')->whereIn('request_id', function($builder) use ($fileId) {
+        $builder->select('id')->from('file_requests')->where('file_id', $fileId);
+    })->delete();
+
+    $db->table('file_requests')->where('file_id', $fileId)->delete();
+
+    // 🔹 Log deletion details into deleted_files
+    $deletedFileModel->insert([
+        'file_id'        => $file['id'],
+        'file_name'      => $file['file_name'],
+        'category_name'  => $category['category_name'] ?? 'Uncategorized',
+        'expired_at'     => $file['expired_at'] ?? null,
+        'deleted_by'     => session()->get('id') ?? null,
+        'deleted_at'     => date('Y-m-d H:i:s'),
+        'reason'         => 'Manual deletion by user',
+    ]);
+
+    // 🔹 Delete the file record from the main table
     $fileModel->delete($fileId);
 
     return redirect()
         ->to($this->role . '/files/view/' . $file['folder_id'])
-        ->with('success', 'File deleted successfully.');
+        ->with('success', 'File deleted successfully and logged in deleted files.');
 }
+
+
+
+public function getDeletedFiles($role = null)
+{
+    $deletedFileModel = new \App\Models\DeletedFileModel();
+
+    $deletedFiles = $deletedFileModel
+        ->select('deleted_files.*, users.username AS deleted_by_name')
+        ->join('users', 'users.id = deleted_files.deleted_by', 'left')
+        ->orderBy('deleted_files.deleted_at', 'DESC')
+        ->findAll();
+
+    return $this->response->setJSON($deletedFiles);
+}
+
 
 
 

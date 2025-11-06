@@ -194,4 +194,12 @@ $routes->group('user', ['filter' => 'auth'], function($routes) {
    
 });
 
+// =============================================================
+// 🗑️ Deleted Files (Universal Route for All Roles)
+// =============================================================
+$routes->get('(:any)/files/getDeletedFiles', 'Files::getDeletedFiles');
+// app/Config/Routes.php
+$routes->get('(:segment)/files/getDeletedFiles', 'Files::getDeletedFiles/$1');
+
+
 
