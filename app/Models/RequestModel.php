@@ -3,6 +3,7 @@
 namespace App\Models;
 
 use CodeIgniter\Model;
+use App\Models\RequestTokenModel;
 
 class RequestModel extends Model
 {
@@ -45,7 +46,52 @@ class RequestModel extends Model
     }
 
     // --------------------------
-    // USER: Active + Completed
+    // APPROVE REQUEST + TOKEN
+    // --------------------------
+    public function approveRequest($id)
+    {
+        // 1️⃣ Approve the request
+        $this->update($id, [
+            'status'      => 'approved',
+            'approved_at' => date('Y-m-d H:i:s')
+        ]);
+
+        // 2️⃣ Generate token via RequestTokenModel
+        $tokenModel = new RequestTokenModel();
+        $token = $tokenModel->createToken($id);
+
+        // 3️⃣ Save the same token in file_requests.download_token
+        $this->update($id, [
+            'download_token' => $token
+        ]);
+
+        return $token;
+    }
+
+    // --------------------------
+    // DENY REQUEST
+    // --------------------------
+    public function denyRequest($id)
+    {
+        return $this->update($id, [
+            'status'      => 'denied',
+            'approved_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    // --------------------------
+    // MARK AS DOWNLOADED
+    // --------------------------
+    public function markAsDownloaded($id)
+    {
+        return $this->update($id, [
+            'status'        => 'downloaded',
+            'downloaded_at' => date('Y-m-d H:i:s')
+        ]);
+    }
+
+    // --------------------------
+    // FETCH USER REQUESTS
     // --------------------------
     public function getUserActiveRequests($userId)
     {
@@ -64,50 +110,6 @@ class RequestModel extends Model
                     ->where('file_requests.user_id', $userId)
                     ->where('file_requests.status', 'downloaded')
                     ->orderBy('file_requests.downloaded_at', 'DESC')
-                    ->findAll();
-    }
-
-    // --------------------------
-    // ADMIN ACTIONS
-    // --------------------------
-    public function approveRequest($id)
-    {
-        $this->update($id, [
-            'status'      => 'approved',
-            'approved_at' => date('Y-m-d H:i:s')
-        ]);
-
-        // Auto-generate token for approved request
-        $tokenModel = new \App\Models\RequestTokenModel();
-        $tokenModel->createToken($id);
-    }
-
-    public function denyRequest($id)
-    {
-        return $this->update($id, [
-            'status'      => 'denied',
-            'approved_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-
-    public function markAsDownloaded($id)
-    {
-        return $this->update($id, [
-            'status'        => 'downloaded',
-            'downloaded_at' => date('Y-m-d H:i:s')
-        ]);
-    }
-
-    // --------------------------
-    // GENERIC FETCHERS
-    // --------------------------
-    public function getRequestsByStatus(array $statuses)
-    {
-        return $this->select('file_requests.*, files.file_name, users.username')
-                    ->join('files', 'files.id = file_requests.file_id', 'left')
-                    ->join('users', 'users.id = file_requests.user_id', 'left')
-                    ->whereIn('file_requests.status', $statuses)
-                    ->orderBy('file_requests.requested_at', 'DESC')
                     ->findAll();
     }
 }

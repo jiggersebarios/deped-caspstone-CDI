@@ -218,7 +218,7 @@ if ($role === 'superadmin') {
   <a class="nav-link" id="expired-tab" data-toggle="tab" href="#expired" role="tab">Expired Files</a>
   <!-- Button appears beside Expired Files -->
 <button id="showDeletedBtn" class="btn btn-sm btn-info ml-2 d-none">
-  <i class="fa fa-trash"></i> Deleted Files
+  <i class="fa fa-trash"></i> Deleted Logs
 </button>
 </li>
 

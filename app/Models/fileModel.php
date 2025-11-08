@@ -8,6 +8,8 @@ class FileModel extends Model
 {
     protected $table = 'files';
     protected $primaryKey = 'id';
+    protected $storagePath = 'C:\\xampp\\depedfiles\\'; // change as needed
+
 
     protected $allowedFields = [
         'folder_id',
@@ -179,10 +181,11 @@ public function deleteFileWithAudit($fileId, $deletedBy, $reason = null)
     ]);
 
     // Physically remove the file if it exists
-    $filePath = FCPATH . $file['file_path'];
-    if (file_exists($filePath)) {
-        unlink($filePath);
-    }
+    $filePath = $this->storagePath . $file['file_path'];
+if (file_exists($filePath)) {
+    unlink($filePath);
+}
+
 
     // Remove from main files table
     return $this->delete($fileId);
@@ -191,46 +194,46 @@ public function deleteFileWithAudit($fileId, $deletedBy, $reason = null)
     
       //Move a file physically based on status
     
-    public function moveFileByStatus($fileId, $newStatus)
-    {
-        $file = $this->find($fileId);
-        if (!$file) return false;
+public function moveFileByStatus($fileId, $newStatus)
+{
+    $file = $this->find($fileId);
+    if (!$file) return false;
 
-        $currentPath = FCPATH . $file['file_path'];
+    $currentPath = $this->storagePath . $file['file_path']; // use storagePath
 
-        switch ($newStatus) {
-            case 'active':
-                $destFolder = FCPATH . 'uploads/active/';
-                break;
-            case 'archived':
-                $destFolder = FCPATH . 'uploads/archive/';
-                break;
-            case 'expired':
-                $destFolder = FCPATH . 'uploads/expired/';
-                break;
-            case 'pending':
-            default:
-                $destFolder = FCPATH . 'uploads/pending/';
-        }
-
-        if (!is_dir($destFolder)) mkdir($destFolder, 0777, true);
-
-        $filename = basename($currentPath);
-        $newPath = $destFolder . $filename;
-
-        if (!rename($currentPath, $newPath)) {
-            log_message('error', "Failed to move file {$filename} to {$destFolder}");
-            return false;
-        }
-
-        // Update database path and status
-        $this->update($fileId, [
-            'file_path' => str_replace(FCPATH, '', $newPath),
-            'status'    => $newStatus
-        ]);
-
-        return true;
+    switch ($newStatus) {
+        case 'active':
+            $destFolder = $this->storagePath . 'active/';
+            break;
+        case 'archived':
+            $destFolder = $this->storagePath . 'archive/';
+            break;
+        case 'expired':
+            $destFolder = $this->storagePath . 'expired/';
+            break;
+        case 'pending':
+        default:
+            $destFolder = $this->storagePath . 'pending/';
     }
+
+    if (!is_dir($destFolder)) mkdir($destFolder, 0777, true);
+
+    $filename = basename($currentPath);
+    $newPath = $destFolder . $filename;
+
+    if (!rename($currentPath, $newPath)) {
+        log_message('error', "Failed to move file {$filename} to {$destFolder}");
+        return false;
+    }
+
+    $this->update($fileId, [
+        'file_path' => str_replace($this->storagePath, '', $newPath),
+        'status'    => $newStatus
+    ]);
+
+    return true;
+}
+
 
     
  //Rename a file on disk and in database
@@ -246,7 +249,8 @@ public function renameFile($fileId, $newName)
         throw new \Exception("This file is immutable and cannot be renamed.");
     }
 
-    $oldPath = FCPATH . $file['file_path'];
+    // Use storagePath instead of FCPATH
+    $oldPath = $this->storagePath . $file['file_path'];
     if (!file_exists($oldPath)) {
         throw new \Exception("File does not exist on the server.");
     }
@@ -268,14 +272,15 @@ public function renameFile($fileId, $newName)
         throw new \Exception("Failed to rename the file on the server.");
     }
 
-    //  Update database with new file name and path
+    // Update database with new file name and path (relative to storagePath)
     $this->update($fileId, [
         'file_name' => $newFileName,
-        'file_path' => str_replace(FCPATH, '', $newPath)
+        'file_path' => str_replace($this->storagePath, '', $newPath)
     ]);
 
     return true;
 }
+
 
 
     /**

@@ -169,6 +169,10 @@ $routes->get('admin/manage_request/directDownload/(:num)', 'Request::directDownl
 // =============================================================
 $routes->get('sharedfiles', '\App\Controllers\Sharedfiles::index');
 $routes->get('sharedfiles/download/(:num)', '\App\Controllers\Sharedfiles::download/$1');
+$routes->get('sharedfiles/unshare/(:num)', 'Sharedfiles::unshare/$1');
+$routes->get('sharedfiles/generateToken/(:num)', 'Sharedfiles::generateToken/$1');
+$routes->get('sharedfiles/access/(:segment)', 'Sharedfiles::access/$1');
+
 
 // Admin
 $routes->group('admin', ['filter' => 'auth'], function($routes) {
@@ -190,9 +194,9 @@ $routes->group('superadmin', ['filter' => 'auth'], function($routes) {
 $routes->group('user', ['filter' => 'auth'], function($routes) {
     $routes->get('sharedfiles', '\App\Controllers\Sharedfiles::index');
     $routes->post('sharedfiles/share', '\App\Controllers\Sharedfiles::share');
-    $routes->get('sharedfiles/delete/(:num)', '\App\Controllers\Sharedfiles::unshare/$1');
-   
+    $routes->get('sharedfiles/unshare/(:num)', '\App\Controllers\Sharedfiles::unshare/$1'); // ✅ fixed
 });
+
 
 // =============================================================
 // 🗑️ Deleted Files (Universal Route for All Roles)

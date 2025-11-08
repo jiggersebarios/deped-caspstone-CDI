@@ -12,58 +12,51 @@ class Request extends BaseController
     protected $requestModel;
     protected $tokenModel;
     protected $fileModel;
+    protected $storagePath;
 
     public function __construct()
     {
         $this->requestModel = new RequestModel();
         $this->tokenModel   = new RequestTokenModel();
         $this->fileModel    = new FileModel();
+
+        $this->storagePath = 'C:\\xampp\\depedfiles\\';
+    if (!is_dir($this->storagePath)) mkdir($this->storagePath, 0777, true);
+
     }
 
     // ============================================================
     // 👤 USER SIDE
     // ============================================================
-public function userRequests()
-{
-    $userId = session()->get('id');
-    if (!$userId) {
-        return redirect()->to('/login')->with('error', 'You must be logged in.');
-    }
-
-    // 1️⃣ Fetch active requests (pending or approved)
-    $requests = $this->requestModel
-        ->getUserActiveRequests($userId);
-
-    // 2️⃣ Attach a single unused token to approved requests
-    $tokenModel = new \App\Models\RequestTokenModel();
-    foreach ($requests as &$req) {
-        if ($req['status'] === 'approved') {
-            $tokenData = $tokenModel
-                ->where('request_id', $req['id'])
-                ->where('used', 0)
-                ->first();
-
-            $req['download_token'] = $tokenData['token'] ?? null;
-        } else {
-            $req['download_token'] = null;
+    public function userRequests()
+    {
+        $userId = session()->get('id');
+        if (!$userId) {
+            return redirect()->to('/login')->with('error', 'You must be logged in.');
         }
+
+        // Fetch active requests (pending or approved)
+        $requests = $this->requestModel->getUserActiveRequests($userId);
+
+        // Attach saved download token from file_requests
+        foreach ($requests as &$req) {
+            $req['download_token'] = ($req['status'] === 'approved') ? $req['download_token'] : null;
+        }
+        unset($req);
+
+        // Fetch completed downloads separately
+        $completedFiles = $this->requestModel->getUserCompletedFiles($userId);
+
+        // Fetch available files for requesting
+        $files = $this->fileModel->findAll();
+
+        return view('shared/request', [
+            'title' => 'Request for Archive Files',
+            'requests' => $requests,
+            'completedFiles' => $completedFiles,
+            'files' => $files
+        ]);
     }
-    unset($req); // break reference
-
-    // 3️⃣ Fetch completed downloads separately
-    $completedFiles = $this->requestModel->getUserCompletedFiles($userId);
-
-    // 4️⃣ Fetch available files for requesting
-    $files = $this->fileModel->findAll();
-
-    return view('shared/request', [
-        'title' => 'Request for Archive Files',
-        'requests' => $requests,
-        'completedFiles' => $completedFiles,
-        'files' => $files
-    ]);
-}
-
 
     // ============================================================
     // 📨 SUBMIT REQUEST
@@ -90,56 +83,46 @@ public function userRequests()
     // ============================================================
     // 🧑‍💼 ADMIN / SUPERADMIN SIDE
     // ============================================================
-public function manage()
-{
-    $role = session()->get('role');
+    public function manage()
+    {
+        $role = session()->get('role');
 
-    // Fetch pending or approved requests (main table)
-    $requests = $this->requestModel
-        ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
-                  file_requests.status, file_requests.requested_at, file_requests.approved_at, 
-                  files.file_name, users.username')
-        ->join('files', 'files.id = file_requests.file_id', 'left')
-        ->join('users', 'users.id = file_requests.user_id', 'left')
-        ->whereIn('file_requests.status', ['pending', 'approved'])
-        ->groupBy('file_requests.id') // prevent duplicates
-        ->orderBy('file_requests.requested_at', 'DESC')
-        ->findAll();
+        // Pending / approved requests
+        $requests = $this->requestModel
+            ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
+                      file_requests.status, file_requests.requested_at, file_requests.approved_at, file_requests.download_token,
+                      files.file_name, users.username')
+            ->join('files', 'files.id = file_requests.file_id', 'left')
+            ->join('users', 'users.id = file_requests.user_id', 'left')
+            ->whereIn('file_requests.status', ['pending', 'approved'])
+            ->orderBy('file_requests.requested_at', 'DESC')
+            ->findAll();
 
-    // Fetch downloaded requests (modal)
-    $completedFiles = $this->requestModel
-        ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
-                  file_requests.status, file_requests.requested_at, file_requests.downloaded_at, 
-                  files.file_name, users.username')
-        ->join('files', 'files.id = file_requests.file_id', 'left')
-        ->join('users', 'users.id = file_requests.user_id', 'left')
-        ->where('file_requests.status', 'downloaded')
-        ->orderBy('file_requests.downloaded_at', 'DESC')
-        ->findAll();
+        // Downloaded requests
+        $completedFiles = $this->requestModel
+            ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
+                      file_requests.status, file_requests.requested_at, file_requests.downloaded_at,
+                      files.file_name, users.username')
+            ->join('files', 'files.id = file_requests.file_id', 'left')
+            ->join('users', 'users.id = file_requests.user_id', 'left')
+            ->where('file_requests.status', 'downloaded')
+            ->orderBy('file_requests.downloaded_at', 'DESC')
+            ->findAll();
 
-    return view('shared/manage_request', [
-        'title' => 'Manage File Requests',
-        'requests' => $requests,
-        'completedFiles' => $completedFiles,
-        'role' => $role
-    ]);
-}
-
-
-
+        return view('shared/manage_request', [
+            'title' => 'Manage File Requests',
+            'requests' => $requests,
+            'completedFiles' => $completedFiles,
+            'role' => $role
+        ]);
+    }
 
     // ============================================================
-    // ✅ APPROVE REQUEST (GENERATES TOKEN)
+    // ✅ APPROVE REQUEST (Generates Token)
     // ============================================================
     public function approve($id)
     {
-        // 1️⃣ Approve the request
-        $this->requestModel->approveRequest($id);
-
-        // 2️⃣ Generate secure token (valid 24 hours)
-        $token = $this->tokenModel->createToken($id, 24);
-
-        // (No need to store in request table — tokens live in requests_tokens)
+        $token = $this->requestModel->approveRequest($id); // token is saved in file_requests
         return redirect()->back()->with('success', 'Request approved and download token created.');
     }
 
@@ -152,55 +135,82 @@ public function manage()
         return redirect()->back()->with('error', 'Request denied.');
     }
 
-// ============================================================
-// 🔽 ADMIN / SUPERADMIN DIRECT DOWNLOAD BY REQUEST ID (Secure)
-// ============================================================
-public function directDownload($requestId)
+    // ============================================================
+    // 🔽 DOWNLOAD BY TOKEN (Secure)
+    // ============================================================
+public function directDownload($requestId = null)
 {
-    $role = session()->get('role');
     $userId = session()->get('id');
-
-    // 1️⃣ Fetch the request record
-    $request = $this->requestModel->find($requestId);
-    if (!$request) {
-        return redirect()->back()->with('error', 'Request not found.');
+    if (!$userId) {
+        return redirect()->to('/login')->with('error', 'You must be logged in.');
     }
 
-    // 2️⃣ Ensure only the requester can download their own request
+    $token = $this->request->getGet('token');
+
+    // 1️⃣ Fetch request based on token or request ID
+    if ($token) {
+        $tokenData = $this->tokenModel->validateToken($token);
+        if (!$tokenData) {
+            return redirect()->back()->with('error', 'Invalid or expired token.');
+        }
+        $request = $this->requestModel->find($tokenData['request_id']);
+    } elseif ($requestId) {
+        $request = $this->requestModel->find($requestId);
+        if (!$request) {
+            return redirect()->back()->with('error', 'Request not found.');
+        }
+
+        // Fallback: get latest unused token
+        $tokenData = $this->tokenModel
+            ->where('request_id', $requestId)
+            ->where('used', 0)
+            ->first();
+        if (!$tokenData) {
+            return redirect()->back()->with('error', 'No valid download token available.');
+        }
+        $token = $tokenData['token'];
+    } else {
+        return redirect()->back()->with('error', 'No token or request ID provided.');
+    }
+
+    // 2️⃣ Check ownership
     if ((int)$request['user_id'] !== (int)$userId) {
         return redirect()->back()->with('error', 'You are not authorized to download this file.');
     }
 
-    // 3️⃣ Ensure the request is approved
+    // 3️⃣ Ensure approved or downloaded
     if (!in_array($request['status'], ['approved', 'downloaded'])) {
-        return redirect()->back()->with('error', 'This file is not yet approved for download.');
+        return redirect()->back()->with('error', 'This file is not approved for download.');
     }
 
-    // 4️⃣ Fetch the file record
+    // 4️⃣ Get the file record
     $file = $this->fileModel->find($request['file_id']);
     if (!$file) {
         return redirect()->back()->with('error', 'File record not found.');
     }
 
-    // Convert to array if needed
+    // Convert to array if object
     if (is_object($file)) $file = (array)$file;
 
-    if (empty($file['file_path']) || !file_exists($file['file_path'])) {
-        return redirect()->back()->with('error', 'File not found on the server.');
+    // 5️⃣ Build full path using storage path
+    $storagePath = 'C:\\xampp\\depedfiles\\';
+    $filePath = $storagePath . $file['file_path'];
+
+    if (!file_exists($filePath)) {
+        log_message('error', 'File missing on server: ' . $filePath);
+        return redirect()->to('/')->with('error', 'File missing on server.');
     }
 
-    // 5️⃣ Mark request as downloaded (for tracking)
-    $this->requestModel->update($request['id'], [
-        'status'        => 'downloaded',
-        'downloaded_at' => date('Y-m-d H:i:s')
-    ]);
+    // 6️⃣ Mark as downloaded and token as used
+    $this->requestModel->markAsDownloaded($request['id']);
+    $this->tokenModel->markUsed($token);
 
-    // 6️⃣ Serve file securely
+    // 7️⃣ Serve file
     if (ob_get_level()) ob_end_clean();
-
     return $this->response
-        ->download($file['file_path'], null, true)
+        ->download($filePath, null, true)
         ->setFileName($file['file_name']);
 }
+
 
 }

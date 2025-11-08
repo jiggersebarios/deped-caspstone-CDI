@@ -138,10 +138,10 @@
                     <td><?= esc($file['shared_to_name'] ?? '-') ?></td>
                     <td><?= esc($file['created_at']) ?></td>
                     <td>
-
                       <a href="<?= site_url(session()->get('role') . '/sharedfiles/unshare/'.$file['id']) ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Unshare this file?')">
     <i class="fa fa-share"></i>
 </a>
+
                     </td>
                   </tr>
                 <?php endforeach; ?>

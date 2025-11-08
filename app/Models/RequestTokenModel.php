@@ -17,9 +17,19 @@ class RequestTokenModel extends Model
 
     /**
      * Create a new one-time token for a given file request.
+     * Returns the token string.
      */
     public function createToken($requestId, $hours = 24)
     {
+        // Check if an active token already exists
+        $existing = $this->where('request_id', $requestId)
+                         ->where('used', 0)
+                         ->where('expires_at >=', date('Y-m-d H:i:s'))
+                         ->first();
+        if ($existing) {
+            return $existing['token'];
+        }
+
         $token = bin2hex(random_bytes(32)); // 64-character secure token
         $expiresAt = date('Y-m-d H:i:s', strtotime("+{$hours} hours"));
 
@@ -45,7 +55,7 @@ class RequestTokenModel extends Model
     }
 
     /**
-     * Mark a token as used (single use enforcement).
+     * Mark a token as used (single-use enforcement)
      */
     public function markUsed($token)
     {

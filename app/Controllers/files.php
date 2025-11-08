@@ -12,11 +12,14 @@ class Files extends BaseController
 {
     protected $configModel;
     protected $role;
+    protected $storagePath;
 
     public function __construct()
     {
         $this->configModel = new GlobalconfigModel();
         $this->role = session()->get('role'); // 'admin' or 'superadmin'
+         // safer storage outside public
+        $this->storagePath = 'C:\\xampp\\depedfiles\\'; // Windows path example
     }
     
 
@@ -336,38 +339,38 @@ public function upload($folderId)
     $status = 'pending'; // You can also allow admin to set it to 'active'
 
     // Map status to folder path
-    $statusFolders = [
-        'pending'  => FCPATH . 'uploads/pending/',
-        'active'   => FCPATH . 'uploads/active/',
-        'archived' => FCPATH . 'uploads/archive/',
-        'expired'  => FCPATH . 'uploads/expired/'
-    ];
+$statusFolders = [
+    'pending'  => $this->storagePath . 'pending\\',
+    'active'   => $this->storagePath . 'active\\',
+    'archived' => $this->storagePath . 'archive\\',
+    'expired'  => $this->storagePath . 'expired\\'
+];
 
-    $destFolder = $statusFolders[$status];
+$destFolder = $statusFolders[$status];
 
-    // Ensure folder exists
-    if (!is_dir($destFolder)) {
-        mkdir($destFolder, 0777, true);
-    }
+// Ensure folder exists
+if (!is_dir($destFolder)) {
+    mkdir($destFolder, 0777, true);
+}
 
-    // Generate random file name to prevent conflicts
-    $newName = $file->getRandomName();
-    $file->move($destFolder, $newName);
+$newName = $file->getRandomName();
+$file->move($destFolder, $newName);
 
-    $fileSize = $file->getSize();
+// Save relative path in DB for portability
+$filePathRelative = str_replace($this->storagePath, '', $destFolder . $newName);
 
-    // Insert into database
-    (new \App\Models\FileModel())->insert([
-        'folder_id'   => $folderId,
-        'category_id' => $categoryId,
-        'file_name'   => $file->getClientName(),
-        'file_path'   => str_replace(FCPATH, '', $destFolder . $newName),
-        'file_size'   => $fileSize,
-        'uploaded_by' => $session->get('id'),
-        'uploaded_at' => date('Y-m-d H:i:s'),
-        'status'      => $status,
-        'is_archived' => 0
-    ]);
+(new \App\Models\FileModel())->insert([
+    'folder_id'   => $folderId,
+    'category_id' => $categoryId,
+    'file_name'   => $file->getClientName(),
+    'file_path'   => $filePathRelative,
+    'file_size'   => $file->getSize(),
+    'uploaded_by' => $session->get('id'),
+    'uploaded_at' => date('Y-m-d H:i:s'),
+    'status'      => $status,
+    'is_archived' => 0
+]);
+
 
     return redirect()
         ->to($this->role . '/files/view/' . $folderId)
@@ -384,11 +387,11 @@ public function viewFile($id)
         throw new \CodeIgniter\Exceptions\PageNotFoundException("File not found");
     }
 
-    $filePath = FCPATH . $file['file_path'];
+   $filePath = $this->storagePath . $file['file_path'];
 
-    if (!file_exists($filePath)) {
-        throw new \CodeIgniter\Exceptions\PageNotFoundException("File does not exist on server");
-    }
+if (!file_exists($filePath)) {
+    throw new \CodeIgniter\Exceptions\PageNotFoundException("File does not exist on server");
+}
 
     $extension = strtolower(pathinfo($filePath, PATHINFO_EXTENSION));
 
@@ -498,24 +501,28 @@ public function getDeletedFiles($role = null)
 
 public function download($fileId)
 {
-    $fileModel = new FileModel();
+    $fileModel = new \App\Models\FileModel();
     $file = $fileModel->find($fileId);
 
-    if ($file) {
-        // ✅ Use FCPATH since files are in /public/uploads/
-        $filePath = FCPATH . $file['file_path']; 
-
-        if (is_file($filePath)) {
-            return $this->response->download($filePath, null)
-                                  ->setFileName($file['file_name']);
-        }
-
-        // Optional debug line to trace path issues
-        // log_message('error', 'Download failed. File not found: ' . $filePath);
+    if (!$file) {
+        return redirect()->back()->with('error', 'File not found in database.');
     }
 
-    return redirect()->back()->with('error', 'File not found.');
+    // Absolute path to the storage folder (outside public)
+    $storagePath = 'C:\\xampp\\depedfiles\\'; // adjust according to your setup
+    $filePath = $storagePath . $file['file_path']; // file_path is relative in DB
+
+    if (!is_file($filePath)) {
+        log_message('error', 'Download failed. File missing on server: ' . $filePath);
+        return redirect()->back()->with('error', 'File not found on the server.');
+    }
+
+    // Serve the file for download
+    return $this->response
+        ->download($filePath, null, true)
+        ->setFileName($file['file_name']);
 }
+
 
 public function renameFile()
 {
