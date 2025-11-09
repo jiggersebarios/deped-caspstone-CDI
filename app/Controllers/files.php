@@ -20,6 +20,9 @@ class Files extends BaseController
         $this->role = session()->get('role'); // 'admin' or 'superadmin'
          // safer storage outside public
         $this->storagePath = 'C:\\xampp\\depedfiles\\'; // Windows path example
+        // Load upload settings from global config
+        $this->uploadSettings = $this->configModel->getSystemUploadSettings();
+
     }
     
 
@@ -335,47 +338,70 @@ public function upload($folderId)
         return redirect()->back()->with('error', 'Please select a category.');
     }
 
-    // Determine initial status (pending by default)
+    // ✅ Load upload settings from global config
+    $uploadSettings = $this->configModel->getSystemUploadSettings();
+
+    // ✅ Check file type
+    $extension = strtolower($file->getClientExtension());
+    $allowedExtensions = [];
+    foreach ($uploadSettings as $key => $setting) {
+        if (strpos($key, 'allow_') === 0 && $setting['enabled'] == 1) {
+            $allowedExtensions[] = str_replace('allow_', '', $key);
+        }
+    }
+
+    if (!in_array($extension, $allowedExtensions)) {
+        return redirect()->back()->with('error', "File type .$extension is not allowed.");
+    }
+
+    // ✅ Check file size
+    $maxSizeMB = $uploadSettings['max_file_size_mb']['value'] ?? 5;
+    $maxSizeBytes = $maxSizeMB * 1024 * 1024;
+    if ($file->getSize() > $maxSizeBytes) {
+        return redirect()->back()->with('error', "File exceeds max size of {$maxSizeMB} MB.");
+    }
+
+    // ✅ Determine initial status (pending by default)
     $status = 'pending'; // You can also allow admin to set it to 'active'
 
     // Map status to folder path
-$statusFolders = [
-    'pending'  => $this->storagePath . 'pending\\',
-    'active'   => $this->storagePath . 'active\\',
-    'archived' => $this->storagePath . 'archive\\',
-    'expired'  => $this->storagePath . 'expired\\'
-];
+    $statusFolders = [
+        'pending'  => $this->storagePath . 'pending\\',
+        'active'   => $this->storagePath . 'active\\',
+        'archived' => $this->storagePath . 'archive\\',
+        'expired'  => $this->storagePath . 'expired\\'
+    ];
 
-$destFolder = $statusFolders[$status];
+    $destFolder = $statusFolders[$status];
 
-// Ensure folder exists
-if (!is_dir($destFolder)) {
-    mkdir($destFolder, 0777, true);
-}
+    // Ensure folder exists
+    if (!is_dir($destFolder)) {
+        mkdir($destFolder, 0777, true);
+    }
 
-$newName = $file->getRandomName();
-$file->move($destFolder, $newName);
+    $newName = $file->getRandomName();
+    $file->move($destFolder, $newName);
 
-// Save relative path in DB for portability
-$filePathRelative = str_replace($this->storagePath, '', $destFolder . $newName);
+    // Save relative path in DB for portability
+    $filePathRelative = str_replace($this->storagePath, '', $destFolder . $newName);
 
-(new \App\Models\FileModel())->insert([
-    'folder_id'   => $folderId,
-    'category_id' => $categoryId,
-    'file_name'   => $file->getClientName(),
-    'file_path'   => $filePathRelative,
-    'file_size'   => $file->getSize(),
-    'uploaded_by' => $session->get('id'),
-    'uploaded_at' => date('Y-m-d H:i:s'),
-    'status'      => $status,
-    'is_archived' => 0
-]);
-
+    (new \App\Models\FileModel())->insert([
+        'folder_id'   => $folderId,
+        'category_id' => $categoryId,
+        'file_name'   => $file->getClientName(),
+        'file_path'   => $filePathRelative,
+        'file_size'   => $file->getSize(),
+        'uploaded_by' => $session->get('id'),
+        'uploaded_at' => date('Y-m-d H:i:s'),
+        'status'      => $status,
+        'is_archived' => 0
+    ]);
 
     return redirect()
         ->to($this->role . '/files/view/' . $folderId)
         ->with('success', 'File uploaded successfully. File is pending for review.');
 }
+
 
 
 public function viewFile($id)
