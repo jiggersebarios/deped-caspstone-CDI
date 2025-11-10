@@ -1,3 +1,4 @@
+</html>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -7,26 +8,67 @@
     <link rel="stylesheet" href="/cdi/deped/public/css/style.css">
 </head>
 <body class="login">
-<div class="logo">
-    <img src="/cdi/deped/public/uploads/pics/matatag.png" alt="MATATAG Logo" class="logo-image">
-    <img src="/cdi/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
+<div class="login-container">
+    <div class="branding-column">
+        <div class="logo">
+            <img src="/cdi/deped/public/uploads/pics/matatag.png" alt="MATATAG Logo" class="logo-image">
+            <img src="/cdi/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
+        </div>
+        <h1>DEPED ARCHIVING SYSTEM</h1>
+    </div>
 </div>
-
-<h1>DEPED ARCHIVING SYSTEM</h1>
-
 <div class="card">
+    <div class="mobile-branding">
+        <img src="/cdi/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
+        <h3>DEPED ARCHIVING SYSTEM</h3>
+    </div>
+
     <h2>Login</h2>
 
 <?php if (session()->getFlashdata('error')): ?>
     <p class="error-message"><?= session()->getFlashdata('error') ?></p>
 <?php endif; ?>
-  <form method="post" action="<?= site_url('login/auth') ?>">
+  <form method="post" action="<?= site_url('login/auth') ?>" id="loginForm">
         <input type="text" name="username" placeholder="Enter your Username" required>
         <input type="password" name="password" placeholder="Enter your Password" required>
-        <button type="submit" name="login">Login</button>
-    
+       <button type="submit" name="login" id="loginButton">Login</button>
+
+
     </form>
+    <div class="terms-container">
+        <input type="checkbox" id="termsCheckbox" name="terms" required form="loginForm">
+        <label for="termsCheckbox">I agree to the <span class="terms-link">Terms and Conditions</span>.</label>
+    </div>
+
 </div>
+
+<!-- The Modal -->
+<div id="termsModal" class="modal">
+    <div class="modal-content">
+        <span class="close-button">&times;</span>
+        <h2>Data Privacy Compliance</h2>
+        <p>
+            By checking the "I agree" box, you consent to the collection, generation, use, processing, storage, and retention of your personal information and sensitive personal information by the Department of Education for the purpose of this archiving system.
+        </p>
+        <p>
+            You agree to comply with the <strong>Data Privacy Act of 2012 (Republic Act No. 10173)</strong> and the rules and regulations of this system. Unauthorized disclosure, sharing, or use of any data herein is strictly prohibited and will be subject to administrative and legal action.
+        </p>
+    </div>
+</div>
+
+<script>
+document.addEventListener('DOMContentLoaded', function () {
+    const termsLink = document.querySelector('.terms-link');
+    const modal = document.getElementById('termsModal');
+    const closeButton = document.querySelector('.close-button');
+
+    // Optional: show modal when hovering over the Terms link
+    termsLink.addEventListener('mouseenter', () => modal.style.display = 'block');
+    termsLink.addEventListener('mouseleave', () => modal.style.display = 'none');
+    closeButton.addEventListener('click', () => modal.style.display = 'none');
+});
+
+</script>
 </body>
 
 
@@ -34,25 +76,56 @@
         /* ---------- Styles for Login Page ---------- */
     .login {
         margin: 0;
-        height: 100vh;
+        height: 100vh; /* Set a fixed viewport height */
+        width: 100vw; /* Set a fixed viewport width */
+        overflow: hidden; /* Prevent scrolling */
         display: flex;
         justify-content: center;
         align-items: center;
-        position: relative;
         background-image: url('/cdi/deped/public/uploads/pics/background.jpg');
         background-size: cover;
+        background-attachment: fixed; /* Keep background in place on scroll */
         background-position: center;
         background-repeat: no-repeat;
         font-family: Arial, sans-serif;
         color: white;
+        padding: 20px;
+        position: relative; /* Needed for the ::before pseudo-element */
+    }
+
+    .login-container {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        width: 100%;
+        max-width: 1400px; /* Give a bit more space */
+        z-index: 2;
+    }
+
+    .branding-column {
+        display: flex;
+        flex-direction: column;
+        align-items: center; /* Align logo and h1 to the left */
+        gap: 1px; /* Space between logo and h1 */
+        margin-bottom: 300px;
+        margin-left: 200px;
     }
     
+    /* Hide mobile branding on desktop */
+    .mobile-branding {
+        display: none;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .mobile-branding h3 {
+        color: #0033A0;
+        font-size: 1.5em;
+        font-weight: bold;
+    }
     /* Styles for the logo alignment */
 .login .logo {
-    position: absolute;
-    top: 29%;
-    left: 35%;
-    transform: translate(-50%, -50%);
     display: flex;
     justify-content: center;
     align-items: center;
@@ -75,7 +148,7 @@
         right: 0;
         bottom: 0;
         background: linear-gradient(to top right, 
-            rgba(225, 31, 30, 8) 10%,
+            rgba(225, 31, 30, 0.8) 10%,
             rgba(95, 32, 110, 0.7) 50%,   
             rgba(0, 51, 160, 0.7) 70%     
         );
@@ -84,10 +157,7 @@
     }
 
     .login h1 {
-        position: absolute;
-        top: 300px;
-        left: 200px;
-        font-size: 4em;
+        font-size: clamp(2em, 5vw, 4em);
         font-weight: bold;
         z-index: 2;
         user-select: none;
@@ -95,12 +165,9 @@
     }
 
     .login .card {
-        position: absolute;
-        top: 100px;
-        right: 150px;
-        width: 350px;
-        height: 500px;
-        padding: 30px;
+        width: 400px;
+        min-height: 500px;
+        padding: 60px 30px 30px;
         background-color: rgba(255, 255, 255, 0.95);
         border-radius: 20px;
         box-shadow: 0 8px 16px rgba(0, 0, 0, 0.3);
@@ -108,20 +175,25 @@
         flex-direction: column;
         justify-content: flex-start;
         align-items: center;
+        gap: 2px;
+        flex-shrink: 0; /* Prevents the card from shrinking */
         z-index: 2;
+        margin-right: 200px;
+        margin-bottom: 100px;
+        
     }
 
     .login .card h2 {
-        margin: 0 0 20px;
         font-size: 2em;
+        margin: 0;
         color: #0033A0;
         user-select: none;
         cursor: default;
+        margin-bottom: 40px;
     }
 
     .login .card form {
         width: 100%;
-        padding-top: 60px;
         max-width: 320px;
         display: flex;
         flex-direction: column;
@@ -129,7 +201,14 @@
         gap: 20px;
     }
 
-    .login .card input,
+    .login .card input {
+        width: 100%;
+        padding: 12px;
+        border: 1px solid #ccc;
+        border-radius: 5px;
+        font-size: 1.2em;
+        box-sizing: border-box;
+    }
     .login .card button {
         width: 100%;
         padding: 12px;
@@ -140,6 +219,7 @@
     }
 
     .login .card button {
+        top: 0;
         background-color: #0033A0;
         color: white;
         border: none;
@@ -172,5 +252,132 @@
         text-align: center;
         margin-top: 10px;
     }
+
+    /* Terms and Conditions Styles */
+    /* Terms and Conditions container */
+.terms-container {
+    display: flex;
+    align-items: center;  /* vertically center checkbox with text */
+    justify-content: center; /* horizontally center inside card */
+    gap: 10px; /* space between checkbox and label */
+    margin-top: 20px; /* space from form above */
+    text-align: center;
+    font-size: 0.9em;
+}
+
+.terms-container input[type="checkbox"] {
+    width: 18px;
+    height: 18px;
+    cursor: pointer;
+}
+
+.terms-container label {
+    cursor: pointer;
+    color: #333; /* dark text for readability */
+}
+
+.terms-container .terms-link {
+    color: #0033A0;
+    text-decoration: underline;
+    cursor: pointer;
+}
+
+ 
+   
+
+    /* Modal Styles */
+    .modal {
+        display: none;
+        position: fixed;
+        z-index: 1000;
+        left: 0;
+        top: 0;
+        width: 100%;
+        height: 100%;
+        overflow: auto;
+        background-color: rgba(0,0,0,0.5);
+        color: #333;
+    }
+
+    .modal-content {
+        background-color: #fefefe;
+        margin: 15% auto;
+        padding: 20px 30px;
+        border: 1px solid #888;
+        width: 80%;
+        max-width: 500px;
+        border-radius: 10px;
+        box-shadow: 0 5px 15px rgba(0,0,0,0.3);
+        position: relative;
+    }
+
+    .modal-content h2 {
+        color: #0033A0;
+        margin-top: 0;
+    }
+
+    .close-button {
+        color: #aaa;
+        float: right;
+        font-size: 28px;
+        font-weight: bold;
+        cursor: pointer;
+    }
+
+    /* ===================== RESPONSIVE ===================== */
+    @media (max-width: 1632px) {
+        .login h1 {
+            font-size: clamp(2em, 4.5vw, 3.5em); /* Make font smaller on medium-large screens */
+        }
+    }
+
+    @media (max-width: 1200px) {
+        .login h1 {
+            left: 100px;
+        }
+        .login .card {
+            right: 100px;
+        }
+    }
+
+    @media (max-width: 992px) {
+        .login {
+            height: auto;
+            min-height: 100vh;
+            align-items: flex-start;
+            padding-top: 5vh;
+        }
+        /* Hide the desktop branding column */
+        .branding-column {
+            display: none;
+        }
+
+        /* Show the mobile branding inside the card */
+        .mobile-branding {
+            display: flex;
+        }
+        .mobile-branding .logo-image {
+            height: 80px;
+        }
+
+        .login-container {
+            flex-direction: column;
+            justify-content: center; /* Center the card horizontally */
+            align-items: center;
+            width: 100%;
+        }
+
+        .login .card {
+            width: 100%;
+            max-width: 400px;
+            height: auto;
+            background-color: rgba(255, 255, 255, 0.9);
+            margin: 0; /* Reset desktop margins */
+            padding: 30px;
+        }
+    }
+
     </style>
+
+
 </html>

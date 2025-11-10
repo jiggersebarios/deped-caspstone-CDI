@@ -6,6 +6,13 @@
     <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
          <!-- Font Awesome Pro v5.15.4 -->
     <link rel="stylesheet" href="https://pro.fontawesome.com/releases/v5.15.4/css/all.css">
+    <style>
+        .content {
+            margin-left: 220px; /* Match sidebar width */
+            padding: 20px;
+            min-height: 100vh;
+        }
+    </style>
 </head>
 <body>
 
@@ -14,7 +21,7 @@ $role = $role ?? session()->get('role') ?? 'admin';
 echo view($role . '/sidebar');
 ?>
 
-<div class="container mt-4">
+<div class="content">
     <h2 class="mb-4">Manage Uploads</h2>
     <p class="text-muted">Review and approve or reject pending file uploads.</p>
 
