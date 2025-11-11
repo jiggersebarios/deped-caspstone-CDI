@@ -140,11 +140,17 @@ public function view($id)
     // ==== Auto Update Archive and Expiry Statuses ====
     $fileModel->autoArchiveAndExpire();
 
-    // ==== Load Files ====
-    $activeFiles   = $fileModel->getActiveFilesByFolder($id);
-    $archivedFiles = $fileModel->getArchivedFilesByFolder($id);
-    $expiredFiles = $fileModel->getExpiredFilesByFolder($id);
+    // ==== Load Files (Depth 3 Only) ====
+    $activeFiles = $archivedFiles = $expiredFiles = [];
+    if ($depth === 3) {
+        $fileQuery = $fileModel->where('folder_id', $id);
+        if ($search) $fileQuery->like('file_name', $search);
 
+        $activeFiles   = $fileModel->getActiveFilesByFolder($id);
+$archivedFiles = $fileModel->getArchivedFilesByFolder($id);
+$expiredFiles  = $fileModel->getExpiredFilesByFolder($id);
+
+    }
 
     // ==== Load Subfolders with Search Applied ====
     $subfoldersQuery = $folderModel->where('parent_folder_id', $id);
@@ -189,11 +195,11 @@ public function view($id)
         'folders'            => $subfolders,
         'parentFolder'       => $folder,
         'breadcrumb'         => $breadcrumb,
+        'depth'              => $depth,
+        'search'             => $search,
         'activeFiles'        => $activeFiles,
         'archivedFiles'      => $archivedFiles,
         'expiredFiles'       => $expiredFiles,
-        'depth'              => $depth,
-        'search'             => $search,
         'categories'         => $categoryModel->findAll(),
         'role'               => $role,
 
@@ -209,6 +215,7 @@ public function view($id)
         'enableDelete'       => $enableDelete,
     ]);
 }
+
 
 
     public function add()

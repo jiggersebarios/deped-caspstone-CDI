@@ -87,7 +87,7 @@ if ($role === 'superadmin') {
             <?php endif; ?>
         </div>
 
-        <!-- Search Bar -->
+        <!-- Search folder Bar -->
         <div class="search-bar">
             <form action="<?= isset($parentFolder) ? site_url($role . '/files/view/' . $parentFolder['id']) : base_url($role . '/files') ?>" method="get">
                 <div class="input-group">
@@ -114,14 +114,6 @@ if ($role === 'superadmin') {
         <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
     <?php endif; ?>
 
-
-<!--  Breadcrumb  -->
-<?php 
-    if (!empty($breadcrumb)) {
-        $depth = count($breadcrumb);
-    }
-?>
-
 <?php if (!empty($breadcrumb) && $depth < 3): ?>
     <nav aria-label="breadcrumb" class="custom-breadcrumb" style="margin-left: 20px; margin-top: -40px; ">
         <ol class="breadcrumb mb-3">
@@ -146,65 +138,60 @@ if ($role === 'superadmin') {
     </nav>
 <?php endif; ?>
 
-
-
-    <!-- Folder List -->
-    <div class="folder-container">
-        <?php if (!empty($folders)): ?>
-            <?php foreach ($folders as $folder): ?>
-                <a href="<?= site_url($role . '/files/view/' . $folder['id']) ?>" class="folder">
-                    <i class="fad fa-folder-open"></i>
-                    <div class="folder-name"><?= esc($folder['folder_name']) ?></div>
-                </a>
-            <?php endforeach; ?>
-        <?php else: ?>
-            <?php if (!isset($depth) || $depth < 3): ?>
-                <div class="alert alert-info">
-                    <?= $parentFolder ?? false ? 'No subfolders inside "' . esc($parentFolder['folder_name']) . '".' : 'No folders available.' ?>
-                </div>
-            <?php endif; ?>
-        <?php endif; ?>
-    </div>
-
 <!-- Upload + Files Table (depth 3 only) -->
 <?php if (isset($depth) && $depth === 3): ?>
-    <div class="d-flex justify-content-end mb-3">
+    <!-- Action Bar for Depth 3 -->
+    <div class="top-bar d-flex justify-content-between align-items-center mb-3">
         <?php if ($enableUpload): ?>
-   <!-- Upload button code -->
-            <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal" style ="margin-left: 20px;">
-            <i class="fa fa-upload mr-2" ></i> Upload File
-        </button>
-<?php endif; ?>
+            <!-- Upload button -->
+            <button class="btn btn-primary" data-toggle="modal" data-target="#uploadModal" style="margin-left: 20px;">
+                <i class="fa fa-upload mr-2"></i> Upload File
+            </button>
+        <?php else: ?>
+            <!-- Spacer to keep search bar on the right -->
+            <div></div>
+        <?php endif; ?>
 
+        <!-- File Search Bar -->
+        <div class="search-bar">
+            <form action="<?= site_url($role . '/files/view/' . ($parentFolder['id'] ?? 0)) ?>" method="get">
+                <div class="input-group">
+                    <input type="text" name="search" class="form-control"
+                           placeholder="Search files..."
+                           value="<?= esc($search ?? '') ?>"
+                           aria-label="Search files" aria-describedby="search-addon">
+                    <button class="btn btn-outline-secondary" type="submit" id="search-addon">
+                        <i class="fas fa-search"></i>
+                    </button>
+                </div>
+            </form>
+        </div>
     </div>
 
-<!-- Breadcrumb inside -->
-<?php if (!empty($breadcrumb)): ?>
-    <nav aria-label="breadcrumb" class="custom-breadcrumb">
-        <ol class="breadcrumb mb-3">
-            <?php foreach ($breadcrumb as $index => $crumb): ?>
-                <?php
-                    // Safely handle array keys
-                    $crumbId   = $crumb['id'] ?? null;
-                    $crumbName = $crumb['name'] ?? $crumb['folder_name'] ?? 'Unnamed';
-                ?>
-                
-                <?php if ($index < count($breadcrumb) - 1 && $crumbId !== null): ?>
-                    <li class="breadcrumb-item">
-                        <a href="<?= site_url($role . '/files/view/' . $crumbId) ?>">
+    <!-- Breadcrumb -->
+    <?php if (!empty($breadcrumb)): ?>
+        <nav aria-label="breadcrumb" class="custom-breadcrumb">
+            <ol class="breadcrumb mb-3">
+                <?php foreach ($breadcrumb as $index => $crumb): ?>
+                    <?php
+                        $crumbId   = $crumb['id'] ?? null;
+                        $crumbName = $crumb['name'] ?? $crumb['folder_name'] ?? 'Unnamed';
+                    ?>
+                    <?php if ($index < count($breadcrumb) - 1 && $crumbId !== null): ?>
+                        <li class="breadcrumb-item">
+                            <a href="<?= site_url($role . '/files/view/' . $crumbId) ?>">
+                                <?= esc($crumbName) ?>
+                            </a>
+                        </li>
+                    <?php else: ?>
+                        <li class="breadcrumb-item active" aria-current="page">
                             <?= esc($crumbName) ?>
-                        </a>
-                    </li>
-                <?php else: ?>
-                    <li class="breadcrumb-item active" aria-current="page">
-                        <?= esc($crumbName) ?>
-                    </li>
-                <?php endif; ?>
-            <?php endforeach; ?>
-        </ol>
-    </nav>
-<?php endif; ?>
-
+                        </li>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </ol>
+        </nav>
+    <?php endif; ?>
 
     <!-- Tabs -->
     <ul class="nav nav-tabs" id="fileTabs" role="tablist" style ="margin-left: 20px;">
@@ -225,6 +212,25 @@ if ($role === 'superadmin') {
 
     </ul>
 
+<?php else: ?>
+    <!-- Folder List (only shown when not at depth 3) -->
+    <div class="folder-container">
+        <?php if (!empty($folders)): ?>
+            <?php foreach ($folders as $folder): ?>
+                <a href="<?= site_url($role . '/files/view/' . $folder['id']) ?>" class="folder">
+                    <i class="fad fa-folder-open"></i>
+                    <div class="folder-name"><?= esc($folder['folder_name']) ?></div>
+                </a>
+            <?php endforeach; ?>
+        <?php else: ?>
+            <div class="alert alert-info" style="margin-left: 20px;">
+                <?= $parentFolder ?? false ? 'No subfolders inside "' . esc($parentFolder['folder_name']) . '".' : 'No folders available.' ?>
+            </div>
+        <?php endif; ?>
+    </div>
+<?php endif; ?>
+
+<?php if (isset($depth) && $depth === 3): ?>
     <div class="tab-content mt-3" id="fileTabsContent">
 
         <!-- 🟢 ACTIVE FILES TAB -->
@@ -762,6 +768,21 @@ $(document).ready(function () {
     });
 });
 </script>
+
+<script>
+    // Searchh
+document.addEventListener('DOMContentLoaded', () => {
+    const searchInput = document.querySelector('input[name="search"]');
+    const searchForm  = searchInput.closest('form');
+
+    searchInput.addEventListener('input', () => {
+        if (searchInput.value.trim() === '') {
+            searchForm.submit(); // submit empty search to show all
+        }
+    });
+});
+</script>
+
 <script>
 $(document).ready(function () {
   const showDeletedBtn = $('#showDeletedBtn');
@@ -1029,7 +1050,7 @@ $(document).ready(function () {
     margin-bottom: 15px;
 }
 
-/* ====== Delete Button (Non-Bootstrap) ====== */
+/* ====== Delete Button====== */
 .delete-btn {
     background-color: #D9534F;
 }
@@ -1054,7 +1075,7 @@ td .btn-group {
     gap: 5px;
 }
 
-/* Button colors (Bootstrap overrides with slight tweaks) */
+/* Button colors */
 .btn-info {
     background-color: #17a2b8;
     border: none;
@@ -1079,7 +1100,6 @@ td .btn-group {
     background-color: #b52d2d;
 }
 
-/* Optional: Style for Request button (Archived tab) */
 .btn-warning {
     background-color: #ffc107;
     border: none;
@@ -1089,7 +1109,6 @@ td .btn-group {
 }
 
 /* ====== Table General ====== */
-/* Table Consistency */
 .table {
     max-width: 100%;
     font-size: 0.95rem;
@@ -1110,13 +1129,11 @@ td .btn-group {
     padding: 9px;
 }
 
-/* Button Spacing */
 .btn-group-sm .btn {
     margin-right: 6px;
    
 }
 
-/* Folder Layout */
 .folder-container {
     display: flex;
     flex-wrap: wrap;
@@ -1138,7 +1155,7 @@ td .btn-group {
     transform: scale(1.03);
 }
 
-/* Improve top bar alignment */
+
 .top-bar {
     display: flex;
     justify-content: space-between;
