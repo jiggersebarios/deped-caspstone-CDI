@@ -16,7 +16,7 @@
     }
 
     .main-content {
-        margin-left: 260px; /* space for sidebar */
+        margin-left: 220px; /* Match sidebar width */
         padding: 20px;
         display: flex;
         justify-content: center;
@@ -82,6 +82,45 @@
 .card-link-wrapper:hover .card i {
     color: #3550A0;
 }
+
+/* ===== RESPONSIVE STYLES ===== */
+
+/* For smaller desktops and large tablets */
+@media (max-width: 1400px) {
+    .cards-wrapper {
+        grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    }
+    .card {
+        height: 160px;
+    }
+}
+
+@media (max-width: 1200px) {
+    .main-content {
+        margin-left: 80px; /* Adjust for shrunken sidebar */
+        transition: margin-left 0.3s ease-in-out;
+    }
+}
+
+/* For tablets and mobile devices */
+@media (max-width: 992px) {
+    .main-content {
+        padding: 20px 15px;
+    }
+    .cards-wrapper {
+        grid-template-columns: 1fr; /* Stack cards vertically */
+        gap: 15px;
+    }
+    .card {
+        height: 150px; /* Adjust height for single-column layout */
+    }
+}
+
+@media (max-width: 768px) {
+    .main-content {
+        margin-left: 70px; /* Match even smaller sidebar on mobile */
+    }
+}
 </style>
 
 
@@ -138,10 +177,6 @@
         </a>
     </div>
 </div>
-
-
-    </div>
-
 
 <!-- Bootstrap JS -->
 <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>

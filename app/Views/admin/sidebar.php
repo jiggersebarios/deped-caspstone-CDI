@@ -28,32 +28,32 @@ $userRole = $session->get('role') ?? 'user';
         <?php if ($userRole === 'admin') : ?>
             <!-- Admin-specific links -->
             <a href="<?= site_url('admin/dashboard') ?>" class="nav-link">
-                <i class="fas fa-tachometer-alt"></i> DASHBOARD
+                <i class="fas fa-tachometer-alt"></i> <span class="nav-link-text">DASHBOARD</span>
             </a>
             <a href="<?= site_url('admin/files') ?>" class="nav-link">
-                <i class="fas fa-folder"></i> FILES
+                <i class="fas fa-folder"></i> <span class="nav-link-text">FILES</span>
             </a>
 
             <a href="<?= site_url($userRole . '/sharedfiles') ?>" 
                class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
-                <i class="fas fa-share-alt"></i> SHARED FILES
+                <i class="fas fa-share-alt"></i> <span class="nav-link-text">SHARED FILES</span>
             </a>
             
 <a href="<?= site_url('admin/manage_uploads') ?>" 
    class="nav-link <?= ($currentSegment2 === 'manage_uploads') ? 'active' : '' ?>">
-    <i class="fas fa-upload"></i> MANAGE UPLOADS
+    <i class="fas fa-upload"></i> <span class="nav-link-text">MANAGE UPLOADS</span>
 </a>
 
      
             <a href="<?= site_url('admin/manage_request') ?>" 
    class="nav-link <?= ($currentSegment1 === 'manage_request') ? 'active' : '' ?>">
-    <i class="fas fa-tasks"></i> REQUESTS
+    <i class="fas fa-tasks"></i> <span class="nav-link-text">REQUESTS</span>
 </a>
 
 
 
 <a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
-    <i class="fas fa-tags"></i> CATEGORIES
+    <i class="fas fa-tags"></i> <span class="nav-link-text">CATEGORIES</span>
 </a>
 
 
@@ -62,16 +62,16 @@ $userRole = $session->get('role') ?? 'user';
         <?php else : ?>
             <!-- User-specific links -->
             <a href="<?= site_url('dashboard') ?>" class="nav-link">
-                <i class="fas fa-tachometer-alt"></i> DASHBOARD
+                <i class="fas fa-tachometer-alt"></i> <span class="nav-link-text">DASHBOARD</span>
             </a>
             <a href="<?= site_url('files') ?>" class="nav-link">
-                <i class="fas fa-folder"></i> MANAGE FILES
+                <i class="fas fa-folder"></i> <span class="nav-link-text">MANAGE FILES</span>
             </a>
         <?php endif; ?>
     </nav>
 
     <a href="<?= site_url('logout') ?>" class="logout-btn">
-        <i class="fas fa-sign-out-alt"></i> Logout
+        <i class="fas fa-sign-out-alt"></i> <span class="nav-link-text">Logout</span>
     </a>
 </div>
 
@@ -87,8 +87,10 @@ $userRole = $session->get('role') ?? 'user';
     flex-direction: column;
     align-items: center;
     position: fixed;
+    transition: width 0.3s ease-in-out;
     font-size: 15px;
 }
+
 
 .sidebar img {
     margin-bottom: 25px;
@@ -154,5 +156,41 @@ $userRole = $session->get('role') ?? 'user';
 .sidebar .nav-link.active {
     color: #ECB439 !important;
     font-weight: 600;
+}
+
+/* Responsive Styles */
+@media (max-width: 1200px) {
+    .sidebar {
+        width: 80px; /* Shrink the sidebar */
+        padding: 20px 10px;
+    }
+
+    .sidebar .hello,
+    .sidebar .nav-link-text {
+        display: none; /* Hide text */
+    }
+
+    .sidebar .nav-link {
+        justify-content: center; /* Center the icon */
+        padding: 10px 0;
+    }
+
+    .sidebar .logout-btn {
+        width: 50px; /* Adjust button to be more square-like */
+        height: 50px;
+        font-size: 20px;
+    }
+
+    .sidebar img {
+        width: 80%;
+    }
+
+    /* This class should be on the main content area of pages using this sidebar */
+    .main-content {
+        margin-left: 80px !important; /* Adjust content margin to new sidebar width */
+        transition: margin-left 0.3s ease-in-out;
+    }
+
+    
 }
 </style>

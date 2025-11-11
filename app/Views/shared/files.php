@@ -865,7 +865,7 @@ $(document).ready(function () {
     align-items: flex-start;
     padding: 20px;
     margin-left: 220px;
-    width: calc(100% - 280px);
+    width: calc(100% - 220px);
     min-height: 100vh;
     background: #fff;
     overflow-y: auto;
@@ -1230,4 +1230,3 @@ td .btn-group {
 
 </style>
 </html>
-

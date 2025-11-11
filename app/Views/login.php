@@ -109,6 +109,9 @@ document.addEventListener('DOMContentLoaded', function () {
         gap: 1px; /* Space between logo and h1 */
         margin-bottom: 300px;
         margin-left: 200px;
+        margin-top: 90px;
+        margin-left: 100px;
+
     }
     
     /* Hide mobile branding on desktop */
@@ -118,12 +121,17 @@ document.addEventListener('DOMContentLoaded', function () {
         align-items: center;
         gap: 15px;
         margin-bottom: 20px;
+        mar
     }
     .mobile-branding h3 {
         color: #0033A0;
         font-size: 1.5em;
         font-weight: bold;
     }
+    .mobile-branding h3 {
+        font-size: 1.2em; /* Adjusted for smaller screens */
+    }
+
     /* Styles for the logo alignment */
 .login .logo {
     display: flex;
@@ -327,26 +335,55 @@ document.addEventListener('DOMContentLoaded', function () {
     /* ===================== RESPONSIVE ===================== */
     @media (max-width: 1632px) {
         .login h1 {
-            font-size: clamp(2em, 4.5vw, 3.5em); /* Make font smaller on medium-large screens */
+            font-size: clamp(2em, 3vw, 3em); /* Make font smaller on medium-large screens */
+        }
+        .login .logo img {
+            height: 120px; /* Make logo smaller on medium-large screens */
+        }
+        .login .card {
+            width: 300px; /* 25% smaller than 400px */
+            min-height: 375px; /* 25% smaller than 500px */
+            padding: 40px 25px 25px; /* Adjust padding for smaller card */
+            font-size: clamp(1em, 1vw, 1em);;
         }
     }
 
     @media (max-width: 1200px) {
         .login h1 {
             left: 100px;
+            font-size: clamp(2em, 4.5vw, 3.5em);
         }
         .login .card {
             right: 100px;
         }
     }
 
-    @media (max-width: 992px) {
+        @media (max-width: 1200px) {
+        .login h1 {
+            left: 100px;
+            font-size: clamp(1em, 2.5vw, 2.5em);
+        }
+       
+
+         .login .card {
+            width: 240px; /* 25% smaller than 400px */
+            min-height: 275px; /* 25% smaller than 500px */
+            padding: 40px 25px 25px; /* Adjust padding for smaller card */
+            font-size: clamp(.7em, .8vw, .9em);
+            margin-right: 250px;
+        }
+    }
+
+    @media (max-width: 995px) {
+        
         .login {
             height: auto;
             min-height: 100vh;
             align-items: flex-start;
             padding-top: 5vh;
+
         }
+
         /* Hide the desktop branding column */
         .branding-column {
             display: none;
@@ -359,12 +396,12 @@ document.addEventListener('DOMContentLoaded', function () {
         .mobile-branding .logo-image {
             height: 80px;
         }
+        .mobile-branding h3 {
+            font-size: 1.2em; /* Adjusted for smaller screens */
+        }
 
         .login-container {
-            flex-direction: column;
-            justify-content: center; /* Center the card horizontally */
-            align-items: center;
-            width: 100%;
+            display: none; /* Hide the desktop container */
         }
 
         .login .card {

@@ -127,4 +127,91 @@ $currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
     background-color: #6b1d1d;
     text-decoration: none;
 }
+
+/* Styles for medium-height screens */
+@media (max-height: 770px) {
+    .sidebar {
+        overflow-y: auto; /* Enable vertical scrolling */
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    .sidebar img {
+        width: 55%; /* Shrink logo */
+        margin-bottom: 20px;
+    }
+    .sidebar .hello {
+        margin-bottom: 30px;
+    }
+    .sidebar .nav-link {
+        margin: 8px 0;
+        padding: 6px 0;
+    }
+    .sidebar .logout-btn {
+        margin-top: 30px; /* Add some space before it */
+    }
+}
+
+/* Styles for medium-short screens */
+@media (max-height: 660px) {
+    .sidebar {
+        overflow-y: auto; /* Enable vertical scrolling */
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    .sidebar img {
+        width: 50%; /* Shrink logo */
+        margin-bottom: 20px;
+    }
+    .sidebar .hello {
+        font-size: 14px;
+        margin-bottom: 25px;
+    }
+    .sidebar .nav-link {
+        margin: 6px 0;
+        padding: 5px 0;
+        font-size: 14px;
+    }
+    .sidebar .logout-btn {
+        margin-top: 25px;
+    }
+}
+
+/* Styles for slightly short screens */
+@media (max-height: 552px) {
+    .sidebar {
+        overflow-y: auto; /* Enable vertical scrolling */
+        padding-top: 15px;
+        padding-bottom: 10px;
+    }
+    .sidebar img {
+        width: 50%; /* Shrink logo */
+        margin-bottom: 20px;
+    }
+    .sidebar .hello {
+        font-size: 14px; /* Shrink text */
+        margin-bottom: 20px;
+    }
+    .sidebar .nav-link {
+        font-size: 14px; /* Corrected font size */
+        margin: 6px 0;
+        padding: 6px 0;
+    }
+    .sidebar .logout-btn {
+        margin-top: 25px; /* Add some space before it */
+    }
+}
+
+/* Styles for short screens (e.g., landscape mobile) */
+@media (max-height: 540px) {
+    .sidebar {
+        overflow-y: auto; /* Enable vertical scrolling */
+        padding-top: 10px;
+        padding-bottom: 10px;
+    }
+    .sidebar img { width: 40%; margin-bottom: 15px; }
+    .sidebar .hello { font-size: 13px; margin-bottom: 15px; }
+    .sidebar .nav-link { font-size: 13px; margin: 4px 0; padding: 4px 0; gap: 8px; }
+    .sidebar .nav-link i { font-size: 16px; }
+    .sidebar .logout-btn { margin-top: 20px; }
+}
 </style>
