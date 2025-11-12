@@ -122,8 +122,8 @@
                 <th>File Name</th>
                 <th>Category</th>
                 <th>Uploader</th>
-                <th>Shared With</th>
-                <th>Shared Date</th>
+                <th>Share to</th>
+                <th>Date share</th>
                 <th>Actions</th>
               </tr>
             </thead>
@@ -135,7 +135,7 @@
                     <td><?= esc($file['file_name']) ?></td>
                     <td><?= esc($file['category_name'] ?? '-') ?></td>
                     <td><?= esc($file['uploader_name'] ?? '-') ?></td>
-                    <td><?= esc($file['shared_to_name'] ?? '-') ?></td>
+                    <td><?= esc($file['shared_to_names'] ?? '-') ?></td>
                     <td><?= esc($file['created_at']) ?></td>
                     <td>
                       <a href="<?= site_url(session()->get('role') . '/sharedfiles/unshare/'.$file['id']) ?>" class="btn btn-danger btn-sm btn-action" onclick="return confirm('Unshare this file?')">
@@ -176,7 +176,7 @@
                    
                     <td><?= esc($file['file_name']) ?></td>
                     <td><?= esc($file['category_name'] ?? '-') ?></td>
-                     <td><?= esc($file['shared_to_name'] ?? '-') ?></td>
+                     <td><?= esc($file['shared_by_name'] ?? '-') ?></td>
                     <td><?= esc($file['created_at']) ?></td>
                     <td>
                       <a href="<?= base_url('sharedfiles/download/' . $file['id']) ?>" class="btn btn-sm btn-primary">

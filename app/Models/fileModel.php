@@ -48,9 +48,9 @@ class FileModel extends Model
     
      //Get active or pending files
      
-    public function getActiveFilesByFolder($folderId)
+    public function getActiveFilesByFolder($folderId, $search = null)
     {
-        return $this->select('
+        $builder = $this->select('
             files.*,
             categories.category_name,
             users.username AS uploader_name
@@ -59,17 +59,21 @@ class FileModel extends Model
         ->join('users', 'users.id = files.uploaded_by', 'left')
         ->where('files.folder_id', $folderId)
         ->where('files.is_archived', 0)
-        ->whereIn('files.status', ['active', 'pending'])
-        ->orderBy('files.uploaded_at', 'DESC')
-        ->findAll();
+        ->whereIn('files.status', ['active', 'pending']);
+
+        if ($search) {
+            $builder->like('files.file_name', $search);
+        }
+
+        return $builder->orderBy('files.uploaded_at', 'DESC')->findAll();
     }
 
     
      //Get archived files
      
-    public function getArchivedFilesByFolder($folderId)
+    public function getArchivedFilesByFolder($folderId, $search = null)
     {
-        return $this->select('
+        $builder = $this->select('
             files.*,
             categories.category_name,
             users.username AS uploader_name
@@ -78,9 +82,13 @@ class FileModel extends Model
         ->join('users', 'users.id = files.uploaded_by', 'left')
         ->where('files.folder_id', $folderId)
         ->where('files.is_archived', 1)
-        ->where('files.status', 'archived')
-        ->orderBy('files.archived_at', 'DESC')
-        ->findAll();
+        ->where('files.status', 'archived');
+
+        if ($search) {
+            $builder->like('files.file_name', $search);
+        }
+
+        return $builder->orderBy('files.archived_at', 'DESC')->findAll();
     }
 
     
@@ -147,9 +155,9 @@ class FileModel extends Model
         }
     }
 
-    public function getExpiredFilesByFolder($folderId)
+    public function getExpiredFilesByFolder($folderId, $search = null)
 {
-    return $this->select('
+    $builder = $this->select('
             files.*,
             categories.category_name,
             users.username AS uploader_name
@@ -157,9 +165,13 @@ class FileModel extends Model
         ->join('categories', 'categories.id = files.category_id', 'left')
         ->join('users', 'users.id = files.uploaded_by', 'left')
         ->where('files.folder_id', $folderId)
-        ->where('files.status', 'expired')
-        ->orderBy('files.expired_at', 'DESC')
-        ->findAll();
+        ->where('files.status', 'expired');
+
+    if ($search) {
+        $builder->like('files.file_name', $search);
+    }
+
+    return $builder->orderBy('files.expired_at', 'DESC')->findAll();
 }
 
 public function deleteFileWithAudit($fileId, $deletedBy, $reason = null)

@@ -143,12 +143,10 @@ public function view($id)
     // ==== Load Files (Depth 3 Only) ====
     $activeFiles = $archivedFiles = $expiredFiles = [];
     if ($depth === 3) {
-        $fileQuery = $fileModel->where('folder_id', $id);
-        if ($search) $fileQuery->like('file_name', $search);
-
-        $activeFiles   = $fileModel->getActiveFilesByFolder($id);
-$archivedFiles = $fileModel->getArchivedFilesByFolder($id);
-$expiredFiles  = $fileModel->getExpiredFilesByFolder($id);
+        // Pass search term to each method
+        $activeFiles   = $fileModel->getActiveFilesByFolder($id, $search);
+        $archivedFiles = $fileModel->getArchivedFilesByFolder($id, $search);
+        $expiredFiles  = $fileModel->getExpiredFilesByFolder($id, $search);
 
     }
 
@@ -305,6 +303,7 @@ public function delete()
 }
 
 
+// Deleting subfolder
 public function deleteSubfolder()
 {
     if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_subfolder')) {
@@ -314,20 +313,28 @@ public function deleteSubfolder()
     $folderId = $this->request->getPost('delete_folder_id');
     $parentId = $this->request->getPost('parent_folder_id');
 
-    $model = new FolderModel();
-    $folder = $model->find($folderId);
+    $folderModel = new FolderModel();
+    $fileModel   = new \App\Models\FileModel();
 
-    // Use array syntax with null coalescing for safety
+    $folder = $folderModel->find($folderId);
+
     if (!$folder || (($folder['parent_folder_id'] ?? null) != $parentId)) {
-        return redirect()->back()->with('error', 'Invalid subfolder delete request');
+        return redirect()->back()->with('error', 'Invalid subfolder delete request.');
     }
 
-    $subfolders = $model->where('parent_folder_id', $folderId)->findAll();
+    // Check if subfolder has child subfolders
+    $subfolders = $folderModel->where('parent_folder_id', $folderId)->findAll();
     if (!empty($subfolders)) {
         return redirect()->back()->with('error', 'This subfolder has child folders. Delete them first.');
     }
 
-    $model->delete($folderId);
+    // Check if subfolder contains files
+    $files = $fileModel->where('folder_id', $folderId)->findAll();
+    if (!empty($files)) {
+        return redirect()->back()->with('error', 'This subfolder contains files. Delete the files first before deleting the subfolder.');
+    }
+
+    $folderModel->delete($folderId);
     return redirect()->to($this->role . '/files/view/' . $parentId);
 }
 

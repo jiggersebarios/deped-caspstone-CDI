@@ -49,7 +49,13 @@ if ($role === 'superadmin') {
        <?= esc($username) ?> Files Management
    </h2>
 <?php endif; ?>
-
+   <!-- Flash Messages -->
+    <?php if(session()->getFlashdata('success')): ?>
+        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
+    <?php endif; ?>
+    <?php if(session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
+    <?php endif; ?>
 
 <!-- Top bar: Buttons + Search Bar -->
 <?php if (!isset($parentFolder) || (isset($depth) && $depth < 3)): ?>
@@ -106,13 +112,7 @@ if ($role === 'superadmin') {
 <?php endif; ?>
 </div>
 
-    <!-- Flash Messages -->
-    <?php if(session()->getFlashdata('success')): ?>
-        <div class="alert alert-success"><?= session()->getFlashdata('success') ?></div>
-    <?php endif; ?>
-    <?php if(session()->getFlashdata('error')): ?>
-        <div class="alert alert-danger"><?= session()->getFlashdata('error') ?></div>
-    <?php endif; ?>
+ 
 
 <?php if (!empty($breadcrumb) && $depth < 3): ?>
     <nav aria-label="breadcrumb" class="custom-breadcrumb" style="margin-left: 20px; margin-top: -40px; ">
@@ -154,7 +154,7 @@ if ($role === 'superadmin') {
 
         <!-- File Search Bar -->
         <div class="search-bar">
-            <form action="<?= site_url($role . '/files/view/' . ($parentFolder['id'] ?? 0)) ?>" method="get">
+            <form action="<?= current_url() ?>" method="get">
                 <div class="input-group">
                     <input type="text" name="search" class="form-control"
                            placeholder="Search files..."

@@ -40,34 +40,58 @@ public function index()
     $userId  = $session->get('id');
     $role    = $session->get('role') ?? 'user';
 
-    // ======================
-    // Files shared BY current user
-    // ======================
-    $sharedFilesQuery = $this->sharedModel
-        ->select('shared_files.*, files.file_name, categories.category_name, uploader.username as uploader_name')
-        ->join('files', 'files.id = shared_files.file_id', 'left')
-        ->join('categories', 'categories.id = files.category_id', 'left')
-        ->join('users uploader', 'uploader.id = files.uploaded_by', 'left')
-        ->where('shared_files.shared_by', $userId)
-        ->orderBy('shared_files.created_at', 'DESC');
 
-    // Regular users: only show files that are not yet downloaded
-    if (!in_array($role, ['admin', 'superadmin'])) {
-        $sharedFilesQuery->where('shared_files.downloaded', 0);
+   // ======================
+// Files shared BY current user
+// ======================
+$sharedFilesQuery = $this->sharedModel
+    ->select('shared_files.*, files.file_name, categories.category_name, uploader.username AS uploader_name')
+    ->join('files', 'files.id = shared_files.file_id', 'left')
+    ->join('categories', 'categories.id = files.category_id', 'left')
+    ->join('users AS uploader', 'uploader.id = files.uploaded_by', 'left')
+    ->where('shared_files.shared_by', $userId)
+    ->orderBy('shared_files.created_at', 'DESC');
+
+// Regular users: only show files that are not yet downloaded
+if (!in_array($role, ['admin', 'superadmin'])) {
+    $sharedFilesQuery->where('shared_files.downloaded', 0);
+}
+
+$sharedFilesRaw = $sharedFilesQuery->findAll();
+
+// ✅ Convert shared_to IDs to usernames
+$sharedFiles = [];
+foreach ($sharedFilesRaw as $share) {
+    $sharedToNames = [];
+
+    if (!empty($share['shared_to'])) {
+        $ids = explode(',', $share['shared_to']);
+        $names = $this->userModel
+            ->select('username')
+            ->whereIn('id', $ids)
+            ->findAll();
+
+        foreach ($names as $n) {
+            $sharedToNames[] = $n['username'];
+        }
     }
 
-    $sharedFiles = $sharedFilesQuery->findAll();
+    $share['shared_to_names'] = implode(', ', $sharedToNames);
+    $sharedFiles[] = $share;
+}
+
 
     // ======================
     // Files shared TO current user
     // ======================
     $allShared = $this->sharedModel
-        ->select('shared_files.*, files.file_name, categories.category_name, sharer.username as shared_by')
-        ->join('files', 'files.id = shared_files.file_id', 'left')
-        ->join('categories', 'categories.id = files.category_id', 'left')
-        ->join('users sharer', 'sharer.id = shared_files.shared_by', 'left')
-        ->orderBy('shared_files.created_at', 'DESC')
-        ->findAll();
+    ->select('shared_files.*, files.file_name, categories.category_name, sharer.username AS shared_by_name')
+    ->join('files', 'files.id = shared_files.file_id', 'left')
+    ->join('categories', 'categories.id = files.category_id', 'left')
+    ->join('users AS sharer', 'sharer.id = shared_files.shared_by', 'left')
+    ->orderBy('shared_files.created_at', 'DESC')
+    ->findAll();
+
 
     $sharedWithMe = [];
     foreach ($allShared as $share) {
@@ -206,52 +230,44 @@ public function download($sharedId)
         throw new \CodeIgniter\Exceptions\PageNotFoundException('Shared file not found.');
     }
 
-    // Ensure only the sharer, recipients, or admin can download
+    // Ensure only authorized users can download
     $sharedToList = explode(',', $record['shared_to'] ?? '');
     if (
-        $role !== 'admin' &&
-        $role !== 'superadmin' &&
         (int) $record['shared_by'] !== (int) $userId &&
         !in_array((string) $userId, $sharedToList, true)
     ) {
         return redirect()->back()->with('error', 'You are not authorized to download this file.');
     }
 
-    // Ensure file exists and is active
-    $file = (new \App\Models\FileModel())->find($record['file_id']);
+    // Ensure file is active and exists
+    $file = $this->fileModel->find($record['file_id']);
     if (!$file || strtolower($file['status']) !== 'active') {
         return redirect()->back()->with('error', 'File is no longer active.');
     }
 
-    // For regular users: Allow only one-time download
-    if (!in_array($role, ['admin', 'superadmin'])) {
-        if ((int) $record['downloaded'] === 1) {
-            return redirect()->back()->with('error', 'This file has already been downloaded.');
-        }
-    }
-
-    // Build absolute path using your new storage path
     $storagePath = 'C:\\xampp\\depedfiles\\';
-    $filePath = $record['file_path']; // stored relative path/filename
-    $path = $storagePath . $filePath;
+    $path = $storagePath . $record['file_path'];
 
     if (!file_exists($path)) {
         log_message('error', 'File not found: ' . $path);
         return redirect()->back()->with('error', 'File not found on server.');
     }
 
-    // Mark as downloaded (one-time rule)
-    if (!in_array($role, ['admin', 'superadmin'])) {
-        $this->sharedModel->update($sharedId, [
-            'downloaded' => 1,
-        ]);
-    }
-
-    // Serve the file
+    // ✅ If file exists, download and then remove its share record
     if (ob_get_level()) ob_end_clean();
 
-    return $this->response->download($path, null)->setFileName($record['file_name']);
+    // Store filename for later (before deleting record)
+    $filename = $record['file_name'];
+
+    // Serve the file
+    $response = $this->response->download($path, null)->setFileName($filename);
+
+    // ✅ Delete share record after successful download
+    $this->sharedModel->delete($sharedId);
+
+    return $response;
 }
+
 
 
 public function generateToken($sharedId)
