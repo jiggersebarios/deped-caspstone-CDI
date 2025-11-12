@@ -193,4 +193,42 @@ $userRole = $session->get('role') ?? 'user';
 
     
 }
+
+/* Styles for shorter screens */
+@media (max-height: 700px) {
+    .sidebar {
+        overflow-y: auto; /* Enable vertical scrolling */
+        padding-top: 15px;
+        padding-bottom: 15px;
+    }
+    .sidebar img {
+        width: 40%; /* Shrink logo */
+        margin-bottom: 20px;
+    }
+    .sidebar .hello {
+        font-size: 14px; /* Shrink text */
+        margin-bottom: 20px;
+    }
+    .sidebar .nav-link {
+        font-size: 14px;
+        margin: 8px 0;
+        padding: 6px 0;
+        gap: 10px;
+    }
+    .sidebar .nav-link i {
+        font-size: 18px; /* Shrink icons */
+    }
+    .sidebar .logout-btn {
+        margin-top: 25px; /* Add some space before it */
+    }
+
+    /* When sidebar is collapsed on short screens */
+    .sidebar .logout-btn {
+    
+        height: 45px;
+        font-size: 18px;
+    }
+}
+
+
 </style>
