@@ -61,7 +61,22 @@
 
     <div class="content">
         <h2 class="page-header"><i class="fa-solid fa-users"></i> Manage Users</h2>
+    
+        
+    <!-- ✅ Flash Messages -->
+    <?php if (session()->getFlashdata('success')): ?>
+        <div class="alert alert-success alert-dismissible fade show" role="alert">
+            <i class="fa fa-check-circle"></i> <?= session()->getFlashdata('success') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php elseif (session()->getFlashdata('error')): ?>
+        <div class="alert alert-danger alert-dismissible fade show" role="alert">
+            <i class="fa fa-exclamation-triangle"></i> <?= session()->getFlashdata('error') ?>
+            <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+        </div>
+    <?php endif; ?>
 
+    
         <!-- Add User Button -->
         <button class="btn btn-success mb-3" data-bs-toggle="modal" data-bs-target="#addUserModal">
             <i class="fa fa-plus"></i> Add User

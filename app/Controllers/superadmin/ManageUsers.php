@@ -121,10 +121,25 @@ public function update($id)
 
 
 
-    public function delete($id)
-    {
-        $userModel = new UserModel();
-        $userModel->delete($id);
-        return redirect()->to('/superadmin/manage_users')->with('success', 'User deleted successfully.');
-    }
+public function delete($id)
+{
+    $db = \Config\Database::connect();
+    $userModel = new UserModel();
+
+    // ✅ Delete all related file requests first
+    $db->table('file_requests')->where('user_id', $id)->delete();
+
+    // ✅ (Optional) If the user has related folders or files, you can clear them here too
+    // $db->table('files')->where('user_id', $id)->delete();
+    // $db->table('folders')->where('user_id', $id)->delete();
+
+    // ✅ Now safely delete the user
+    $userModel->delete($id);
+
+    return redirect()->to('/superadmin/manage_users')
+        ->with('success', 'User and all related file requests deleted successfully.');
+}
+
+
+
 }

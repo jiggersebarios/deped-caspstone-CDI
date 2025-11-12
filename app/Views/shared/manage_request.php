@@ -82,7 +82,6 @@
 </button>
 
 <!-- Pending & Approved Requests Table -->
-<!-- Pending & Approved Requests Table -->
 <table class="table table-bordered requests-table">
     <thead>
         <tr>
