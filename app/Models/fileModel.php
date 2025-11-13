@@ -293,6 +293,36 @@ public function renameFile($fileId, $newName)
     return true;
 }
 
+public function restoreFile($fileId)
+{
+    $file = $this->find($fileId);
+    if (!$file) return false;
+
+    $categoryModel = new \App\Models\CategoryModel();
+    $category = $categoryModel->find($file['category_id']);
+    if (!is_array($category)) return false;
+
+    // Get the current time as the new base date for counting
+    $now = date('Y-m-d H:i:s');
+
+    // Recalculate new archive and expire dates from now
+    $archivedAt = $this->calculateDate($now, (int)$category['archive_after_value'], $category['archive_after_unit']);
+    $expiredAt  = $this->calculateDate($archivedAt, (int)$category['retention_value'], $category['retention_unit']);
+
+    // Update file record
+    $this->update($fileId, [
+        'status'      => 'active',
+        'is_archived' => 0,
+        'archived_at' => $archivedAt,
+        'expired_at'  => $expiredAt,
+        'uploaded_at' => $file['uploaded_at'], // keep original upload date
+    ]);
+
+    // Move file physically to active folder
+    $this->moveFileByStatus($fileId, 'active');
+
+    return true;
+}
 
 
     /**

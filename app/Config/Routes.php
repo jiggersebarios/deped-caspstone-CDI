@@ -73,6 +73,8 @@ $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
 $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
 $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
 $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
+$routes->get('files/restore/(:num)', '\App\Controllers\Files::restore/$1');
+
 
  // MANAGE USERS
 $routes->get('manage_users', 'ManageUsers::index');

@@ -393,14 +393,32 @@ if ($role === 'superadmin') {
                                         <span class="badge badge-secondary">Archived</span>
                                     <?php endif; ?>
                                 </td>
+<td>
+    <?php if ($role === 'superadmin'): ?>
+        <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" 
+           target="_blank" class="btn btn-info btn-sm">
+            <i class="fa fa-eye"></i> View
+        </a>
+
+        <a href="<?= site_url($role . '/files/restore/' . $file['id']) ?>" 
+           class="btn btn-success btn-sm"
+           onclick="return confirm('Are you sure you want to restore this file and reset its archive/expiry countdown?');">
+            <i class="fa fa-undo"></i> Restore
+        </a>
+
+    <?php else: ?>
+        <button class="btn btn-sm btn-info" 
+            data-toggle="modal" 
+            data-target="#requestModal"
+            data-file-id="<?= $file['id'] ?>"
+            data-file-name="<?= esc($file['file_name']) ?>">
+            Request
+        </button>
+    <?php endif; ?>
+</td>
                                 
-                                <td>
-                                    <button class="btn btn-sm btn-info" 
-                                     data-toggle="modal" 
-                                    data-target="#requestModal"
-                                    data-file-id="<?= $file['id'] ?>"
-                                    data-file-name="<?= esc($file['file_name']) ?>">Request </button>
-                                </td>
+                                        
+
                             </tr>
                         <?php endforeach; ?>
                     </tbody>

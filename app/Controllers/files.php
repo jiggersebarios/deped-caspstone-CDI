@@ -607,6 +607,16 @@ public function renameFile()
     }
 }
 
+public function restore($id)
+{
+    $fileModel = new \App\Models\FileModel();
+
+    if ($fileModel->restoreFile($id)) {
+        return redirect()->back()->with('success', 'File has been successfully restored and reactivated.');
+    }
+
+    return redirect()->back()->with('error', 'Failed to restore the file.');
+}
 
 
 
