@@ -50,6 +50,11 @@ $routes->get('manage_request', '\App\Controllers\Request::manage');  // Manage l
 $routes->post('request/submit', '\App\Controllers\Request::submit'); // File request submission
 $routes->get('manage_request/approve/(:num)', '\App\Controllers\Request::approve/$1');
 $routes->get('manage_request/deny/(:num)', '\App\Controllers\Request::deny/$1');
+
+//manual
+// Manual Page
+$routes->get('manual', '\App\Controllers\Manual::index');
+
 });
 
 // =============================================================
@@ -207,5 +212,9 @@ $routes->get('(:any)/files/getDeletedFiles', 'Files::getDeletedFiles');
 // app/Config/Routes.php
 $routes->get('(:segment)/files/getDeletedFiles', 'Files::getDeletedFiles/$1');
 
-
-
+// =============================================================
+// Notification
+// =============================================================
+$routes->get('(:segment)/get-notifications', 'NotificationController::getNotifications');
+// Universal Notifications route for all roles
+$routes->get('(:segment)/get-notifications', '\App\Controllers\NotificationController::getNotifications/$1');

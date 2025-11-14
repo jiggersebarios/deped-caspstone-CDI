@@ -22,21 +22,26 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
         <i class="fas fa-folder"></i> <span class="nav-link-text">FILES</span>
     </a>
 
-      <a href="<?= site_url($userRole . '/sharedfiles') ?>" 
-               class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
-                <i class="fas fa-share-alt"></i> <span class="nav-link-text">SHARED FILES</span>
-        </a>
+<a href="<?= site_url($userRole . '/sharedfiles') ?>" 
+   class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
+    <i class="fas fa-share-alt"></i>
+    <span class="nav-link-text">SHARED FILES</span>
+    <span id="badge-shared" class="badge bg-danger notification-badge" style="display:none;"></span>
+</a>
+
             
 
-<a href="<?= site_url('superadmin/manage_uploads') ?>" 
-   class="nav-link <?= ($currentSegment2 === 'manage_uploads') ? 'active' : '' ?>">
-    <i class="fas fa-upload"></i> <span class="nav-link-text">MANAGE UPLOADS</span>
-</a>
+            <a href="<?= site_url('superadmin/manage-uploads') ?>" class="nav-link">
+                <i class="fas fa-upload"></i>
+                <span class="nav-link-text">MANAGE UPLOADS</span>
+                <span id="badge-uploads" class="badge bg-danger notification-badge" style="display:none;"></span>
+            </a>
 
-<a href="<?= site_url('superadmin/manage_request') ?>" 
-   class="nav-link <?= ($currentSegment1 === 'manage_request') ? 'active' : '' ?>">
-    <i class="fas fa-tasks"></i> <span class="nav-link-text">REQUESTS</span>
-</a>
+            <a href="<?= site_url('superadmin/manage_request') ?>" class="nav-link">
+                <i class="fas fa-tasks"></i>
+                <span class="nav-link-text">REQUESTS</span>
+                <span id="badge-requests" class="badge bg-warning text-dark notification-badge" style="display:none;"></span>
+            </a>
 
 
 <a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
@@ -63,23 +68,69 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
 
 
 </div>
+<script>
+function fetchNotifications() {
+    fetch("<?= site_url($userRole . '/get-notifications') ?>")
+        .then(res => res.json())
+        .then(data => {
+
+            const uploadBadge  = document.getElementById("badge-uploads");
+            const requestBadge = document.getElementById("badge-requests");
+            const sharedBadge  = document.getElementById("badge-shared");
+
+            // ==========================
+            // NEW UPLOADED FILES
+            // ==========================
+            if (data.newUploadedFiles > 0) {
+                uploadBadge.textContent = data.newUploadedFiles;
+                uploadBadge.style.display = "inline-block";
+            } else {
+                uploadBadge.style.display = "none";
+            }
+
+            // ==========================
+            // PENDING REQUESTS
+            // ==========================
+            if (data.pendingRequests > 0) {
+                requestBadge.textContent = data.pendingRequests;
+                requestBadge.style.display = "inline-block";
+            } else {
+                requestBadge.style.display = "none";
+            }
+
+            // ==========================
+            // FILES SHARED WITH ME
+            // ==========================
+            if (data.sharedWithMe > 0) {
+                sharedBadge.textContent = data.sharedWithMe;
+                sharedBadge.style.display = "inline-block";
+            } else {
+                sharedBadge.style.display = "none";
+            }
+
+        });
+}
+
+fetchNotifications();
+setInterval(fetchNotifications, 5000);
+</script>
 
 <style>
-
 .sidebar {
     background-color: #2C2C2C;
     color: white;
     top: 0;
     padding: 20px 15px;
     height: 100vh;
-    width: 220px;
+    width: 230px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: fixed;
     transition: width 0.3s ease-in-out;
-    font-size: 15px;
+    font-size: 14px;
 }
+
 
 .sidebar img {
     margin-bottom: 25px;
@@ -94,16 +145,16 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
 }
 
 .sidebar .nav-link {
-    color: #ffffff; /* corrected */
-    margin: 12px 0;
+    color: #ffffff;
+    margin: 10px 0;
     text-decoration: none;
-    padding: 8px 0;    
+    padding: 8px 0;
     transition: all 0.3s ease;
     font-weight: 500;
-    font-size: 15px;
+    font-size: 14px;
     display: flex;
     align-items: center;
-    gap: 12px; 
+    gap: 8px; 
     width: 100%;
 }
 
@@ -137,13 +188,6 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
     color: white;
 }
 
-.sidebar a {
-    font-weight: normal;
-    color: #ffffff; /* fixed */
-    text-decoration: none;
-}
-
-/* Keep hover consistent */
 .sidebar a:hover {
     color: #ECB439;
     text-decoration: none;
@@ -152,6 +196,18 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
 .sidebar .nav-link.active {
     color: #ECB439 !important;
     font-weight: 600;
+}
+
+.sidebar .nav-link-text {
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden;    /* Hides overflow if text is too long */
+    text-overflow: ellipsis; /* Adds '...' for long text */
+}
+
+.notification-badge {
+    margin-left: auto; 
+    align-self: center; 
+    margin-right: 15px; /* Increased margin for better spacing */
 }
 
 /* Responsive Styles */
@@ -193,6 +249,11 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
         width: 50px; /* Adjust button to be more square-like */
         height: 50px;
         font-size: 20px;
+    }
+    .notification-badge {
+        position: absolute; /* Position relative to the icon */
+        top: -5px;
+        right: -8px;
     }
 
     .sidebar img {

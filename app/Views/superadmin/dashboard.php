@@ -130,51 +130,57 @@
     <!-- Sidebar -->
     <?= $this->include('superadmin/sidebar') ?>
 
-<div class="main-content">
-    <div class="cards-wrapper">
-        <!-- Total Users -->
+    <!-- Main Content -->
+    <div class="main-content container-fluid">
+
       
-        <a href="<?= site_url('superadmin/manage_users') ?>" class="card-link-wrapper">
-              <div class="card shadow-sm text-center">
-            <div class="card-body">
-                <i class="fas fa-users fa-2x text-primary mb-2"></i>
-                <h5>Total Users</h5>
-                <h2><?= esc($totalUsers ?? 0) ?></h2>
-            </div>
+
+        <!-- Cards Section -->
+        <div class="cards-wrapper">
+            <!-- Total Users -->
+            <a href="<?= site_url('superadmin/manage_users') ?>" class="card-link-wrapper">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-users fa-2x text-primary mb-2"></i>
+                        <h5>Total Users</h5>
+                        <h2><?= esc($totalUsers ?? 0) ?></h2>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Total Files -->
+            <a href="<?= site_url('superadmin/files') ?>" class="card-link-wrapper">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-file-alt fa-2x text-success mb-2"></i>
+                        <h5>Total Files</h5>
+                        <h2><?= esc($totalFiles ?? 0) ?></h2>
+                    </div>
+                </div>
+            </a>
+
+            <!-- Pending Requests -->
+            <a href="<?= site_url('superadmin/manage_request') ?>" class="card-link-wrapper">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
+                        <h5>Pending Requests</h5>
+                        <h2><?= esc($pendingRequests ?? 0) ?></h2>
+                    </div>
+                </div>
+            </a>
+
+            <!-- New Uploaded Files (Pending) -->
+            <a href="<?= site_url('superadmin/manage-uploads?status=pending') ?>" class="card-link-wrapper">
+                <div class="card shadow-sm text-center">
+                    <div class="card-body">
+                        <i class="fas fa-upload fa-2x text-info mb-2"></i>
+                        <h5>New Uploaded Files</h5>
+                        <h2><?= esc($newUploadedFiles ?? 0) ?></h2>
+                    </div>
+                </div>
+            </a>
         </div>
-        </a>
-        <!-- Total Files -->
-        <a href="<?= site_url('superadmin/files') ?>" class="card-link-wrapper">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <i class="fas fa-file-alt fa-2x text-success mb-2"></i>
-                    <h5>Total Files</h5>
-                    <h2><?= esc($totalFiles ?? 0) ?></h2>
-                </div>
-            </div>
-        </a>
-
-        <!-- Pending Requests -->
-        <a href="<?= site_url('superadmin/manage_request') ?>" class="card-link-wrapper">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
-                    <h5>Pending Requests</h5>
-                    <h2><?= esc($pendingRequests ?? 0) ?></h2>
-                </div>
-            </div>
-        </a>
-
-        <!-- New Uploaded Files (Pending) -->
-        <a href="<?= site_url('superadmin/manage-uploads?status=pending') ?>" class="card-link-wrapper">
-            <div class="card shadow-sm text-center">
-                <div class="card-body">
-                    <i class="fas fa-upload fa-2x text-info mb-2"></i>
-                    <h5>New Uploaded Files</h5>
-                    <h2><?= esc($newUploadedFiles ?? 0) ?></h2>
-                </div>
-            </div>
-        </a>
     </div>
 </div>
 
@@ -184,3 +190,4 @@
 <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
 </body>
 </html>
+

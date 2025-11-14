@@ -34,14 +34,21 @@ $currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
             <a href="<?= site_url('user/files') ?>" class="nav-link <?= ($currentPath === 'user/files') ? 'active' : '' ?>">
                 <i class="fas fa-folder"></i> FILES
             </a>
-            <a href="<?= site_url('user/request') ?>" class="nav-link <?= ($currentPath === 'user/request') ? 'active' : '' ?>">
-                <i class="fas fa-tasks"></i> REQUESTS
+            <a href="<?= site_url('user/request') ?>" class="nav-link">
+                <i class="fas fa-tasks"></i>
+                <span class="nav-link-text">REQUESTS</span>
+                <span id="badge-requests" class="badge bg-success text-white notification-badge" style="display:none;"></span>
+
             </a>
 
-                        <a href="<?= site_url($userRole . '/sharedfiles') ?>" 
-               class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
-                <i class="fas fa-share-alt"></i> SHARED FILES
-            </a>
+<a href="<?= site_url($userRole . '/sharedfiles') ?>" 
+   class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
+    <i class="fas fa-share-alt"></i>
+    <span class="nav-link-text">SHARED FILES</span>
+    <span id="badge-shared" class="badge bg-danger notification-badge" style="display:none;"></span>
+</a>
+
+
         <?php endif; ?>
     </nav>
 
@@ -49,6 +56,46 @@ $currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
         <i class="fas fa-sign-out-alt"></i> Logout
     </a>
 </div>
+<script>
+function fetchNotifications() {
+    fetch("<?= site_url($userRole . '/get-notifications') ?>")
+        .then(res => res.json())
+        .then(data => {
+            const uploadBadge = document.getElementById("badge-uploads");
+            const requestBadge = document.getElementById("badge-requests");
+            const sharedBadge = document.getElementById("badge-shared");
+
+            // New uploads (only if badge exists)
+            if (uploadBadge) {
+                if (data.newUploadedFiles > 0) {
+                    uploadBadge.textContent = data.newUploadedFiles;
+                    uploadBadge.style.display = "inline-block";
+                } else {
+                    uploadBadge.style.display = "none";
+                }
+            }
+
+            // Pending requests
+            if (data.pendingRequests > 0) {
+                requestBadge.textContent = data.pendingRequests;
+                requestBadge.style.display = "inline-block";
+            } else {
+                requestBadge.style.display = "none";
+            }
+
+            // Shared files
+            if (data.sharedWithMe > 0) {
+                sharedBadge.textContent = data.sharedWithMe;
+                sharedBadge.style.display = "inline-block";
+            } else {
+                sharedBadge.style.display = "none";
+            }
+        });
+}
+
+fetchNotifications();
+setInterval(fetchNotifications, 5000);
+</script>
 
 <style>
 .sidebar {

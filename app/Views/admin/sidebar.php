@@ -27,9 +27,11 @@ $userRole = $session->get('role') ?? 'user';
     <nav class="nav flex-column">
         <?php if ($userRole === 'admin') : ?>
             <!-- Admin-specific links -->
-            <a href="<?= site_url('admin/dashboard') ?>" class="nav-link">
-                <i class="fas fa-tachometer-alt"></i> <span class="nav-link-text">DASHBOARD</span>
-            </a>
+
+                <a href="<?= site_url('admin/dashboard') ?>" class="nav-link <?= ($currentSegment1 === 'dashboard') ? 'active' : '' ?>">
+        <i class="fas fa-tachometer-alt"></i> <span class="nav-link-text">DASHBOARD</span>
+    </a>
+          
             <a href="<?= site_url('admin/files') ?>" class="nav-link">
                 <i class="fas fa-folder"></i> <span class="nav-link-text">FILES</span>
             </a>
@@ -38,22 +40,26 @@ $userRole = $session->get('role') ?? 'user';
                class="nav-link <?= ($currentSegment2 === 'sharedfiles') ? 'active' : '' ?>">
                 <i class="fas fa-share-alt"></i> <span class="nav-link-text">SHARED FILES</span>
             </a>
-            
-<a href="<?= site_url('admin/manage_uploads') ?>" 
-   class="nav-link <?= ($currentSegment2 === 'manage_uploads') ? 'active' : '' ?>">
-    <i class="fas fa-upload"></i> <span class="nav-link-text">MANAGE UPLOADS</span>
-</a>
 
-     
-            <a href="<?= site_url('admin/manage_request') ?>" 
-   class="nav-link <?= ($currentSegment1 === 'manage_request') ? 'active' : '' ?>">
-    <i class="fas fa-tasks"></i> <span class="nav-link-text">REQUESTS</span>
-</a>
+            <a href="<?= site_url('admin/manage-uploads') ?>" class="nav-link">
+                <i class="fas fa-upload"></i>
+                <span class="nav-link-text">MANAGE UPLOADS</span>
+                <span id="badge-uploads" class="badge bg-danger notification-badge" style="display:none;"></span>
+            </a>
 
-
+            <a href="<?= site_url('admin/manage_request') ?>" class="nav-link">
+                <i class="fas fa-tasks"></i>
+                <span class="nav-link-text">REQUESTS</span>
+                <span id="badge-requests" class="badge bg-warning text-dark notification-badge" style="display:none;"></span>
+            </a>
 
 <a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
     <i class="fas fa-tags"></i> <span class="nav-link-text">CATEGORIES</span>
+</a>
+
+<a href="<?= site_url($userRole . '/manual') ?>" class="nav-link">
+    <i class="fas fa-file"></i> 
+    <span class="nav-link-text">MANUAL GUIDE</span>
 </a>
 
 
@@ -74,21 +80,50 @@ $userRole = $session->get('role') ?? 'user';
         <i class="fas fa-sign-out-alt"></i> <span class="nav-link-text">Logout</span>
     </a>
 </div>
+<script>
+function fetchNotifications() {
+    fetch("<?= site_url($userRole . '/get-notifications') ?>")
+        .then(res => res.json())
+        .then(data => {
+            const uploadBadge = document.getElementById("badge-uploads");
+            const requestBadge = document.getElementById("badge-requests");
+
+            if (data.newUploadedFiles > 0) {
+                uploadBadge.textContent = data.newUploadedFiles;
+                uploadBadge.style.display = "inline-block";
+            } else {
+                uploadBadge.style.display = "none";
+            }
+
+            if (data.pendingRequests > 0) {
+                requestBadge.textContent = data.pendingRequests;
+                requestBadge.style.display = "inline-block";
+            } else {
+                requestBadge.style.display = "none";
+            }
+        });
+}
+
+fetchNotifications();
+setInterval(fetchNotifications, 5000);
+
+</script>
 
 <style>
+    
 .sidebar {
     background-color: #2C2C2C;
     color: white;
     top: 0;
     padding: 20px 15px;
     height: 100vh;
-    width: 220px;
+    width: 230px;
     display: flex;
     flex-direction: column;
     align-items: center;
     position: fixed;
     transition: width 0.3s ease-in-out;
-    font-size: 15px;
+    font-size: 13px;
 }
 
 
@@ -158,6 +193,18 @@ $userRole = $session->get('role') ?? 'user';
     font-weight: 600;
 }
 
+.sidebar .nav-link-text {
+    white-space: nowrap; /* Prevents text from wrapping */
+    overflow: hidden;    /* Hides overflow if text is too long */
+    text-overflow: ellipsis; /* Adds '...' for long text */
+}
+
+.notification-badge {
+    margin-left: auto; 
+    align-self: center; 
+    margin-right: 15px; /* Increased margin for better spacing */
+}
+
 /* Responsive Styles */
 @media (max-width: 1200px) {
     .sidebar {
@@ -179,6 +226,11 @@ $userRole = $session->get('role') ?? 'user';
         width: 50px; /* Adjust button to be more square-like */
         height: 50px;
         font-size: 20px;
+    }
+    .notification-badge {
+        position: absolute; /* Position relative to the icon */
+        top: -5px;
+        right: -8px;
     }
 
     .sidebar img {

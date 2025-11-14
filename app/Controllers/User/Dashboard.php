@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\UserModel;
 use App\Models\FileModel;
 use App\Models\FolderModel;
+use App\Models\SharedFileModel;
 
 class Dashboard extends BaseController
 {
@@ -21,6 +22,7 @@ class Dashboard extends BaseController
         $userId = $session->get('id');
         $userModel = new UserModel();
         $fileModel = new FileModel();
+        $sharedModel = new SharedFileModel();
 
         // Get user info
         $user = $userModel->find($userId);
@@ -39,11 +41,33 @@ class Dashboard extends BaseController
         // Optional: get files with details
         $uploadedFiles = $fileModel->whereIn('folder_id', $folderIds)->findAll();
 
+        // === Count files shared TO this user ===
+        $sharedWithMeCount = $sharedModel
+            ->like('shared_to', $userId) // CSV field of user IDs
+            ->where('downloaded', 0)
+            ->countAllResults();
+
+        // === Get flashdata notifications for this user ===
+        $fileNotifications = $session->get('file_notifications')[$userId] ?? null;
+
+        // Remove notifications after retrieving (show only once)
+        if ($fileNotifications) {
+            $notifications = $fileNotifications;
+            $allNotifications = $notifications;
+            $sessionData = $session->get('file_notifications');
+            unset($sessionData[$userId]);
+            $session->set('file_notifications', $sessionData);
+        } else {
+            $allNotifications = null;
+        }
+
         $data = [
-            'title'          => 'User Dashboard - HR Archiving System',
-            'user'           => $user,
-            'totalFiles'     => $totalFiles,
-            'uploaded_files' => $uploadedFiles,
+            'title'             => 'User Dashboard - HR Archiving System',
+            'user'              => $user,
+            'totalFiles'        => $totalFiles,
+            'uploaded_files'    => $uploadedFiles,
+            'sharedWithMeCount' => $sharedWithMeCount, // new notification count
+            'notifications'     => $allNotifications,  // pass notifications to view
         ];
 
         return view('user/dashboard', $data);

@@ -7,6 +7,7 @@ use App\Models\FileModel;
 use App\Models\SharedFileModel;
 use App\Models\UserModel;
 use App\Models\SharedTokenModel;
+use App\Models\FolderModel;
 use CodeIgniter\I18n\Time;
 
 class Sharedfiles extends BaseController
@@ -15,89 +16,85 @@ class Sharedfiles extends BaseController
     protected $sharedModel;
     protected $userModel;
     protected $tokenModel;
+    protected $folderModel;
 
      protected $storagePath;
 
 
-    public function __construct()
-    {
-        $this->fileModel   = new FileModel();
-        $this->sharedModel = new SharedFileModel();
-        $this->userModel   = new UserModel();
-        $this->tokenModel = new SharedTokenModel();
-        
-         $this->storagePath = 'C:\\xampp\\depedfiles\\';
+public function __construct()
+{
+    $this->fileModel   = new \App\Models\FileModel();
+    $this->sharedModel = new \App\Models\SharedFileModel();
+    $this->userModel   = new \App\Models\UserModel();
+    $this->tokenModel  = new \App\Models\SharedTokenModel();
+    $this->folderModel = new \App\Models\FolderModel(); // <--- ADD THIS
+
+    $this->storagePath = 'C:\\xampp\\depedfiles\\';
     if (!is_dir($this->storagePath)) mkdir($this->storagePath, 0777, true);
+}
 
-    }
 
-    // ==============================
+
     // MAIN PAGE (List + Modal Data)
-    // ==============================
 public function index()
 {
     $session = session();
     $userId  = $session->get('id');
     $role    = $session->get('role') ?? 'user';
 
+    $folderModel = new \App\Models\FolderModel();
 
-   // ======================
-// Files shared BY current user
-// ======================
-$sharedFilesQuery = $this->sharedModel
-    ->select('shared_files.*, files.file_name, categories.category_name, uploader.username AS uploader_name')
-    ->join('files', 'files.id = shared_files.file_id', 'left')
-    ->join('categories', 'categories.id = files.category_id', 'left')
-    ->join('users AS uploader', 'uploader.id = files.uploaded_by', 'left')
-    ->where('shared_files.shared_by', $userId)
-    ->orderBy('shared_files.created_at', 'DESC');
+    // ======================
+    // Files shared BY current user
+    // ======================
+    $sharedFilesQuery = $this->sharedModel
+        ->select('shared_files.*, files.file_name, categories.category_name, uploader.username AS uploader_name')
+        ->join('files', 'files.id = shared_files.file_id', 'left')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users AS uploader', 'uploader.id = files.uploaded_by', 'left')
+        ->where('shared_files.shared_by', $userId)
+        ->orderBy('shared_files.created_at', 'DESC');
 
-// Regular users: only show files that are not yet downloaded
-if (!in_array($role, ['admin', 'superadmin'])) {
-    $sharedFilesQuery->where('shared_files.downloaded', 0);
-}
-
-$sharedFilesRaw = $sharedFilesQuery->findAll();
-
-// ✅ Convert shared_to IDs to usernames
-$sharedFiles = [];
-foreach ($sharedFilesRaw as $share) {
-    $sharedToNames = [];
-
-    if (!empty($share['shared_to'])) {
-        $ids = explode(',', $share['shared_to']);
-        $names = $this->userModel
-            ->select('username')
-            ->whereIn('id', $ids)
-            ->findAll();
-
-        foreach ($names as $n) {
-            $sharedToNames[] = $n['username'];
-        }
+    if (!in_array($role, ['admin', 'superadmin'])) {
+        $sharedFilesQuery->where('shared_files.downloaded', 0);
     }
 
-    $share['shared_to_names'] = implode(', ', $sharedToNames);
-    $sharedFiles[] = $share;
-}
+    $sharedFilesRaw = $sharedFilesQuery->findAll();
 
+    $sharedFiles = [];
+    foreach ($sharedFilesRaw as $share) {
+        $sharedToNames = [];
+        if (!empty($share['shared_to'])) {
+            $ids = explode(',', $share['shared_to']);
+            $names = $this->userModel
+                ->select('username')
+                ->whereIn('id', $ids)
+                ->findAll();
+
+            foreach ($names as $n) {
+                $sharedToNames[] = $n['username'];
+            }
+        }
+        $share['shared_to_names'] = implode(', ', $sharedToNames);
+        $sharedFiles[] = $share;
+    }
 
     // ======================
     // Files shared TO current user
     // ======================
     $allShared = $this->sharedModel
-    ->select('shared_files.*, files.file_name, categories.category_name, sharer.username AS shared_by_name')
-    ->join('files', 'files.id = shared_files.file_id', 'left')
-    ->join('categories', 'categories.id = files.category_id', 'left')
-    ->join('users AS sharer', 'sharer.id = shared_files.shared_by', 'left')
-    ->orderBy('shared_files.created_at', 'DESC')
-    ->findAll();
-
+        ->select('shared_files.*, files.file_name, categories.category_name, sharer.username AS shared_by_name')
+        ->join('files', 'files.id = shared_files.file_id', 'left')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('users AS sharer', 'sharer.id = shared_files.shared_by', 'left')
+        ->orderBy('shared_files.created_at', 'DESC')
+        ->findAll();
 
     $sharedWithMe = [];
     foreach ($allShared as $share) {
         $sharedToList = explode(',', $share['shared_to'] ?? '');
         if (
-            in_array((string) $userId, $sharedToList, true) &&
+            in_array((string)$userId, $sharedToList, true) &&
             ((int)$share['downloaded'] === 0 || in_array($role, ['admin', 'superadmin']))
         ) {
             $sharedWithMe[] = $share;
@@ -107,20 +104,27 @@ foreach ($sharedFilesRaw as $share) {
     // ======================
     // Files available for sharing modal
     // ======================
- $allFilesQuery = $this->fileModel
-    ->select('files.id, files.file_name, categories.category_name, folders.folder_name, users.username as uploader_name')
-    ->join('categories', 'categories.id = files.category_id', 'left')
-    ->join('folders', 'folders.id = files.folder_id', 'left')
-    ->join('users', 'users.id = files.uploaded_by', 'left')
-    ->where('files.status', 'active') 
-    ->orderBy('files.uploaded_at', 'DESC');
+    $allFilesQuery = $this->fileModel
+        ->select('files.id, files.file_name, categories.category_name, folders.folder_name, users.username as uploader_name')
+        ->join('categories', 'categories.id = files.category_id', 'left')
+        ->join('folders', 'folders.id = files.folder_id', 'left')
+        ->join('users', 'users.id = files.uploaded_by', 'left')
+        ->where('files.status', 'active')
+        ->orderBy('files.uploaded_at', 'DESC');
 
-// Regular users: only their own files
-if (!in_array($role, ['admin', 'superadmin'])) {
-    $allFilesQuery->where('files.uploaded_by', $userId);
-}
+    if (!in_array($role, ['admin', 'superadmin'])) {
+        $user = $this->userModel->find($userId);
+        $mainFolderId = $user['main_folder_id'] ?? null;
 
-$allFiles = $allFilesQuery->findAll();
+        if ($mainFolderId) {
+            $accessibleFolderIds = $this->getFolderAndSubfolderIds($mainFolderId);
+            $allFilesQuery->whereIn('files.folder_id', $accessibleFolderIds);
+        } else {
+            $allFilesQuery->where('files.id', 0); // no files if no main folder
+        }
+    }
+
+    $allFiles = $allFilesQuery->findAll();
 
     // ======================
     // All users except current one
@@ -140,6 +144,7 @@ $allFiles = $allFilesQuery->findAll();
         'role'         => $role,
     ]);
 }
+
 
 
 
@@ -170,14 +175,20 @@ public function share()
         return redirect()->back()->with('error', 'You can only share active files.');
     }
 
-    // ✅ Check ownership for regular users
-    if ($role === 'user' && (int) $file['uploaded_by'] !== (int) $userId) {
-        return redirect()->back()->with('error', 'You can only share your own uploaded files.');
+    // ===============================
+    // Check folder access for regular users
+    // ===============================
+    if ($role === 'user') {
+        $user = $this->userModel->find($userId);
+        $userMainFolderId = $user['main_folder_id'];
+
+        // Helper function to check if the file's folder is within user's main folder
+        if (!$this->isSubfolder($file['folder_id'], $userMainFolderId)) {
+            return redirect()->back()->with('error', 'You can only share files within your folder.');
+        }
     }
 
     $sharedTo = implode(',', $targetUsers);
-
-
 
     // ✅ Save sharing record
     $this->sharedModel->insert([
@@ -193,6 +204,27 @@ public function share()
 
     return redirect()->to('/sharedfiles')->with('success', 'File shared successfully.');
 }
+
+/**
+ * Helper function to check if a folder is inside the user's main folder
+ */
+protected function isSubfolder($folderId, $parentFolderId)
+{
+    while ($folderId) {
+        if ($folderId == $parentFolderId) return true;
+
+        // Get folder record
+        $folder = $this->folderModel->find($folderId);
+
+        // Safety check to avoid infinite loop
+        if (!$folder) break;
+
+        // Use correct column name
+        $folderId = $folder['parent_folder_id'] ?? null;
+    }
+    return false;
+}
+
 
     // ==============================
     // UNSHARE FILE
@@ -266,6 +298,20 @@ public function download($sharedId)
     $this->sharedModel->delete($sharedId);
 
     return $response;
+}
+
+protected function getFolderAndSubfolderIds($parentId)
+{
+    $folderModel = new \App\Models\FolderModel();
+    $allIds = [$parentId];
+
+
+    $subfolders = $folderModel->where('parent_folder_id', $parentId)->findAll();
+    foreach ($subfolders as $sub) {
+        $allIds = array_merge($allIds, $this->getFolderAndSubfolderIds($sub['id']));
+    }
+
+    return $allIds;
 }
 
 
