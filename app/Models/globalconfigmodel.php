@@ -54,27 +54,23 @@ class GlobalconfigModel extends Model
     }
 
     // Update a toggle or numeric setting
-public function updateSetting($settingKey, $settingValue, $enabled = null)
+public function updateSetting($settingKey, $settingValue, $enabled = null, $configKey = 'system')
 {
-    // Find existing setting
     $setting = $this->where('setting_key', $settingKey)->first();
 
     $data = ['updated_at' => date('Y-m-d H:i:s')];
 
     if ($setting) {
-        // Update numeric value
         $data['setting_value'] = (int)$settingValue;
 
-        // If $enabled is provided, update config_value (toggle)
         if ($enabled !== null) {
             $data['config_value'] = (int)$enabled;
         }
 
         return $this->update($setting['id'], $data);
     } else {
-        // Insert if not exists
         return $this->insert([
-            'config_key'    => 'system',
+            'config_key'    => $configKey,
             'setting_key'   => $settingKey,
             'setting_value' => (int)$settingValue,
             'config_value'  => $enabled ?? 1,
@@ -82,6 +78,7 @@ public function updateSetting($settingKey, $settingValue, $enabled = null)
         ]);
     }
 }
+
 
 
 }

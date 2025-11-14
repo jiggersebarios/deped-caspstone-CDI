@@ -49,43 +49,16 @@
 
         <div id="alert-box"></div>
 
-
-
-        <!-- File Type Settings Table -->
+        <!-- ================= System Settings ================= -->
         <table class="table table-bordered align-middle config-table mb-4">
-            <tr><th colspan="2">Settings</th></tr>
-            <tr>
-                <th style="width:70%">General Setting</th>
-                <th style="width:30%">Status</th>
-            </tr>
-            <tbody>
-                <?php foreach ($uploadSettings as $key => $setting): ?>
-                    <?php if (strpos($key, 'allow_') === 0): ?>
-                        <tr>
-                            <td class="fw-medium"><?= ucwords(str_replace("_", " ", $key)) ?></td>
-                            <td>
-                                <div class="form-check form-switch d-flex align-items-center">
-                                    <input class="form-check-input toggle-file-type me-2" type="checkbox" 
-                                           data-id="<?= $setting['id'] ?>" <?= $setting['enabled'] == 1 ? 'checked' : '' ?>>
-                                    <label class="form-check-label mb-0"><?= $setting['enabled'] == 1 ? 'ON' : 'OFF' ?></label>
-                                </div>
-                            </td>
-                        </tr>
-                    <?php endif; ?>
-                <?php endforeach; ?>
-            </tbody>
-        </table>
-
-        <!-- User Controls Table -->
-        <table class="table table-bordered align-middle config-table mb-4">
-            <tr><th colspan="2">User Controls</th></tr>
+            <tr><th colspan="2">System Settings</th></tr>
             <tr>
                 <th style="width:70%">Setting</th>
                 <th style="width:30%">Status</th>
             </tr>
             <tbody>
-                <?php if (!empty($user_controls)): ?>
-                    <?php foreach ($user_controls as $uc): ?>
+                <?php foreach ($all_controls as $uc): ?>
+                    <?php if ($uc['config_key'] === 'system'): ?>
                         <tr>
                             <td class="fw-medium"><?= ucwords(str_replace("_", " ", $uc['setting_key'])) ?></td>
                             <td>
@@ -96,12 +69,58 @@
                                 </div>
                             </td>
                         </tr>
-                    <?php endforeach; ?>
-                <?php else: ?>
-                    <tr>
-                        <td colspan="2" class="text-center text-muted">No user settings available</td>
-                    </tr>
-                <?php endif; ?>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <!-- ================= Admin Settings ================= -->
+        <table class="table table-bordered align-middle config-table mb-4">
+            <tr><th colspan="2">Admin Settings</th></tr>
+            <tr>
+                <th style="width:70%">Setting</th>
+                <th style="width:30%">Status</th>
+            </tr>
+            <tbody>
+                <?php foreach ($all_controls as $uc): ?>
+                    <?php if ($uc['config_key'] === 'admin'): ?>
+                        <tr>
+                            <td class="fw-medium"><?= ucwords(str_replace("_", " ", $uc['setting_key'])) ?></td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-center">
+                                    <input class="form-check-input toggle-switch me-2" type="checkbox" 
+                                           data-id="<?= $uc['id'] ?>" <?= $uc['setting_value'] == 1 ? 'checked' : '' ?>>
+                                    <label class="form-check-label mb-0"><?= $uc['setting_value'] == 1 ? 'ON' : 'OFF' ?></label>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                <?php endforeach; ?>
+            </tbody>
+        </table>
+
+        <!-- ================= User Settings ================= -->
+        <table class="table table-bordered align-middle config-table mb-4">
+            <tr><th colspan="2">User Settings</th></tr>
+            <tr>
+                <th style="width:70%">Setting</th>
+                <th style="width:30%">Status</th>
+            </tr>
+            <tbody>
+                <?php foreach ($all_controls as $uc): ?>
+                    <?php if ($uc['config_key'] === 'user'): ?>
+                        <tr>
+                            <td class="fw-medium"><?= ucwords(str_replace("_", " ", $uc['setting_key'])) ?></td>
+                            <td>
+                                <div class="form-check form-switch d-flex align-items-center">
+                                    <input class="form-check-input toggle-switch me-2" type="checkbox" 
+                                           data-id="<?= $uc['id'] ?>" <?= $uc['setting_value'] == 1 ? 'checked' : '' ?>>
+                                    <label class="form-check-label mb-0"><?= $uc['setting_value'] == 1 ? 'ON' : 'OFF' ?></label>
+                                </div>
+                            </td>
+                        </tr>
+                    <?php endif; ?>
+                <?php endforeach; ?>
             </tbody>
         </table>
 
@@ -113,8 +132,7 @@
 
     <script>
 $(function() {
-
-    // ===== Toggle switches for other settings =====
+    // ===== Toggle switches =====
     $(document).on('change', '.toggle-switch, .toggle-file-type', function() {
         let id = $(this).data('id');
         let status = $(this).is(':checked') ? 1 : 0;

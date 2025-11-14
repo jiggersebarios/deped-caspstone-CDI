@@ -64,32 +64,51 @@ if ($role === 'superadmin') {
         <!-- Folder / Subfolder Buttons -->
         <div class="button-container">
             <?php if (!isset($parentFolder)): ?>
+                
+                <!-- Add Folder -->
                 <?php if ($role === 'superadmin' || ($role === 'admin' && $canAddFolder)): ?>
-    <button class="add-folder-btn" data-toggle="modal" data-target="#addFolderModal">
-        <i class="fas fa-folder-plus"></i> Add Folder
-    </button>
+                    <button class="add-folder-btn" data-toggle="modal" data-target="#addFolderModal">
+                        <i class="fas fa-folder-plus"></i> Add Folder
+                    </button>
                 <?php endif; ?>
 
-                <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteFolder)): ?>
+                <!-- Edit Main Folder -->
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canEditFolder)): ?>
+                    <button class="edit-subfolder-btn" data-toggle="modal" data-target="#editMainFolderModal">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Folder
+                    </button>
+                <?php endif; ?>
 
-    <button class="delete-folder-btn" data-toggle="modal" data-target="#deleteFolderModal">
-        <i class="fas fa-trash-alt"></i> Delete Folder
-    </button>
+                <!-- Delete Folder -->
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteFolder)): ?>
+                    <button class="delete-folder-btn" data-toggle="modal" data-target="#deleteFolderModal">
+                        <i class="fas fa-trash-alt"></i> Delete Folder
+                    </button>
                 <?php endif; ?>
 
             <?php else: ?>
+                
+                <!-- Add Subfolder -->
                 <?php if ($role === 'superadmin' || ($role === 'admin' && $canAddSubfolder)): ?>
-<button class="add-subfolder-btn" data-toggle="modal" data-target="#addSubFolderModal">
-    <i class="fa-solid fa-folder-tree"></i> Add Subfolder
-</button>
-<?php endif; ?>
-
-
-                <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteSubfolder)): ?>
-<button class="delete-btn" data-toggle="modal" data-target="#deleteSubFolderModal">
-    <i class="fa-solid fa-trash"></i> Delete Subfolder
-</button>
+                    <button class="add-subfolder-btn" data-toggle="modal" data-target="#addSubFolderModal">
+                        <i class="fa-solid fa-folder-tree"></i> Add Subfolder
+                    </button>
                 <?php endif; ?>
+
+                <!-- Edit Subfolder -->
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canEditSubfolder)): ?>
+                    <button class="edit-subfolder-btn" data-toggle="modal" data-target="#editSubFolderModal">
+                        <i class="fa-solid fa-pen-to-square"></i> Edit Subfolder
+                    </button>
+                <?php endif; ?>
+
+                <!-- Delete Subfolder -->
+                <?php if ($role === 'superadmin' || ($role === 'admin' && $canDeleteSubfolder)): ?>
+                    <button class="delete-btn" data-toggle="modal" data-target="#deleteSubFolderModal">
+                        <i class="fa-solid fa-trash"></i> Delete Subfolder
+                    </button>
+                <?php endif; ?>
+
             <?php endif; ?>
         </div>
 
@@ -108,8 +127,8 @@ if ($role === 'superadmin') {
         </div>
 
     </div>
-
 <?php endif; ?>
+
 </div>
 
  
@@ -618,6 +637,86 @@ if ($role === 'superadmin') {
 </div>
 <?php endif; ?>
 
+<!-- Edit Main Folder Modal -->
+<?php if ($role === 'superadmin' || ($role === 'admin' && $canEditFolder)): ?>
+<div class="modal fade" id="editMainFolderModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="<?= site_url($role.'/files/renameMainFolder') ?>" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Main Folder</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p>Select a main folder to rename:</p>
+                    <?php if (!empty($folders)): ?>
+                        <div class="form-group">
+                            <label for="folder_id">Main Folder</label>
+                            <select name="folder_id" class="form-control" required>
+                                <option value="">-- Select a folder --</option>
+                                <?php foreach ($folders as $folder): ?>
+                                    <option value="<?= $folder['id'] ?>"><?= esc($folder['folder_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_name">New Name</label>
+                            <input type="text" name="new_name" class="form-control" placeholder="Enter new folder name" required>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-info">No main folders to edit.</div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <button type="submit" class="btn btn-primary" <?= empty($folders) ? 'disabled' : '' ?>>Rename</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
+
+<!-- Edit Subfolder Modal -->
+<?php if ($role === 'superadmin' || ($role === 'admin' && $canEditSubfolder)): ?>
+<div class="modal fade" id="editSubFolderModal" tabindex="-1" role="dialog">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <form action="<?= site_url($role.'/files/renameSubfolder') ?>" method="post">
+                <div class="modal-header">
+                    <h5 class="modal-title">Edit Subfolder in "<?= esc($parentFolder['folder_name'] ?? '') ?>"</h5>
+                    <button type="button" class="close" data-dismiss="modal"><span>&times;</span></button>
+                </div>
+                <div class="modal-body">
+                    <p>Select a subfolder to rename:</p>
+                    <?php if (!empty($folders)): ?>
+                        <div class="form-group">
+                            <label for="folder_id">Subfolder</label>
+                            <select name="folder_id" class="form-control" required>
+                                <option value="">-- Select a subfolder --</option>
+                                <?php foreach ($folders as $folder): ?>
+                                    <option value="<?= $folder['id'] ?>"><?= esc($folder['folder_name']) ?></option>
+                                <?php endforeach; ?>
+                            </select>
+                        </div>
+                        <div class="form-group">
+                            <label for="new_name">New Name</label>
+                            <input type="text" name="new_name" class="form-control" placeholder="Enter new subfolder name" required>
+                        </div>
+                    <?php else: ?>
+                        <div class="alert alert-info">No subfolders to edit.</div>
+                    <?php endif; ?>
+                </div>
+                <div class="modal-footer">
+                    <input type="hidden" name="parent_folder_id" value="<?= $parentFolder['id'] ?? '' ?>">
+                    <button type="submit" class="btn btn-primary" <?= empty($folders) ? 'disabled' : '' ?>>Rename</button>
+                    <button type="button" class="btn btn-secondary" data-dismiss="modal">Close</button>
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
+<?php endif; ?>
 
 <!-- Upload File Modal -->
 <div class="modal fade" id="uploadModal" tabindex="-1" role="dialog">
@@ -948,6 +1047,7 @@ $(document).ready(function () {
 /* ====== Unified Folder Button Styling ====== */
 .add-folder-btn,
 .add-subfolder-btn,
+.edit-subfolder-btn,
 .delete-folder-btn,
 .delete-btn {
     min-width: 180px; 
@@ -988,6 +1088,16 @@ $(document).ready(function () {
     transform: translateY(-2px);
 }
 
+/* 🟡 Edit Subfolder */
+.edit-subfolder-btn {
+    background: linear-gradient(135deg, #ffc107, #e0a800);
+    color: #212529; /* Dark text for better contrast on yellow */
+}
+.edit-subfolder-btn:hover {
+    background: linear-gradient(135deg, #e0a800, #ffc107);
+    transform: translateY(-2px);
+}
+
 /* 🗑 Delete Folder */
 .delete-folder-btn,
 .delete-btn {
@@ -1003,6 +1113,7 @@ $(document).ready(function () {
 /* ====== Ensure buttons align perfectly in top-bar ====== */
 .button-container {
     display: flex;
+    gap: 10px;
     align-items: center;
 }
 
@@ -1011,6 +1122,7 @@ $(document).ready(function () {
 /* ====== Icon Size ====== */
 .add-folder-btn i,
 .add-subfolder-btn i,
+.edit-subfolder-btn i,
 .delete-btn i {
     font-size: 18px;
 }

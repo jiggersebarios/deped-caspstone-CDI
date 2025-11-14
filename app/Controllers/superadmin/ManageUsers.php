@@ -8,138 +8,114 @@ use App\Models\FolderModel;
 
 class ManageUsers extends BaseController
 {
-public function index()
-{
-    $userModel = new UserModel();
-    $folderModel = new FolderModel();
+    public function index()
+    {
+        $userModel = new UserModel();
+        $folderModel = new FolderModel();
 
-    $data['users'] = $userModel->findAll();
-    $data['folders'] = $folderModel->findAll(); // Added so we can show folder list
-    $data['title'] = 'Manage Users';
+        $data['users'] = $userModel->findAll();
+        $data['folders'] = $folderModel->findAll();
+        $data['title'] = 'Manage Users';
 
-    return view('superadmin/manage_users', $data);
-}
+        return view('superadmin/manage_users', $data);
+    }
 
     public function store()
     {
         $userModel = new UserModel();
         $folderModel = new FolderModel();
-
         $folderBasePath = FCPATH . 'uploads/';
 
-        $username = trim($this->request->getPost('username'));
-        $email = trim($this->request->getPost('email'));
-        $password = password_hash($this->request->getPost('password'), PASSWORD_DEFAULT);
-        $role = $this->request->getPost('role');
+        $username   = trim($this->request->getPost('username'));
+        $email      = trim($this->request->getPost('email'));
+        $password   = password_hash($this->request->getPost('password'), PASSWORD_DEFAULT);
+        $role       = $this->request->getPost('role');
+        $school_id  = trim($this->request->getPost('school_id')); // new field
 
-        // ✅ Validation
         if (empty($username) || empty($email)) {
             return redirect()->back()->with('error', 'Please fill in all required fields.');
         }
 
-        // ✅ Create user first
         $userId = $userModel->insert([
-            'username' => $username,
-            'email' => $email,
-            'password' => $password,
-            'role' => $role,
+            'username'  => $username,
+            'email'     => $email,
+            'password'  => $password,
+            'role'      => $role,
+            'school_id' => $school_id, // save school_id
         ]);
 
         if (!$userId) {
             return redirect()->back()->with('error', 'Failed to create user.');
         }
 
-        // ✅ Check if folder already exists
         $existingFolder = $folderModel->where('folder_name', strtoupper($username))
                                       ->where('parent_folder_id', null)
                                       ->first();
 
-        // ✅ If folder exists, use it — else create new
         if ($existingFolder) {
             $mainFolderId = $existingFolder['id'];
         } else {
             $folderPath = $folderBasePath . strtoupper($username);
-
-            if (!is_dir($folderPath)) {
-                mkdir($folderPath, 0777, true);
-            }
+            if (!is_dir($folderPath)) mkdir($folderPath, 0777, true);
 
             $mainFolderId = $folderModel->insert([
-                'folder_name' => strtoupper($username),
+                'folder_name'      => strtoupper($username),
                 'parent_folder_id' => null,
             ]);
         }
 
-        // ✅ Update user with main folder details
         $userModel->update($userId, [
             'main_folder_id' => $mainFolderId,
             'main_folder'    => strtoupper($username),
         ]);
 
         return redirect()->to('/superadmin/manage_users')
-            ->with('success', "User '$username' added successfully and folder assigned.");
+                         ->with('success', "User '$username' added successfully and folder assigned.");
     }
 
+    public function update($id)
+    {
+        $userModel = new UserModel();
+        $folderModel = new FolderModel();
 
-    //edit
-public function update($id)
-{
-    $userModel = new UserModel();
-    $folderModel = new FolderModel();
+        $data = [
+            'username'   => $this->request->getPost('username'),
+            'email'      => $this->request->getPost('email'),
+            'role'       => $this->request->getPost('role'),
+            'school_id'  => trim($this->request->getPost('school_id')), // update school_id
+        ];
 
-    $data = [
-        'username' => $this->request->getPost('username'),
-        'email'    => $this->request->getPost('email'),
-        'role'     => $this->request->getPost('role'),
-    ];
-
-    // ✅  password update
-    $password = $this->request->getPost('password');
-    if (!empty($password)) {
-        $data['password'] = password_hash($password, PASSWORD_DEFAULT);
-    }
-
-    // ✅ Handle folder reassignment (optional)
-    $newFolderId = $this->request->getPost('main_folder_id');
-    if (!empty($newFolderId)) {
-        // Explicitly cast to array to avoid IDE/analysis confusion
-        $folder = (array) $folderModel->find($newFolderId);
-
-        if (!empty($folder)) {
-            $data['main_folder_id'] = $folder['id'] ?? null;
-            $data['main_folder']    = $folder['folder_name'] ?? null;
-        } else {
-            return redirect()->back()->with('error', 'Selected folder not found.');
+        $password = $this->request->getPost('password');
+        if (!empty($password)) {
+            $data['password'] = password_hash($password, PASSWORD_DEFAULT);
         }
+
+        $newFolderId = $this->request->getPost('main_folder_id');
+        if (!empty($newFolderId)) {
+            $folder = (array) $folderModel->find($newFolderId);
+            if (!empty($folder)) {
+                $data['main_folder_id'] = $folder['id'] ?? null;
+                $data['main_folder']    = $folder['folder_name'] ?? null;
+            } else {
+                return redirect()->back()->with('error', 'Selected folder not found.');
+            }
+        }
+
+        $userModel->update($id, $data);
+
+        return redirect()->to('/superadmin/manage_users')->with('success', 'User updated successfully.');
     }
 
-    // ✅ Update user record
-    $userModel->update($id, $data);
+    public function delete($id)
+    {
+        $db = \Config\Database::connect();
+        $userModel = new UserModel();
 
-    return redirect()->to('/superadmin/manage_users')->with('success', 'User updated successfully.');
-}
+        $db->table('file_requests')->where('user_id', $id)->delete();
 
+        $userModel->delete($id);
 
-
-public function delete($id)
-{
-    $db = \Config\Database::connect();
-    $userModel = new UserModel();
-
-    // ✅ Delete all related file requests first
-    $db->table('file_requests')->where('user_id', $id)->delete();
-
-    // ✅ (Optional) If the user has related folders or files, you can clear them here too
-    // $db->table('files')->where('user_id', $id)->delete();
-    // $db->table('folders')->where('user_id', $id)->delete();
-
-    // ✅ Now safely delete the user
-    $userModel->delete($id);
-
-    return redirect()->to('/superadmin/manage_users')
-        ->with('success', 'User and all related file requests deleted successfully.');
-}
-
-
-
+        return redirect()->to('/superadmin/manage_users')
+                         ->with('success', 'User and all related file requests deleted successfully.');
+    }
 }

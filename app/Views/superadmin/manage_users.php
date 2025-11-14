@@ -86,7 +86,7 @@
         <table class="table table-bordered users-table">
             <thead>
                 <tr>
-                    <th>ID</th>
+                    <th>School ID</th>
                     <th>Username</th>
                     <th>Email</th>
                     <th>Role</th>
@@ -101,7 +101,7 @@
                 <?php if (!empty($users)): ?>
                     <?php foreach ($users as $user): ?>
                         <tr>
-                            <td><?= esc($user['id']) ?></td>
+                            <td><?= esc($user['school_id'] ?? 'N/A') ?></td>
                             <td><?= esc($user['username']) ?></td>
                             <td><?= esc($user['email']) ?></td>
                             <td><?= esc($user['role']) ?></td>
@@ -141,6 +141,10 @@
                     <div class="mb-3">
                         <label>Email</label>
                         <input type="email" name="email" value="<?= esc($user['email']) ?>" class="form-control" required>
+                    </div>
+                    <div class="mb-3">
+                        <label>School ID</label>
+                        <input type="text" name="school_id" value="<?= esc($user['school_id'] ?? '') ?>" class="form-control">
                     </div>
                     <div class="mb-3">
                         <label>Role</label>
@@ -210,6 +214,10 @@
                         <div class="mb-3">
                             <label>Email</label>
                             <input type="email" name="email" class="form-control" required>
+                        </div>
+                        <div class="mb-3">
+                            <label>School ID</label>
+                            <input type="text" name="school_id" class="form-control">
                         </div>
                         <div class="mb-3">
                             <label>Password</label>

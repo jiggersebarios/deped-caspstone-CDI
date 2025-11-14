@@ -85,10 +85,12 @@ public function index()
         'categories'         => (new CategoryModel())->findAll(),
 
         // Admin/Superadmin controls
-        'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
-        'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
-        'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
-        'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
+        'canAddFolder'       => $this->isAllowed('allow_add_folder'),
+        'canEditFolder'      => $this->isAllowed('allow_edit_folder'),
+        'canDeleteFolder'    => $this->isAllowed('allow_delete_folder'),
+        'canAddSubfolder'    => $this->isAllowed('allow_add_subfolder'),
+        'canEditSubfolder'   => $this->isAllowed('allow_edit_subfolder'),
+        'canDeleteSubfolder' => $this->isAllowed('allow_delete_subfolder'),
 
         // User controls
         'enableUpload'       => $enableUpload,
@@ -202,10 +204,12 @@ public function view($id)
         'role'               => $role,
 
         // Admin Permissions
-        'canAddFolder'       => $this->isAllowed('allow_admin_to_add_folder'),
-        'canDeleteFolder'    => $this->isAllowed('allow_admin_to_delete_folder'),
-        'canAddSubfolder'    => $this->isAllowed('allow_admin_to_add_subfolder'),
-        'canDeleteSubfolder' => $this->isAllowed('allow_admin_to_delete_subfolder'),
+        'canAddFolder'       => $this->isAllowed('allow_add_folder'),
+        'canEditFolder'      => $this->isAllowed('allow_edit_folder'),
+        'canDeleteFolder'    => $this->isAllowed('allow_delete_folder'),
+        'canAddSubfolder'    => $this->isAllowed('allow_add_subfolder'),
+        'canEditSubfolder'   => $this->isAllowed('allow_edit_subfolder'),
+        'canDeleteSubfolder' => $this->isAllowed('allow_delete_subfolder'),
 
         // User Permissions
         'enableUpload'       => $enableUpload,
@@ -218,7 +222,7 @@ public function view($id)
 
     public function add()
     {
-        if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_add_folder')) {
+        if ($this->role === 'admin' && !$this->isAllowed('allow_add_folder')) {
             return redirect()->back()->with('error', 'Adding folders is disabled by Superadmin.');
         }
 
@@ -236,7 +240,7 @@ public function view($id)
 
     public function addSubfolder($parentId)
     {
-        if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_add_subfolder')) {
+        if ($this->role === 'admin' && !$this->isAllowed('allow_add_subfolder')) {
             return redirect()->back()->with('error', 'Adding subfolders is disabled by Superadmin.');
         }
 
@@ -255,7 +259,7 @@ public function view($id)
     // Deleting mainfolder 
 public function delete()
 {
-    if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_folder')) {
+    if ($this->role === 'admin' && !$this->isAllowed('allow_delete_folder')) {
         return redirect()->back()->with('error', 'Deleting folders is disabled by Superadmin.');
     }
 
@@ -306,7 +310,7 @@ public function delete()
 // Deleting subfolder
 public function deleteSubfolder()
 {
-    if ($this->role === 'admin' && !$this->isAllowed('allow_admin_to_delete_subfolder')) {
+    if ($this->role === 'admin' && !$this->isAllowed('allow_delete_subfolder')) {
         return redirect()->back()->with('error', 'Deleting subfolders is disabled by Superadmin.');
     }
 
@@ -322,22 +326,126 @@ public function deleteSubfolder()
         return redirect()->back()->with('error', 'Invalid subfolder delete request.');
     }
 
-    // Check if subfolder has child subfolders
+    // ---- Check if it has child subfolders (still not allowed) ----
     $subfolders = $folderModel->where('parent_folder_id', $folderId)->findAll();
     if (!empty($subfolders)) {
-        return redirect()->back()->with('error', 'This subfolder has child folders. Delete them first.');
+        return redirect()->back()->with('error', 'This subfolder contains child folders. Delete them first.');
     }
 
-    // Check if subfolder contains files
+    // ---- NEW: Automatically delete all files inside this subfolder ----
     $files = $fileModel->where('folder_id', $folderId)->findAll();
-    if (!empty($files)) {
-        return redirect()->back()->with('error', 'This subfolder contains files. Delete the files first before deleting the subfolder.');
+
+    foreach ($files as $file) {
+
+        $absolutePath = $this->storagePath . $file['file_path'];
+
+        // Delete physical file if exists
+        if (is_file($absolutePath)) {
+            @unlink($absolutePath);
+        }
+
+        // Remove DB record
+        $fileModel->delete($file['id']);
     }
 
+    // ---- Finally delete the subfolder ----
     $folderModel->delete($folderId);
-    return redirect()->to($this->role . '/files/view/' . $parentId);
+
+    return redirect()
+        ->to($this->role . '/files/view/' . $parentId)
+        ->with('success', 'Subfolder and all files inside were deleted successfully.');
 }
 
+public function renameMainFolder()
+{
+    $folderModel = new \App\Models\FolderModel();
+    $userModel   = new \App\Models\UserModel();
+    $configModel = $this->configModel;
+
+    // Check permission
+    if ($this->role === 'admin' && !$configModel->isEnabled('allow_edit_folder')) {
+        return redirect()->back()->with('error', 'Editing main folders is disabled by Superadmin.');
+    }
+
+    $folderId   = $this->request->getPost('folder_id');
+    $newName    = trim($this->request->getPost('new_name'));
+
+    if (empty($folderId) || empty($newName)) {
+        return redirect()->back()->with('error', 'Folder ID and new name are required.');
+    }
+
+    $folder = $folderModel->find($folderId);
+    if (!$folder || !empty($folder['parent_folder_id'])) {
+        return redirect()->back()->with('error', 'Invalid main folder.');
+    }
+
+    // Check for name conflict
+    $existing = $folderModel
+        ->where('parent_folder_id', null)
+        ->where('folder_name', $newName)
+        ->where('id !=', $folderId)
+        ->first();
+
+    if ($existing) {
+        return redirect()->back()->with('error', 'A main folder with this name already exists.');
+    }
+
+    // Update DB folder name
+    $folderModel->update($folderId, ['folder_name' => $newName]);
+
+    // Update all users who have this main folder
+    $users = $userModel->where('main_folder_id', $folderId)->findAll();
+    foreach ($users as $user) {
+        $userModel->update($user['id'], ['main_folder' => $newName]);
+    }
+
+    return redirect()->back()->with('success', 'Main folder renamed successfully.');
+}
+
+public function renameSubfolder()
+{
+    // Check permission using your global config
+    if ($this->role === 'admin' && !$this->isAllowed('allow_edit_subfolder')) {
+        return redirect()->back()->with('error', 'Renaming subfolders is disabled by Superadmin.');
+    }
+
+    $folderModel = new \App\Models\FolderModel();
+
+    $folderId   = $this->request->getPost('folder_id');
+    $newName    = trim($this->request->getPost('new_name'));
+    $parentId   = $this->request->getPost('parent_folder_id');
+
+    // Validate
+    if (empty($folderId) || empty($newName)) {
+        return redirect()->back()->with('error', 'Folder name cannot be empty.');
+    }
+
+    // Get the folder
+    $folder = $folderModel->find($folderId);
+    if (!$folder) {
+        return redirect()->back()->with('error', 'Folder not found.');
+    }
+
+    // Prevent naming conflicts in the same parent
+    $existing = $folderModel
+        ->where('parent_folder_id', $folder['parent_folder_id'])
+        ->where('folder_name', $newName)
+        ->where('id !=', $folderId)
+        ->first();
+
+    if ($existing) {
+        return redirect()->back()->with('error', 'A subfolder with this name already exists.');
+    }
+
+    // Update the folder name
+    $folderModel->update($folderId, [
+        'folder_name' => $newName
+    ]);
+
+    return redirect()
+        ->to($this->role . '/files/view/' . $parentId)
+        ->with('success', 'Subfolder renamed successfully.');
+}
 
 public function upload($folderId)
 {

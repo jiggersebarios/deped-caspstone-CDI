@@ -16,7 +16,8 @@ protected $allowedFields = [
     'main_folder',
     'main_folder_id',
     'created_at',
-    'updated_at'
+    'updated_at',
+    'school_id',
 ];
 
 

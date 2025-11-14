@@ -18,28 +18,19 @@ class Globalconfig extends BaseController
     public function index()
     {
         $role = session()->get('role') ?? 'user';
-
-        // User Controls
-        $user_controls = $this->configModel->getUserControls();
-        $canUpload = ($role === 'user') && (($user_controls['enable_file_upload'] ?? 0) == 1);
-        $canEdit   = ($role === 'user') && (($user_controls['enable_file_edit'] ?? 0) == 1);
-        $canDelete = ($role === 'user') && (($user_controls['enable_file_delete'] ?? 0) == 1);
-
-        if (in_array($role, ['admin', 'superadmin'])) {
-            $canUpload = $canEdit = $canDelete = true;
-        }
-
+    
+        // ✅ Fetch ALL settings for admin, system, and user controls
+        $all_controls = $this->configModel
+            ->whereIn('config_key', ['admin', 'system', 'user'])
+            ->findAll();
+    
         // System File Upload Settings
         $uploadSettings = $this->configModel->getSystemUploadSettings();
-
+    
         $data = [
-            'title' => 'Global & System Configuration',
-            'configs' => $this->configModel->getAdminControls(),
-            'user_controls' => $user_controls,
+            'title'          => 'Global & System Configuration',
+            'all_controls'   => $all_controls, // Use this new variable in the view
             'role' => $role,
-            'canUpload' => $canUpload,
-            'canEdit' => $canEdit,
-            'canDelete' => $canDelete,
             'uploadSettings' => $uploadSettings,
         ];
 
@@ -65,6 +56,7 @@ class Globalconfig extends BaseController
 
         return $this->response->setJSON(['success' => $updated]);
     }
+
 
 
     // Toggle file type enable/disable

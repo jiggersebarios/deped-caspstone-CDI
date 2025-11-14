@@ -35,7 +35,9 @@ $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
 $routes->post('files/add', '\App\Controllers\Files::add');
 $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
 $routes->post('files/delete', '\App\Controllers\Files::delete');
+$routes->post('files/renameMainFolder', '\App\Controllers\Files::renameMainFolder');
 $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
+$routes->post('files/renameSubfolder', '\App\Controllers\Files::renameSubfolder');
 $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
 $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
 $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
@@ -71,8 +73,10 @@ $routes->get('files', '\App\Controllers\Files::index');
 $routes->get('files/view/(:num)', '\App\Controllers\Files::view/$1');
 $routes->post('files/add', '\App\Controllers\Files::add');
 $routes->post('files/addSubfolder/(:num)', '\App\Controllers\Files::addSubfolder/$1');
+$routes->post('files/renameMainFolder', '\App\Controllers\Files::renameMainFolder');
 $routes->post('files/delete', '\App\Controllers\Files::delete');
 $routes->post('files/deleteSubfolder', '\App\Controllers\Files::deleteSubfolder');
+$routes->post('files/renameSubfolder', '\App\Controllers\Files::renameSubfolder');
 $routes->post('files/upload/(:num)', '\App\Controllers\Files::upload/$1');
 $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1'); 
 $routes->post('files/deleteFile/(:num)', '\App\Controllers\Files::deleteFile/$1');
@@ -120,7 +124,6 @@ $routes->group('user', ['namespace' => 'App\Controllers\User', 'filter' => 'auth
     $routes->get('files/viewFile/(:num)', '\App\Controllers\Files::viewFile/$1');
     $routes->get('files/download/(:num)', '\App\Controllers\Files::download/$1');
     $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
-
     //  FILE REQUESTS (User)
     $routes->get('request', '\App\Controllers\Request::userRequests');
     $routes->post('request/submit', '\App\Controllers\Request::submit');
@@ -218,3 +221,7 @@ $routes->get('(:segment)/files/getDeletedFiles', 'Files::getDeletedFiles/$1');
 $routes->get('(:segment)/get-notifications', 'NotificationController::getNotifications');
 // Universal Notifications route for all roles
 $routes->get('(:segment)/get-notifications', '\App\Controllers\NotificationController::getNotifications/$1');
+
+//email route
+$routes->get('contact', 'Send_message::index');
+$routes->post('contact/send', 'Send_message::send');
