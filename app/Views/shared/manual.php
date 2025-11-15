@@ -223,14 +223,11 @@
         Folder Structure
         <span>&#9662;</span>
       </a>
-      <ul class="collapse" id="folderMenu" data-bs-parent="#sidebarAccordion" style="scroll-behavior: smooth;">
-        <li><a href="#addmain">• Adding Main Folder</a></li>
-        <li><a href="#deletemain">• Deleting Main Folder</a></li>
-        <li><a href="#addsub">• Adding SubFolder</a></li>
-        <li><a href="#deletesub">• Deleting SubFolder</a></li>
-        <li><a href="#search-main-folder">• Search Main Folder</a></li>
-        <li><a href="#search-sub-folder">• Search SubFolder</a></li>
-  
+      <ul class="collapse" id="folderMenu" data-bs-parent="#sidebarAccordion">
+        <li><a href="#folder-overview">• Folder Overview</a></li>
+        <li><a href="#addmain">• Adding Folder</a></li>
+        <li><a href="#editmain">• Edit Folder</a></li>
+        <li><a href="#deletemain">• Deleting Folder</a></li>
 
       </ul>
     </li>
@@ -245,7 +242,10 @@
       </a>
       <ul class="collapse" id="sharedMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#shared-documents">• Shared Documents Overview</a></li>
-        <li><a href="#permissions">• Manage Access</a></li>
+        <li><a href="#how-to-share">• How To Share a File</a></li>
+        <li><a href="#unshare-file">• Unshare a File</a></li>
+        <li><a href="#download-shared-file">• How to Download a File Shared With You</a></li>
+
       </ul>
     </li>
 
@@ -259,7 +259,8 @@
       </a>
       <ul class="collapse" id="uploadMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#reviewing-uploads">• Uploads Overview</a></li>
-        <li><a href="#standards">• File Standards</a></li>
+        <li><a href="#standards">• Accepting File</a></li>
+         <li><a href="#standards">• Rejecting File</a></li>
       </ul>
     </li>
 
@@ -428,27 +429,44 @@
 <section id="folder-structure-section" class="mb-5">
   <h2>FOLDER STRUCTURE</h2>
 
-  <h4 id="addmain">Adding Main Folder</h4>
-  <p>To add a new main folder, navigate to the Files Page  and click the "AddFolder" button. </p>
+   <h4 id="folder-overview">Folder Overview</h4>
+  <p> The folder management section is organized into a simple and structured hierarchy to help users easily organize 
+  and manage their files. Each Main Folder can contain up to two Subfolders</p>
+   <img src="/cdi/deped/public/uploads/pics/manual/folderstructure.png" alt="Add Main Folder" class="step-image"> 
+
+
+  <h4 id="addmain">Adding Folder</h4>
+  <p>To add a new folder, navigate to the Files Page and click the "Add Folder" button. </p>
 
    <img src="/cdi/deped/public/uploads/pics/manual/adminfile1.png" alt="Add Main Folder" class="step-image"> 
-   <p>Enter the desired name for your new main folder and confirm. This creates a top-level organizational unit for your files.</p>
+   <p>Enter the desired name for your new folder and confirm. This creates a top-level organizational unit for your files.</p>
    <img src="/cdi/deped/public/uploads/pics/manual/addfolderform.png" alt="Add Main Folder" class="step-image"> 
+  
+ 
 
-  <h4 id="deletemain">Deleting Main Folder</h4>
-  <p>To delete a main folder, locate the folder you wish to remove in the folder management interface. Click the "Delete" icon (often a trash can) next to the folder name and confirm the deletion. Be cautious, as deleting a main folder will typically also delete all its subfolders and files within it. </p>
-  <p><strong>Note:</strong> A main folder cannot be deleted if it is assigned to a user or contains subfolders and files inside.</p>
+  <h4 id="editmain">Edit Folder</h4>
+  <h6>Step 1: Click the Edit Button</h6>
+  <p>On the folder list, look for the Edit button beside the folder you want to modify.
+Once you click it, an edit form will display on your screen.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/clickeditfolder.png" alt="Edit Main Folder" class="step-image">
+
+  <h6>Step 2: Fill the Form</h6>
+  <p>Inside the form, you will see a dropdown list containing all available folders.
+From the dropdown, locate and select the subfolder you want to edit.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/selectfolder.png" alt="Edit Main Folder" class="step-image">
+
+  <h6>Step 3: Enter the New Folder Name </h6>
+  <p>After choosing the folder, go to the New Name text box.
+Type the desired new name for your folder an then click rename.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/clickrename.png" alt="Edit Main Folder" class="step-image">
+
+
+  <h4 id="deletemain">Deleting Folder</h4>
+  <p>To delete a folder, locate the folder you wish to remove in the folder management interface. Click the "Delete" icon (often a trash can) next to the folder name and confirm the deletion. Be cautious, as deleting a main folder will typically also delete all its subfolders and files within it. </p>
+  <p><strong>Note:</strong> A folder cannot be deleted if it is assigned to a user or contains subfolders and files inside.</p>
  <img src="/cdi/deped/public/uploads/pics/manual/adminfile2.png" alt="Delete Main Folder" class="step-image"> 
 
-  <h4 id="addsub">Adding SubFolder</h4>
-  <p>To add a subfolder, first navigate into the Main folder where you want to create it. Then, click the "Add " button, <br>
-  Enter the subfolder's name, and save. Subfolders help in further organizing files within a main folder.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/addsubfolder.png" alt="Delete Main Folder" class="step-image"> 
-
-  <h4 id="deletesub">Deleting SubFolder</h4>
-  <p>To delete a subfolder, navigate to the subfolder within its Main Folder. Click the "Delete" icon associated with the subfolder and confirm the action.</p>
-  <p><strong>Note: </strong>You Cannot Delete Subfolder When its has A files inside, you must delete all the files inside</p>
-  <!-- You might want to add an image here: <img src="/cdi/deped/public/uploads/pics/manual/delete_sub_folder.jpg" alt="Delete SubFolder" class="step-image"> -->
+ 
 
   
 
@@ -459,17 +477,43 @@
 ============================= -->
 <hr class="my-4">
 <section id="shared-files-section" class="mb-5">
-  <h4>Shared Files</h4>
+  <h2>Shared Files</h2>
 
-  <h5 id="shared-documents">Shared Documents Overview</h5>
-  <p>The Shared Files page displays all files that users have shared or received access to. This helps streamline collaboration by allowing designated individuals to access documents without needing direct file transfers.</p>
-  <p>Users can manage permissions, update access settings, and monitor who has interacted with the files. This ensures better control over sensitive information.</p>
-  <p>The Shared Files section makes teamwork faster and more secure by centralizing all shared content in one place.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/shared_files.jpg" alt="Shared Files Overview" class="step-image">
+  <h3 id="shared-documents">Shared Documents Overview</h3>
+  <p>The Shared Files feature allows users to directly share files with other users inside the system..</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/filesushared.png" alt="Shared Files Overview" class="step-image">
 
-  <h3 id="permissions">Manage Access</h3>
-  <p>This section allows administrators to manage access permissions for shared files. You can grant or revoke access to specific users or groups, set expiration dates for access, and review audit logs of file interactions. This ensures that sensitive documents are only accessible to authorized personnel.</p>
-  <!-- You might want to add an image here: <img src="/cdi/deped/public/uploads/pics/manual/manage_permissions.jpg" alt="Manage Access" class="step-image"> -->
+  <h4 id="how-to-share">How To Share a File</h4>
+  <h5>Step 1: Open the Shared Files Section</h5>
+  <p>Click the Shared Files button located at the top left of your screen.
+This will display a list of all your files.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/filesushared1.png" alt="Delete Main Folder" class="step-image"> 
+
+    <h5>Step 2:Select the File You Want to Shared</h5>
+  <p>Browse through the list and locate the file you want to share.
+Click the Share button beside that file.
+After clicking, the system will display a list of all users you can share the file with</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/clicksharefile1.png" alt="Delete Main Folder" class="step-image"> 
+
+  <h5>Choose the Users to Share With</h5>
+  <p>On the list of users, click the <strong>checkbox</strong> beside the name of each user you want to share the file with.
+You can share one file with multiple users at the same time.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/sharetomodal1.png" alt="Delete Main Folder" class="step-image"> 
+
+
+  <h3 id="unshare-file">Unshare a File</h3>
+  <p>In the Action column of the table, look for the Unshare button
+(red unshare icon).Click the button to remove sharing access from the users.</p>
+<p><strong>Note: </strong>Once a shared file has been downloaded by the user, it will disappear from your shared list. 
+This indicates that the sharing session for that file is complete, and the user already has their own copy.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/unshare.png" alt="Shared Files Overview" class="step-image">
+
+    <h3 id="download-shared-file">How to Download a File Shared With You</h3>
+  <p>Go to the <strong>"Files Shared With You"</strong> Tab Navigate to the Files Shared With You tab in your dashboard.
+This section displays all the files that other users have shared with you.</p>
+<p></p>
+  <img src="/cdi/deped/public/uploads/pics/manual/downloadshare1.png" alt="Shared Files Overview" class="step-image">
+
 
 </section>
 
@@ -478,13 +522,26 @@
 ============================= -->
 <hr class="my-4">
 <section id="approve" class="mb-5">
-  <h4>Manage Upload</h4>
+  <h2>Manage Upload</h2>
 
-  <h3 id="reviewing-uploads">Uploads Overview</h3>
+  <h4 id="reviewing-uploads">Uploads Overview</h4>
   <p>This section is designed for admins who oversee file quality, accuracy, and compliance before final storage. It ensures that only valid and approved files remain in the system.</p>
   <p>Admins can view pending uploads, verify their contents, and either approve or reject them based on guidelines. This helps preserve data integrity across the entire archive.</p>
-  <p>Manage Upload is essential for maintaining a clean and reliable document database.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/manage_upload.jpg" alt="Manage Upload Section" class="step-image">
+  <img src="/cdi/deped/public/uploads/pics/manual/manageupload.png" alt="Manage Upload Section" class="step-image">
+
+<h4 id="reviewing-uploads">Accept File</h4>
+<p>When reviewing pending uploads, the admin can approve files that meet all requirements.
+   To accept a file, simply click the <strong>Accept</strong> button beside the upload. 
+   Once approved, the file will be moved from the <em>Pending</em> list to the <em>Active</em>.
+  </p> <img src="/cdi/deped/public/uploads/pics/manual/accept.png" alt="Manage Upload Section" class="step-image">
+
+   <h4 id="reviewing-uploads">Reject</h4>
+<p>If a file does not meet the required standards—such as incorrect format, missing details, 
+  or low-quality content—the admin can reject it. Clicking the <strong>Reject</strong> button
+   will remove the file from the pending list.</p> 
+
+   <p> <strong>Note:</strong>It automatically delete the file from the system. The uploader may re-upload a corrected or updated version if needed.</p>
+   <img src="/cdi/deped/public/uploads/pics/manual/reject.png" alt="Manage Upload Section" class="step-image">
 
 </section>
 
