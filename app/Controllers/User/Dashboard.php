@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\UserModel;
 use App\Models\FileModel;
 use App\Models\FolderModel;
+use App\Models\NotificationModel;
 use App\Models\SharedFileModel;
 
 class Dashboard extends BaseController
@@ -47,19 +48,12 @@ class Dashboard extends BaseController
             ->where('downloaded', 0)
             ->countAllResults();
 
-        // === Get flashdata notifications for this user ===
-        $fileNotifications = $session->get('file_notifications')[$userId] ?? null;
-
-        // Remove notifications after retrieving (show only once)
-        if ($fileNotifications) {
-            $notifications = $fileNotifications;
-            $allNotifications = $notifications;
-            $sessionData = $session->get('file_notifications');
-            unset($sessionData[$userId]);
-            $session->set('file_notifications', $sessionData);
-        } else {
-            $allNotifications = null;
-        }
+        // === Get persistent notifications for this user ===
+        $notificationModel = new NotificationModel();
+        $allNotifications = $notificationModel->where('user_id', $userId)
+                                               ->where('is_read', 0) // Only show unread
+                                               ->orderBy('created_at', 'DESC')
+                                               ->findAll();
 
         $data = [
             'title'             => 'User Dashboard - HR Archiving System',

@@ -6,6 +6,7 @@ use App\Controllers\BaseController;
 use App\Models\FileModel;
 use App\Models\RequestModel;
 use App\Models\SharedFileModel;
+use App\Models\NotificationModel;
 
 class NotificationController extends BaseController
 {
@@ -15,9 +16,9 @@ class NotificationController extends BaseController
         $userId  = $session->get('id');
         $role    = $session->get('role') ?? 'user';
 
-        $fileModel      = new FileModel();
-        $requestModel   = new RequestModel();
-        $sharedModel    = new SharedFileModel();
+        $fileModel    = new FileModel();
+        $requestModel = new RequestModel();
+        $sharedModel  = new SharedFileModel();
 
         // ===============================
         // COUNT FILES SHARED TO ME
@@ -29,7 +30,7 @@ class NotificationController extends BaseController
             $sharedToList = explode(',', $share['shared_to'] ?? '');
 
             if (in_array((string) $userId, $sharedToList, true)) {
-                // For users: only count files not downloaded
+                // For USERS: only count NOT downloaded
                 if ($role === 'user' && $share['downloaded'] == 1) {
                     continue;
                 }
@@ -38,24 +39,87 @@ class NotificationController extends BaseController
         }
 
         // ===============================
-        // COUNT APPROVED REQUESTS FOR USERS
+        // COUNT APPROVED REQUESTS
         // ===============================
-        $approvedRequestsCount = 0;
+        $pendingRequestsCount = 0;
 
-        if ($role === 'user') {
-            $approvedRequestsCount = $requestModel
+        if (in_array($role, ['user', 'admin'])) {
+            $pendingRequestsCount = $requestModel
                 ->where('status', 'approved')
                 ->where('user_id', $userId)
                 ->countAllResults();
+        } else {
+            $pendingRequestsCount = $requestModel
+                ->where('status', 'pending')
+                ->countAllResults();
         }
 
-        // Build return data
+        // ===============================
+        // COUNT USER-SPECIFIC NOTIFICATIONS
+        // ===============================
+        $notifModel = new NotificationModel();
+        $unreadNotifications = $notifModel
+            ->where('user_id', $userId)
+            ->where('is_read', 0)
+            ->countAllResults();
+
+        // Return all counts
         $data = [
-            'newUploadedFiles'    => $fileModel->where('status', 'pending')->countAllResults(),
-            'pendingRequests'     => $role === 'user' ? $approvedRequestsCount : $requestModel->where('status', 'pending')->countAllResults(),
-            'sharedWithMe'        => $sharedWithMeCount
+            'newUploadedFiles'  => $fileModel->where('status', 'pending')->countAllResults(),
+            'pendingRequests'   => $pendingRequestsCount,
+            'sharedWithMe'      => $sharedWithMeCount,
+            'unreadNotifications' => $unreadNotifications
         ];
 
         return $this->response->setJSON($data);
     }
+
+    // =======================================================
+    // CREATE NOTIFICATION (for rejection, approval, etc.)
+    // =======================================================
+   public function createNotification($userId, $fileId, $type, $title, $message, $reason = null)
+{
+    $notifModel = new \App\Models\NotificationModel();
+
+    return $notifModel->insert([
+        'user_id' => $userId,
+        'file_id' => $fileId,
+        'type'    => $type,
+        'title'   => $title,
+        'message' => $message,
+        'reason'  => $reason,
+        'is_read' => 0
+    ]);
+}
+
+    // =======================================================
+    // GET NOTIFICATIONS FOR USER DASHBOARD
+    // =======================================================
+    public function fetchUserNotifications()
+    {
+        $session = session();
+        $userId = $session->get('id');
+
+        $notifModel = new NotificationModel();
+
+        $notifications = $notifModel
+            ->where('user_id', $userId)
+            ->orderBy('created_at', 'DESC')
+            ->findAll();
+
+        return $this->response->setJSON($notifications);
+    }
+
+    // =======================================================
+    // MARK AS READ
+    // =======================================================
+    public function delete($id)
+    {
+        $notifModel = new NotificationModel();
+        $notifModel->delete($id);
+
+        return $this->response->setJSON(['status' => 'success', 'message' => 'Notification deleted.']);
+    }
+
+    
 }

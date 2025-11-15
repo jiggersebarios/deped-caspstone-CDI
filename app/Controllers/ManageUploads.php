@@ -5,7 +5,8 @@ namespace App\Controllers;
 use App\Models\FileModel;
 use App\Models\CategoryModel;
 use CodeIgniter\Controller;
-
+use App\Controllers\NotificationController;
+use App\Models\NotificationModel;
 class ManageUploads extends Controller
 {
     public function index()
@@ -47,26 +48,51 @@ class ManageUploads extends Controller
         // Activate using existing logic in FileModel
         $fileModel->activateFile($id);
 
+        // Create a notification for the uploader
+        $notifCtrl = new \App\Controllers\NotificationController();
+        $notifCtrl->createNotification(
+            $file['uploaded_by'], // userId
+            $id,                  // fileId
+            'accepted',           // type
+            'File Accepted',      // title
+            'Your file "' . $file['file_name'] . '" has been accepted.' // message
+        );
+
         return redirect()->back()->with('success', 'File has been accepted and activated.');
     }
 
     /**
-     * ❌ Reject a file → mark as rejected
+     *  Reject a file → mark as rejected
      */
     public function reject($id)
     {
-        $fileModel = new FileModel();
+        $fileModel = new \App\Models\FileModel();
+        $notifCtrl = new \App\Controllers\NotificationController();
+
         $file = $fileModel->find($id);
 
         if (!$file) {
             return redirect()->back()->with('error', 'File not found.');
         }
 
-        $fileModel->update($id, [
-            'status' => 'rejected',
-            'is_archived' => 0,
-        ]);
+        // Get rejection reason from admin form input
+        $reason = $this->request->getPost('reason') ?? 'No reason provided';
 
-        return redirect()->back()->with('success', 'File has been rejected.');
+        // Create notification to the uploader
+        $notifCtrl->createNotification(
+            $file['uploaded_by'],         // uploader ID
+            $id,                          // file ID
+            'rejected',                   // type
+            'File Rejected',              // title
+            'Your file "' . $file['file_name'] . '" has been rejected by the admin.', // message
+            $reason                       // rejection reason
+        );
+
+        // Now, delete the file from the database and server
+        $fileModel->deleteFileWithAudit($id, session()->get('id'), 'Rejected by admin: ' . $reason);
+
+        return redirect()->back()->with('success', 'File rejected and uploader notified.');
     }
+
+
 }

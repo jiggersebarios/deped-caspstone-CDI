@@ -86,9 +86,10 @@ class Request extends BaseController
     public function manage()
     {
         $role = session()->get('role');
+        $userId = session()->get('id');
 
         // Pending / approved requests
-        $requests = $this->requestModel
+        $requestsQuery = $this->requestModel
             ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
                       file_requests.status, file_requests.requested_at, file_requests.approved_at, file_requests.download_token,
                       files.file_name, users.username')
@@ -96,18 +97,28 @@ class Request extends BaseController
             ->join('users', 'users.id = file_requests.user_id', 'left')
             ->whereIn('file_requests.status', ['pending', 'approved'])
             ->orderBy('file_requests.requested_at', 'DESC')
-            ->findAll();
+            ;
+
+        // 🔹 If admin, only show their own requests
+        if ($role === 'admin') {
+            $requestsQuery->where('file_requests.user_id', $userId);
+        }
+        $requests = $requestsQuery->findAll();
 
         // Downloaded requests
-        $completedFiles = $this->requestModel
+        $completedFilesQuery = $this->requestModel
             ->select('file_requests.id, file_requests.file_id, file_requests.user_id, file_requests.reason, 
                       file_requests.status, file_requests.requested_at, file_requests.downloaded_at,
                       files.file_name, users.username')
             ->join('files', 'files.id = file_requests.file_id', 'left')
             ->join('users', 'users.id = file_requests.user_id', 'left')
             ->where('file_requests.status', 'downloaded')
-            ->orderBy('file_requests.downloaded_at', 'DESC')
-            ->findAll();
+            ->orderBy('file_requests.downloaded_at', 'DESC');
+
+        if ($role === 'admin') {
+            $completedFilesQuery->where('file_requests.user_id', $userId);
+        }
+        $completedFiles = $completedFilesQuery->findAll();
 
         return view('shared/manage_request', [
             'title' => 'Manage File Requests',

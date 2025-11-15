@@ -45,7 +45,7 @@ $routes->post('files/renameFile', '\App\Controllers\Files::renameFile');
 //  MANAGE UPLOADS (Admin)
 $routes->get('manage_uploads', '\App\Controllers\ManageUploads::index');
 $routes->get('manage_uploads/accept/(:num)', '\App\Controllers\ManageUploads::accept/$1');
-$routes->get('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::reject/$1');
+$routes->post('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::reject/$1');
 
 //  FILE REQUESTS (Admin)
 $routes->get('manage_request', '\App\Controllers\Request::manage');  // Manage list page
@@ -94,7 +94,7 @@ $routes->get('manage_users/delete/(:num)', 'ManageUsers::delete/$1');
 // MANAGE UPLOADS 
 $routes->get('manage_uploads', '\App\Controllers\ManageUploads::index');
 $routes->get('manage_uploads/accept/(:num)', '\App\Controllers\ManageUploads::accept/$1');
-$routes->get('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::reject/$1');
+$routes->post('manage_uploads/reject/(:num)', '\App\Controllers\ManageUploads::reject/$1');
 
  // FILE REQUESTS 
 $routes->get('manage_request', '\App\Controllers\Request::manage');
@@ -140,11 +140,11 @@ $routes->get('request/download/(:segment)', 'Request::download/$1');
 // -------------------- MANAGE UPLOADS (shared) --------------------
 $routes->get('manage-uploads', 'ManageUploads::index');
 $routes->get('manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
-$routes->get('manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
+$routes->post('manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
 
 $routes->get('admin/manage-uploads', 'ManageUploads::index');
 $routes->get('admin/manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
-$routes->get('admin/manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
+$routes->post('admin/manage-uploads/reject/(:num)', 'ManageUploads::reject/$1');
 
 $routes->get('superadmin/manage-uploads', 'ManageUploads::index');
 $routes->get('superadmin/manage-uploads/accept/(:num)', 'ManageUploads::accept/$1');
@@ -212,8 +212,8 @@ $routes->group('user', ['filter' => 'auth'], function($routes) {
 // 🗑️ Deleted Files (Universal Route for All Roles)
 // =============================================================
 $routes->get('(:any)/files/getDeletedFiles', 'Files::getDeletedFiles');
-// app/Config/Routes.php
 $routes->get('(:segment)/files/getDeletedFiles', 'Files::getDeletedFiles/$1');
+$routes->post('notifications/delete/(:num)', 'NotificationController::delete/$1');
 
 // =============================================================
 // Notification

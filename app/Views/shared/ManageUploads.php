@@ -54,23 +54,55 @@ echo view($role . '/sidebar');
                         <td><?= $file['uploaded_at'] ? date('Y-m-d h:i A', strtotime($file['uploaded_at'])) : '—' ?></td>
                         <td><span class="badge badge-warning">Pending</span></td>
 
-                        <td>
-                            <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" 
-                               target="_blank" class="btn btn-sm btn-info">View</a>
-                            <a href="<?= site_url('manage-uploads/accept/' . $file['id']) ?>" 
-                               class="btn btn-sm btn-success"
-                               onclick="return confirm('Accept this file upload?')">Accept</a>
-                            <a href="<?= site_url('manage-uploads/reject/' . $file['id']) ?>" 
-                               class="btn btn-sm btn-danger"
-                               onclick="return confirm('Reject this file upload?')">Reject</a>
-                        </td>
+<td>
+    <a href="<?= site_url($role . '/files/viewFile/' . $file['id']) ?>" 
+       target="_blank" class="btn btn-sm btn-info">View</a>
+
+    <a href="<?= site_url($role . '/manage_uploads/accept/' . $file['id']) ?>" 
+       class="btn btn-sm btn-success"
+       onclick="return confirm('Accept this file upload?')">Accept</a>
+
+    <!-- Reject Button triggers modal -->
+    <button class="btn btn-sm btn-danger" 
+            data-bs-toggle="modal" 
+            data-bs-target="#rejectModal<?= $file['id'] ?>">
+        Reject
+    </button>
+</td>
                     </tr>
+
+                    <!-- Reject Modal (Inside the loop) -->
+                    <div class="modal fade" id="rejectModal<?= $file['id'] ?>" tabindex="-1" aria-labelledby="rejectModalLabel<?= $file['id'] ?>" aria-hidden="true">
+                      <div class="modal-dialog">
+                        <div class="modal-content">
+                          <form action="<?= site_url($role . '/manage_uploads/reject/' . $file['id']) ?>" method="POST">
+                            <div class="modal-header">
+                              <h5 class="modal-title" id="rejectModalLabel<?= $file['id'] ?>">Reject File</h5>
+                              <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                            </div>
+                            <div class="modal-body">
+                              <p><strong>File Name:</strong> <?= esc($file['file_name']) ?></p>
+                              <div class="form-group">
+                                <label for="reason<?= $file['id'] ?>">Reason for rejection</label>
+                                <textarea name="reason" id="reason<?= $file['id'] ?>" class="form-control" rows="4" required placeholder="Enter reason why this file is rejected..."></textarea>
+                              </div>
+                            </div>
+                            <div class="modal-footer">
+                              <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
+                              <button type="submit" class="btn btn-danger">Reject File</button>
+                            </div>
+                          </form>
+                        </div>
+                      </div>
+                    </div>
+
                 <?php endforeach; ?>
             </tbody>
         </table>
     <?php else: ?>
         <div class="alert alert-info">No pending file uploads found.</div>
     <?php endif; ?>
+
 </div>
 
 
