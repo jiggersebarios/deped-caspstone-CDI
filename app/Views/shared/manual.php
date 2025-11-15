@@ -165,11 +165,15 @@
   <i class="fas fa-bars"></i>
 </button>
 
+<?php
+  $role = session()->get('role') ?? 'user';
+?>
+
 <div class="sidebar">
 <!-- Back Button -->
 <div class="text-center mb-4">
   <a href="#" class="btn btn-sm btn-close-sidebar d-lg-none" style="position: absolute; top: 10px; right: 10px; font-size: 1.2rem; color: #333;">&times;</a>
-  <a href="<?= site_url('admin/dashboard') ?>" class="btn btn-back w-75">
+  <a href="<?= site_url($role . '/dashboard') ?>" class="btn btn-back w-75">
     <i class="fas fa-arrow-left me-2"></i> Back to System
   </a>
 </div>
@@ -553,10 +557,15 @@ This section displays all the files that other users have shared with you.</p>
   <h2>Request</h2>
 
   <h4 id="requesting-access">Request Overview</h4>
-  <p>Users can request access to files that are secured or stored under restricted categories. This ensures proper authorization before sensitive files are shared.</p>
-  <p id="request-workflow">Once a request is made, it goes into a review process where admins evaluate its purpose and legitimacy. Approved files automatically appear under the user's Shared Files list.</p>
-  <p>This workflow provides a controlled environment for accessing important documents while maintaining security.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/request_file.jpg" alt="File Request Page" class="step-image">
+  <p>You can request access to files that are archive. Once a request is made, it goes into a review process where superadmin will review evaluate its purpose.</p>
+  <p>After you request files, all your requests will be displayed in the Request page.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/request.png" alt="File Request Page" class="step-image">
+
+    <h4 id="requesting-access">Request Overview</h4>
+  <p> When you request a file, its status will show as <strong>Pending</strong> while it is under review by the Superadmin; once approved, it becomes downloadable. 
+    </p>
+  <p><strong>Note: </strong>but you can only download it once, so make sure to save it safely.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/requestpage1.png" alt="File Request Page" class="step-image">
 
 </section>
 
@@ -565,14 +574,20 @@ This section displays all the files that other users have shared with you.</p>
 ============================= -->
 <section id="create-category" class="mb-5">
   <hr class="my-4">
-  <h4>Categories</h4>
+  <h2>Categories</h2>
 
-  <h3 id="organizing-categories">Categories Overview</h3>
-  <p>Categories help in grouping files for better structure and search accuracy. Users can filter documents, locate folders faster, and understand where each file belongs.</p>
-  <p id="managing-categories">Admins can create, edit, or remove categories depending on organizational needs. This flexibility ensures the system grows along with the archive's size and complexity.</p>
-  <p>By using categories effectively, file retrieval becomes significantly easier and more efficient.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/categories.jpg" alt="Categories Page" class="step-image">
+  <h4 id="organizing-categories">Categories Overview</h4>
+  <p>Categories are used to organize files and act as metadata that the system relies 
+    on to determine when a file should be archived or expired. Here, you can add, edit, or delete categories as needed.</p>
+  <img src="/cdi/deped/public/uploads/pics/manual/metadata1.png" alt="Categories Page" class="step-image">
 
+    <h4 id="organizing-categories">Adding Category</h4>
+    <p>Go to the Category page from the main menu, Locate the <strong>Add Category</strong> button. Click the button, and a form will be displayed for entering the new category details.</p>
+   <img src="/cdi/deped/public/uploads/pics/manual/category1.png" alt="Categories Page" class="step-image">
+
+     <h4 id="organizing-categories"> Fill the form</h4>
+    <p>fill in the necessary details, adjust the archive and retention periods in seconds, minutes, hours, days, months, or years, and then click Add Category to save it.</p>
+   <img src="/cdi/deped/public/uploads/pics/manual/addcategory.png" alt="Categories Page" class="step-image">
 </section>
 
 <!-- ============================

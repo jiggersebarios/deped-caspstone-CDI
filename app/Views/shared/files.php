@@ -500,6 +500,12 @@ if ($role === 'superadmin') {
                                         </form>
                                         <?php endif; ?>
 
+         <a href="<?= site_url($role . '/files/restore/' . $file['id']) ?>" 
+           class="btn btn-success btn-sm"
+           onclick="return confirm('Are you sure you want to restore this file and reset its archive/expiry countdown?');">
+            <i class="fa fa-undo"></i> Restore
+        </a>
+
                                     </div>
                                 </td>
                             </tr>
