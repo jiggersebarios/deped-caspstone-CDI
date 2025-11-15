@@ -259,8 +259,8 @@
       </a>
       <ul class="collapse" id="uploadMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#reviewing-uploads">• Uploads Overview</a></li>
-        <li><a href="#standards">• Accepting File</a></li>
-         <li><a href="#standards">• Rejecting File</a></li>
+        <li><a href="#accepting-file">• Accepting File</a></li>
+         <li><a href="#rejecting-file">• Rejecting File</a></li>
       </ul>
     </li>
 
@@ -274,7 +274,7 @@
       </a>
       <ul class="collapse" id="requestMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#requesting-access">• Request Overview</a></li>
-        <li><a href="#approve-request">• Approve Requests</a></li>
+        <li><a href="#request-workflow">• Request Workflow</a></li>
       </ul>
     </li>
 
@@ -288,7 +288,7 @@
       </a>
       <ul class="collapse" id="categoryMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#organizing-categories">• Categories Overview</a></li>
-        <li><a href="#manage-category">• Manage Categories</a></li>
+        <li><a href="#managing-categories">• Manage Categories</a></li>
       </ul>
     </li>
 
@@ -529,13 +529,13 @@ This section displays all the files that other users have shared with you.</p>
   <p>Admins can view pending uploads, verify their contents, and either approve or reject them based on guidelines. This helps preserve data integrity across the entire archive.</p>
   <img src="/cdi/deped/public/uploads/pics/manual/manageupload.png" alt="Manage Upload Section" class="step-image">
 
-<h4 id="reviewing-uploads">Accept File</h4>
+<h4 id="accepting-file">Accept File</h4>
 <p>When reviewing pending uploads, the admin can approve files that meet all requirements.
    To accept a file, simply click the <strong>Accept</strong> button beside the upload. 
    Once approved, the file will be moved from the <em>Pending</em> list to the <em>Active</em>.
   </p> <img src="/cdi/deped/public/uploads/pics/manual/accept.png" alt="Manage Upload Section" class="step-image">
 
-   <h4 id="reviewing-uploads">Reject</h4>
+   <h4 id="rejecting-file">Reject File</h4>
 <p>If a file does not meet the required standards—such as incorrect format, missing details, 
   or low-quality content—the admin can reject it. Clicking the <strong>Reject</strong> button
    will remove the file from the pending list.</p> 
@@ -554,7 +554,7 @@ This section displays all the files that other users have shared with you.</p>
 
   <h4 id="requesting-access">Request Overview</h4>
   <p>Users can request access to files that are secured or stored under restricted categories. This ensures proper authorization before sensitive files are shared.</p>
-  <p>Once a request is made, it goes into a review process where admins evaluate its purpose and legitimacy. Approved files automatically appear under the user's Shared Files list.</p>
+  <p id="request-workflow">Once a request is made, it goes into a review process where admins evaluate its purpose and legitimacy. Approved files automatically appear under the user's Shared Files list.</p>
   <p>This workflow provides a controlled environment for accessing important documents while maintaining security.</p>
   <img src="/cdi/deped/public/uploads/pics/manual/request_file.jpg" alt="File Request Page" class="step-image">
 
@@ -569,7 +569,7 @@ This section displays all the files that other users have shared with you.</p>
 
   <h3 id="organizing-categories">Categories Overview</h3>
   <p>Categories help in grouping files for better structure and search accuracy. Users can filter documents, locate folders faster, and understand where each file belongs.</p>
-  <p>Admins can create, edit, or remove categories depending on organizational needs. This flexibility ensures the system grows along with the archive's size and complexity.</p>
+  <p id="managing-categories">Admins can create, edit, or remove categories depending on organizational needs. This flexibility ensures the system grows along with the archive's size and complexity.</p>
   <p>By using categories effectively, file retrieval becomes significantly easier and more efficient.</p>
   <img src="/cdi/deped/public/uploads/pics/manual/categories.jpg" alt="Categories Page" class="step-image">
 
