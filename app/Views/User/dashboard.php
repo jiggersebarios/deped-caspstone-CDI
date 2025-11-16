@@ -86,7 +86,14 @@ body {
 .notification-panel .close {
     font-size: 1.2rem; /* Made close button slightly larger */
     line-height: 1;
+    position: absolute; /* Position relative to alert */
     top: 5px;
+    right: 8px;
+}
+
+.delete-notification-btn {
+    position: absolute;
+    bottom: 8px;
     right: 8px;
 }
 
@@ -140,7 +147,10 @@ body {
                 <?php if (!empty($n['reason'])): ?>
                     <p class="mb-0"><strong>Reason:</strong> <?= esc($n['reason']) ?></p>
                 <?php endif; ?>
-                <button type="button" class="close" data-dismiss="alert" aria-label="Close"><span aria-hidden="true">&times;</span></button>
+                <button type="button" class="close" data-dismiss="alert" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+                <button type="button" class="btn btn-sm btn-outline-danger delete-notification-btn" title="Delete Notification"><i class="fa fa-trash"></i></button>
             </div>
         <?php endforeach; ?>
     <?php endif; ?>
@@ -155,22 +165,46 @@ body {
 document.addEventListener('DOMContentLoaded', function () {
     const notificationPanel = document.querySelector('.notification-panel');
 
-    notificationPanel.addEventListener('close.bs.alert', function (event) {
-        const alertElement = event.target;
-        const notificationId = alertElement.getAttribute('data-notification-id');
-
+    // Function to delete a notification via API
+    function deleteNotification(notificationId, alertElement) {
         if (notificationId) {
-            fetch(`<?= site_url('notifications/delete/') ?>${notificationId}`, {
+            fetch(`<?= base_url('notifications/delete/') ?>${notificationId}`, {
                 method: 'POST',
                 headers: { 'X-Requested-With': 'XMLHttpRequest' }
             })
-            .then(response => response.json())
-            .then(data => console.log('Notification marked as read:', data))
-            .catch(error => console.error('Error marking notification as read:', error));
+            .then(response => response.ok ? response.json() : Promise.reject('Network error'))
+            .then(data => {
+                console.log('Notification deleted:', data);
+                // Remove the alert from the DOM
+                if (alertElement) {
+                    alertElement.remove();
+                }
+            })
+            .catch(error => console.error('Error deleting notification:', error));
+        }
+    }
+
+    // Listener for the custom delete button
+    notificationPanel.addEventListener('click', function(event) {
+        const deleteButton = event.target.closest('.delete-notification-btn');
+        if (deleteButton) {
+            const alertElement = deleteButton.closest('.alert');
+            const notificationId = alertElement.dataset.notificationId;
+            // Call delete directly and remove alert
+            deleteNotification(notificationId, alertElement);
+        }
+    });
+
+    // Optional: handle default 'x' close button to also delete notification
+    notificationPanel.addEventListener('click', function(event) {
+        const closeButton = event.target.closest('.close');
+        if (closeButton) {
+            const alertElement = closeButton.closest('.alert');
+            const notificationId = alertElement.dataset.notificationId;
+            deleteNotification(notificationId, alertElement);
         }
     });
 });
 </script>
-
 </body>
 </html>

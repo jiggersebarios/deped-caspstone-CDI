@@ -110,16 +110,26 @@ class NotificationController extends BaseController
         return $this->response->setJSON($notifications);
     }
 
-    // =======================================================
-    // MARK AS READ
-    // =======================================================
-    public function delete($id)
-    {
-        $notifModel = new NotificationModel();
+
+  public function delete($id)
+{
+    $notifModel = new NotificationModel();
+
+    if ($notifModel->find($id)) {
         $notifModel->delete($id);
 
-        return $this->response->setJSON(['status' => 'success', 'message' => 'Notification deleted.']);
+        return $this->response->setJSON([
+            'status'  => 'success',
+            'message' => 'Notification removed'
+        ]);
     }
+
+    return $this->response->setJSON([
+        'status'  => 'error',
+        'message' => 'Notification not found'
+    ]);
+}
+
 
     
 }

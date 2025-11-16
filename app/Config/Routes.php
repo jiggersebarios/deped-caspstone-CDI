@@ -213,15 +213,16 @@ $routes->group('user', ['filter' => 'auth'], function($routes) {
 // =============================================================
 $routes->get('(:any)/files/getDeletedFiles', 'Files::getDeletedFiles');
 $routes->get('(:segment)/files/getDeletedFiles', 'Files::getDeletedFiles/$1');
+
+
+
+// =============================================================
+// Notifications
+// =============================================================
+
+// Get notifications for any role
+$routes->get('(:segment)/get-notifications', 'NotificationController::getNotifications/$1');
+
+// Delete notification (used by fetch POST request)
 $routes->post('notifications/delete/(:num)', 'NotificationController::delete/$1');
 
-// =============================================================
-// Notification
-// =============================================================
-$routes->get('(:segment)/get-notifications', 'NotificationController::getNotifications');
-// Universal Notifications route for all roles
-$routes->get('(:segment)/get-notifications', '\App\Controllers\NotificationController::getNotifications/$1');
-
-//email route
-$routes->get('contact', 'Send_message::index');
-$routes->post('contact/send', 'Send_message::send');
