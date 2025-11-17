@@ -8,6 +8,7 @@ use App\Models\FileModel;
 use App\Models\FolderModel;
 use App\Models\NotificationModel;
 use App\Models\SharedFileModel;
+use App\Models\RequestModel;
 
 class Dashboard extends BaseController
 {
@@ -24,6 +25,7 @@ class Dashboard extends BaseController
         $userModel = new UserModel();
         $fileModel = new FileModel();
         $sharedModel = new SharedFileModel();
+        $requestModel = new RequestModel();
 
         // Get user info
         $user = $userModel->find($userId);
@@ -48,6 +50,12 @@ class Dashboard extends BaseController
             ->where('downloaded', 0)
             ->countAllResults();
 
+        // === Count requests made BY THIS USER that are 'approved' ===
+        $approvedRequests = $requestModel
+            ->where('user_id', $userId)
+            ->where('status', 'approved')
+            ->countAllResults();
+
         // === Get persistent notifications for this user ===
         $notificationModel = new NotificationModel();
         $allNotifications = $notificationModel->where('user_id', $userId)
@@ -61,6 +69,7 @@ class Dashboard extends BaseController
             'totalFiles'        => $totalFiles,
             'uploaded_files'    => $uploadedFiles,
             'sharedWithMeCount' => $sharedWithMeCount, // new notification count
+            'approvedRequests'  => $approvedRequests,
             'notifications'     => $allNotifications,  // pass notifications to view
         ];
 

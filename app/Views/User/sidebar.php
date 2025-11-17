@@ -48,6 +48,13 @@ $currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
     <span id="badge-shared" class="badge bg-danger notification-badge" style="display:none;"></span>
 </a>
 
+<a href="<?= site_url(strtolower($userRole) . '/manual') ?>"
+   class="nav-link <?= ($currentSegment2 === 'manual') ? 'active' : '' ?>">
+    <i class="fas fa-file"></i> 
+    <span class="nav-link-text">MANUAL GUIDE</span>
+</a>
+
+
 
         <?php endif; ?>
     </nav>

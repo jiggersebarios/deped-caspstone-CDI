@@ -129,6 +129,9 @@ $routes->group('user', ['namespace' => 'App\Controllers\User', 'filter' => 'auth
     $routes->post('request/submit', '\App\Controllers\Request::submit');
 
 
+        // USER MANUAL
+    $routes->get('manual', 'Manual::index');
+
 
 });
 
@@ -225,4 +228,3 @@ $routes->get('(:segment)/get-notifications', 'NotificationController::getNotific
 
 // Delete notification (used by fetch POST request)
 $routes->post('notifications/delete/(:num)', 'NotificationController::delete/$1');
-

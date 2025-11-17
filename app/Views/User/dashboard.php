@@ -127,10 +127,22 @@ body {
                         <h2><?= esc($totalFiles ?? 0) ?></h2>
                     </div>
                 </div>
+
+                <!-- My Requests -->
+  <a href="<?= site_url('user/request') ?>" class="card-link-wrapper">
+    <div class="card shadow-sm text-center">
+        <div class="card-body">
+            <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
+            <h5>My Requests</h5>
+            <h2><?= esc($approvedRequests ?? 0) ?></h2>
+        </div>
+    </div>
+</a>
             </a>
         </div>
     </div>
 </div>
+
 
 <!-- Notification Panel -->
 <div class="notification-panel">

@@ -8,42 +8,38 @@ use App\Models\RequestModel;
 
 class Dashboard extends BaseController
 {
-    protected $fileModel;
-    protected $requestModel;
-
-    public function __construct()
-    {
-        $this->fileModel    = new FileModel();
-        $this->requestModel = new RequestModel();
-    }
-
     public function index()
     {
-        // --- Security check ---
-        if (session()->get('role') !== 'admin') {
-            return redirect()->to('/login')->with('error', 'Unauthorized access');
+        $session = session();
+        $userId = $session->get('id');
+
+        // Restrict access
+        if ($session->get('role') !== 'admin') {
+            return redirect()->to('/login')->with('error', 'Unauthorized access.');
         }
 
-        // --- Dashboard stats ---
+        $fileModel = new FileModel();
+        $requestModel = new RequestModel();
+
+        // Count all files (can be refined based on admin's scope if needed)
+        $totalFiles = $fileModel->countAllResults();
+
+        // Count all files with 'pending' status for the "Manage Uploads" card
+        $newUploadedFiles = $fileModel->where('status', 'pending')->countAllResults();
+
+        // Count requests made BY THIS ADMIN that are 'approved'
+        $approvedRequests = $requestModel
+            ->where('user_id', $userId)
+            ->where('status', 'approved')
+            ->countAllResults();
+
         $data = [
             'title'            => 'Admin Dashboard',
-            'role'             => 'admin',
-            'totalFiles'       => $this->fileModel->countAllResults(),
-            'newUploadedFiles' => $this->fileModel->where('status', 'pending')->countAllResults(),
-            'pendingRequests'  => $this->requestModel->where('status', 'pending')->countAllResults(),
+            'totalFiles'       => $totalFiles,
+            'newUploadedFiles' => $newUploadedFiles,
+            'approvedRequests' => $approvedRequests, // Use this new variable in the view
         ];
 
         return view('admin/dashboard', $data);
-    }
-
-    // AJAX notifications
-    public function getNotifications()
-    {
-        $data = [
-            'newUploadedFiles' => $this->fileModel->where('status', 'pending')->countAllResults(),
-            'pendingRequests'  => $this->requestModel->where('status', 'pending')->countAllResults(),
-        ];
-
-        return $this->response->setJSON($data);
     }
 }

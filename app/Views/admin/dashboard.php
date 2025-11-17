@@ -162,8 +162,8 @@
     <div class="card shadow-sm text-center">
         <div class="card-body">
             <i class="fas fa-tasks fa-2x text-warning mb-2"></i>
-            <h5>Pending Requests</h5>
-            <h2><?= esc($pendingRequests ?? 0) ?></h2>
+            <h5>My Requests</h5>
+            <h2><?= esc($approvedRequests ?? 0) ?></h2>
         </div>
     </div>
 </a>

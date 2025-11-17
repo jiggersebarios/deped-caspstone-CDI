@@ -229,9 +229,6 @@
       </a>
       <ul class="collapse" id="folderMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#folder-overview">• Folder Overview</a></li>
-        <li><a href="#addmain">• Adding Folder</a></li>
-        <li><a href="#editmain">• Edit Folder</a></li>
-        <li><a href="#deletemain">• Deleting Folder</a></li>
 
       </ul>
     </li>
@@ -253,20 +250,6 @@
       </ul>
     </li>
 
-    <!-- Manage Upload Dropdown -->
-    <li>
-      <a class="d-flex justify-content-between align-items-center"
-         data-bs-toggle="collapse" href="#uploadMenu" role="button"
-         aria-expanded="false" aria-controls="uploadMenu">
-        Manage Upload
-        <span>&#9662;</span>
-      </a>
-      <ul class="collapse" id="uploadMenu" data-bs-parent="#sidebarAccordion">
-        <li><a href="#reviewing-uploads">• Uploads Overview</a></li>
-        <li><a href="#accepting-file">• Accepting File</a></li>
-         <li><a href="#rejecting-file">• Rejecting File</a></li>
-      </ul>
-    </li>
 
     <!-- Request Dropdown -->
     <li>
@@ -278,23 +261,11 @@
       </a>
       <ul class="collapse" id="requestMenu" data-bs-parent="#sidebarAccordion">
         <li><a href="#requesting-access">• Request Overview</a></li>
-        <li><a href="#request-workflow">• Request Workflow</a></li>
+        <li><a href="#request-workflow">• Request Download</a></li>
       </ul>
     </li>
 
-    <!-- Categories Dropdown -->
-    <li>
-      <a class="d-flex justify-content-between align-items-center"
-         data-bs-toggle="collapse" href="#categoryMenu" role="button"
-         aria-expanded="false" aria-controls="categoryMenu">
-        Categories
-        <span>&#9662;</span>
-      </a>
-      <ul class="collapse" id="categoryMenu" data-bs-parent="#sidebarAccordion">
-        <li><a href="#organizing-categories">• Categories Overview</a></li>
-        <li><a href="#managing-categories">• Manage Categories</a></li>
-      </ul>
-    </li>
+
 
   </ul>
 
@@ -315,7 +286,7 @@
 <div class="content">
   <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid mb-3">
   <h2 id="home">Welcome to the Archiving System Manual</h2>
-  <p class="text-muted">Tutorial for Admin ·</p>
+  <p class="text-muted">Tutorial for Users ·</p>
   <hr>
 
   <div class="summary-box mb-4">
@@ -338,11 +309,11 @@
     <h3 id="dashboard-understanding">Step 1: Understanding the Dashboard</h3>
     <p>The Dashboard serves as the main landing area where users get a quick summary of activities happening in the system.</p>
     
-    <img src="/cdi/deped/public/uploads/pics/manual/admindashboard.png" alt="Dashboard Overview" class="step-image">
+    <img src="/cdi/deped/public/uploads/pics/manual/userdash.png" alt="Dashboard Overview" class="step-image">
     <h3 class="mt-4" id="dashbfunc">Dashboard functions</h3>
-    <p>On the dashboard, first thing you see is the three summary cards: <strong>Total Files</strong>, <strong>New Uploaded Files</strong>, and <strong>Pending Requests</strong>. <br>
+    <p>On the dashboard, first thing you see is the two summary cards: <strong>Total Files</strong> and <strong>My Requests</strong>. <br>
     These cards provide a quick overview of file activity and can be clicked to view more details, or you can access the same pages via the <strong>navigation bar on the left.</strong></p>
-    <img src="/cdi/deped/public/uploads/pics/manual/admindashboard1.png" alt="Dashboard Overview" class="step-image">
+    <img src="/cdi/deped/public/uploads/pics/manual/userdash1.png" alt="Dashboard Overview" class="step-image">
 </section>
 
   <!-- ============================
@@ -427,9 +398,9 @@
 
 </section>
 
--- ============================
-     FOLDER STRUCTURE
-============================= 
+<!-- ============================
+    FOLDER STRUCTUR
+============================= -->
 <hr class="my-4">
 <section id="folder-structure-section" class="mb-5">
   <h2>FOLDER STRUCTURE</h2>
@@ -440,40 +411,6 @@
    <img src="/cdi/deped/public/uploads/pics/manual/folderstructure.png" alt="Add Main Folder" class="step-image"> 
 
 
-  <h4 id="addmain">Adding Folder</h4>
-  <p>To add a new folder, navigate to the Files Page and click the "Add Folder" button. </p>
-
-   <img src="/cdi/deped/public/uploads/pics/manual/adminfile1.png" alt="Add Main Folder" class="step-image"> 
-   <p>Enter the desired name for your new folder and confirm. This creates a top-level organizational unit for your files.</p>
-   <img src="/cdi/deped/public/uploads/pics/manual/addfolderform.png" alt="Add Main Folder" class="step-image"> 
-  
- 
-
-  <h4 id="editmain">Edit Folder</h4>
-  <h6>Step 1: Click the Edit Button</h6>
-  <p>On the folder list, look for the <strong>Edit button</strong> beside the folder you want to modify.
-Once you click it, an edit form will display on your screen.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/clickeditfolder.png" alt="Edit Main Folder" class="step-image">
-
-  <h6>Step 2: Fill the Form</h6>
-  <p>Inside the form, you will see a dropdown list containing all available folders.
-From the dropdown, locate and select the subfolder you want to edit.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/selectfolder.png" alt="Edit Main Folder" class="step-image">
-
-  <h6>Step 3: Enter the New Folder Name </h6>
-  <p>After choosing the folder, go to the <strong>New Name</strong> text box.
-Type the desired new name for your folder an then click rename.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/clickrename.png" alt="Edit Main Folder" class="step-image">
-
-
-  <h4 id="deletemain">Deleting Folder</h4>
-  <p>To delete a folder, locate the folder you wish to remove in the folder management interface. Click the <strong>"Delete"</strong> icon (often a trash can) next to the folder name and confirm the deletion. Be cautious, as deleting a main folder will typically also delete all its subfolders and files within it. </p>
-  <p><strong>Note:</strong> A folder cannot be deleted if it is assigned to a user or contains subfolders and files inside.</p>
- <img src="/cdi/deped/public/uploads/pics/manual/adminfile2.png" alt="Delete Main Folder" class="step-image"> 
-
- 
-
-  
 
 </section>
 
@@ -524,33 +461,7 @@ This section displays all the files that other users have shared with you.</p>
 
 </section>
 
-<!-- ============================
-     MANAGE UPLOAD
-============================= -->
-<hr class="my-4">
-<section id="approve" class="mb-5">
-  <h2>Manage Upload</h2>
 
-  <h4 id="reviewing-uploads">Uploads Overview</h4>
-  <p>This section is designed for admins who oversee file quality, accuracy, and compliance before final storage. It ensures that only valid and approved files remain in the system.</p>
-  <p>Admins can view pending uploads, verify their contents, and either approve or reject them based on guidelines. This helps preserve data integrity across the entire archive.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/manageupload.png" alt="Manage Upload Section" class="step-image">
-
-<h4 id="accepting-file">Accept File</h4>
-<p>When reviewing pending uploads, the admin can approve files that meet all requirements.
-   To accept a file, simply click the <strong>Accept</strong> button beside the upload. 
-   Once approved, the file will be moved from the <em>Pending</em> list to the <em>Active</em>.
-  </p> <img src="/cdi/deped/public/uploads/pics/manual/accept.png" alt="Manage Upload Section" class="step-image">
-
-   <h4 id="rejecting-file">Reject File</h4>
-<p>If a file does not meet the required standards—such as incorrect format, missing details, 
-  or low-quality content—the admin can reject it. Clicking the <strong>Reject</strong> button
-   will remove the file from the pending list.</p> 
-
-   <p> <strong>Note:</strong>It automatically delete the file from the system. The uploader may re-upload a corrected or updated version if needed.</p>
-   <img src="/cdi/deped/public/uploads/pics/manual/reject.png" alt="Manage Upload Section" class="step-image">
-
-</section>
 
 <!-- ============================
      FILE REQUESTS
@@ -572,26 +483,7 @@ This section displays all the files that other users have shared with you.</p>
 
 </section>
 
-<!-- ============================
-     CATEGORIES SECTION
-============================= -->
-<section id="create-category" class="mb-5">
-  <hr class="my-4">
-  <h2>Categories</h2>
 
-  <h4 id="organizing-categories">Categories Overview</h4>
-  <p>Categories are used to organize files and act as metadata that the system relies 
-    on to determine when a file should be archived or expired. Here, you can add, edit, or delete categories as needed.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/metadata1.png" alt="Categories Page" class="step-image">
-
-    <h4 id="organizing-categories">Adding Category</h4>
-    <p>Go to the Category page from the main menu, Locate the <strong>Add Category</strong> button. Click the button, and a form will be displayed for entering the new category details.</p>
-   <img src="/cdi/deped/public/uploads/pics/manual/category1.png" alt="Categories Page" class="step-image">
-
-     <h4 id="organizing-categories"> Fill the form</h4>
-    <p>Fill in the necessary details, adjust the archive and retention periods in seconds, minutes, hours, days, months, or years, and then click Add Category to save it.</p>
-   <img src="/cdi/deped/public/uploads/pics/manual/addcategory.png" alt="Categories Page" class="step-image">
-</section>
 
 <!-- ============================
      CONTACT SECTION
