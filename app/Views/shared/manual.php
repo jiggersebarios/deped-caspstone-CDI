@@ -322,7 +322,7 @@
     <h3>Summary</h3>
     <p>
      This manual provides a comprehensive guide for users of the Web-Based Archiving System designed for the 
-     Records Section of the Administrative Unit, keepup Ozamiz City. <br>It serves as a step-by-step reference to 
+     Records Section of the Administrative Unit, DepED Ozamiz City. <br>It serves as a step-by-step reference to 
      help users efficiently navigate and utilize the system’s features while ensuring proper digital record management.
     </p>
   </div>
