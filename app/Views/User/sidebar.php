@@ -13,7 +13,7 @@ $currentSegment1 = $uri->getSegment(1); // e.g., 'admin' or 'superadmin'
 $currentSegment2 = $uri->getSegment(2); // e.g., 'manage_uploads', 'files', etc.
 ?>
 <div class="sidebar">
-    <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
+    <img src="/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
     <h5 class="hello">Welcome, <?= esc($userName) ?></h5>
 
     <nav class="nav flex-column">

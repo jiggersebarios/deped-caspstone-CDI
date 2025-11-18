@@ -64,6 +64,18 @@
       background-color: #0069d9;
     }
 
+    /* Custom style for the back-to-top button */
+    #sidebar-back-to-top {
+        width: 40px;
+        height: 40px;
+        border-radius: 50%; /* Make it circular */
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        margin-left: 100px;
+    }
+
     /* Collapsible lists */
     .sidebar ul {
       list-style: none;
@@ -176,6 +188,9 @@
   <a href="<?= site_url($role . '/dashboard') ?>" class="btn btn-back w-75">
     <i class="fas fa-arrow-left me-2"></i> Back to System
   </a>
+
+
+
 </div>
 
 
@@ -278,16 +293,21 @@
   </ul>
 
 
-  
+    <!-- Back to Top Button -->
+  <a href="#" id="sidebar-back-to-top" class="btn btn-secondary mt-2">
+      <i class="fas fa-arrow-up"></i> 
+  </a>
 
 </div>
 
 <!-- Main Content -->
 <div class="content">
-  <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid mb-3">
+  <img src="/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid mb-3">
   <h2 id="home">Welcome to the Archiving System Manual</h2>
   <p class="text-muted">Tutorial for Users ·</p>
   <hr>
+
+ 
 
   <div class="summary-box mb-4">
     <h3>Summary</h3>
@@ -299,7 +319,12 @@
   </div>
 
  
-
+ <!-- Video Tutorial Button -->
+  <div class="text-center mb-4">
+    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" class="btn btn-danger btn-lg">
+      <i class="fab fa-youtube me-2"></i> Watch Video Tutorial
+    </a>
+  </div>
 
 <!-- ============================
      DASHBOARD
@@ -309,11 +334,11 @@
     <h3 id="dashboard-understanding">Step 1: Understanding the Dashboard</h3>
     <p>The Dashboard serves as the main landing area where users get a quick summary of activities happening in the system.</p>
     
-    <img src="/cdi/deped/public/uploads/pics/manual/userdash.png" alt="Dashboard Overview" class="step-image">
+    <img src="/deped/public/uploads/pics/manual/userdash.png" alt="Dashboard Overview" class="step-image">
     <h3 class="mt-4" id="dashbfunc">Dashboard functions</h3>
     <p>On the dashboard, first thing you see is the two summary cards: <strong>Total Files</strong> and <strong>My Requests</strong>. <br>
     These cards provide a quick overview of file activity and can be clicked to view more details, or you can access the same pages via the <strong>navigation bar on the left.</strong></p>
-    <img src="/cdi/deped/public/uploads/pics/manual/userdash1.png" alt="Dashboard Overview" class="step-image">
+    <img src="/deped/public/uploads/pics/manual/userdash1.png" alt="Dashboard Overview" class="step-image">
 </section>
 
   <!-- ============================
@@ -326,12 +351,12 @@
     <h3 id="files-overview-h3">Files Overview</h3>
     <p>After navigating to the second subfolder (the last folder), you will see the file management area. <br>
     This is where you can upload, organize, and manage documents within different folders and categories.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/inside3folder.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/inside3folder.png" alt="Dashboard Overview" class="step-image">
   
     <h3 id="files-upload">Uploading a File</h3>
     <p><strong>Step 1:</strong> Click the <strong>Upload</strong> button that is highlited in the picture below. <br>
                 The upload form will then be displayed for you to enter the required details and select the file to upload.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/inside3folder1.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/inside3folder1.png" alt="Dashboard Overview" class="step-image">
 
 
     <p><strong>Step 2:</strong> After clicking the <strong>Upload</strong> button, the upload form will be displayed.
@@ -340,61 +365,61 @@
     <strong>Note:</strong> You can upload file types such as PDF, DOCX, XLSX, or PPT, based on whether these settings have been enabled by the superadmin.  However, 
       <br>it is recommended to use PDF files in accordance with system policy. If you are unable to upload DOCX, XLSX, 
       or PPT files, please contact the IT administrator for assistance.</p>
-   <img src="/cdi/deped/public/uploads/pics/manual/clickupload1.png" alt="Dashboard Overview" class="step-image">
+   <img src="/deped/public/uploads/pics/manual/clickupload1.png" alt="Dashboard Overview" class="step-image">
    <p><strong>Note: </strong>After clicking <Strong>Upload</Strong>, a message will appear confirming that the file was uploaded successfully. 
     The file will then show a status of <strong> Pending</strong> for Review, <br> 
     which means it is awaiting approval or verification by the Superadmin before it becomes accessible in the system. This ensures that all files meet system requirements and policies.</p>
-    <img src="/cdi/deped/public/uploads/pics/manual/uploadsuccess.png" alt="Dashboard Overview" class="step-image">
+    <img src="/deped/public/uploads/pics/manual/uploadsuccess.png" alt="Dashboard Overview" class="step-image">
 
 
 
     <h3 id="files-view">View and Print file</h3>
     <p><strong>Step 1:</strong> Click the <strong>View</strong> button that is highlighted in the picture below. <br>
                It will open the file into other tab.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/clickview1.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/clickview1.png" alt="Dashboard Overview" class="step-image">
   <p><strong>Step 2:</strong> Inside the <strong>View</strong> page, you can check the contents of the file. If you want to print or download it, look for the highlighted buttons shown in the image below. <br>
   You can click either the <strong>Print or Download</strong> .</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/view1.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/view1.png" alt="Dashboard Overview" class="step-image">
 </section>
 
     <h3 id="files-download">Download file</h3>
     <p><strong>Step 1:</strong> Click the <strong>Download</strong> button that is highlighted in the picture below. </p>
-  <img src="/cdi/deped/public/uploads/pics/manual/downloadclick.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/downloadclick.png" alt="Dashboard Overview" class="step-image">
   <p><strong>Step 2:</strong> After clicking the <strong>Download</strong> button, you will see the file downloading 
   at the top-right corner of your browser. If a security prompt appears, click <strong>Keep</strong> to continue the download.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/clickkeep.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/clickkeep.png" alt="Dashboard Overview" class="step-image">
 
   <p><strong>Step 3:</strong>You can check your downloaded file by clicking the <strong>Download </strong>icon at the top of the browser 
   or by opening the  <strong> menu (three dots) and select Downloads</strong>.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/downloadfind.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/downloadfind.png" alt="Dashboard Overview" class="step-image">
 </section>
 
     <h3 id="files-edit">Edit file</h3>
     <p><strong>Step 1:</strong> Click the <strong>Edit</strong> button that is highlighted in the picture below. </p>
-  <img src="/cdi/deped/public/uploads/pics/manual/edit1.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/edit1.png" alt="Dashboard Overview" class="step-image">
   <p><strong>Step 2:</strong> After clicking the <strong>Edit</strong> button, a form will display then rename and click submit to save.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/renameform.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/renameform.png" alt="Dashboard Overview" class="step-image">
 
   <h3 id="files-search-h3">Search file</h3>
   <p><strong>Step 1:</strong> Click the <strong>Search</strong> input that is highlighted in the picture below and type the file name you want to search, then click the <strong>Search</strong> button. </p>
-  <img src="/cdi/deped/public/uploads/pics/manual/search1.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/search1.png" alt="Dashboard Overview" class="step-image">
   <p><strong>Step 2:</strong> After clicking the <strong>search</strong> button, the File table will dispaly the file that you've searched.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/searchclear.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/searchclear.png" alt="Dashboard Overview" class="step-image">
    <p><strong>Step 3:</strong> Clearing the <strong>Search</strong> input will display all the files.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/searchclear1.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/searchclear1.png" alt="Dashboard Overview" class="step-image">
 
   <h3 id="files-tabs-h3">File Tabs</h3>
   <p>The file section contains three tabs: <strong>Active</strong>, <strong>Archive</strong>, and <strong>Expired</strong>. The <strong>Active</strong> 
   tab displays all files that are currently available and approved for use. The <strong>Archive</strong> tab stores files that have been officially archived for record-keeping but are no longer part of daily operations. The <strong>Expired</strong> tab contains files that have passed their validity period or 
   retention schedule, indicating that they are no longer current and may require review, renewal, or disposal based on system policies.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/filetabspng.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/filetabspng.png" alt="Dashboard Overview" class="step-image">
   <p><strong>Note: </strong> In the <strong>Archive</strong> tab, you can request access to archived files by filling out the request form and clicking <strong>Send</strong>. 
   Your request will be forwarded to the Superadmin, who will review it and provide the file through the Requests page.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/archivetab.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/archivetab.png" alt="Dashboard Overview" class="step-image">
   <p><strong>Note: </strong>In the <strong>Delete</strong> tab, you can manually delete all files listed under the <strong>Expired</strong> 
   tab by clicking the delete button. After deleting, you can view the complete list of removed files in the <strong>
     Deleted Logs</strong> section, located beside the file tabs menu.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/expiretab.png" alt="Dashboard Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/expiretab.png" alt="Dashboard Overview" class="step-image">
 
 </section>
 
@@ -408,7 +433,7 @@
    <h4 id="folder-overview">Folder Overview</h4>
   <p> The folder management section is organized into a simple and structured hierarchy to help users easily organize 
   and manage their files. Each Main Folder can contain up to two Subfolders</p>
-   <img src="/cdi/deped/public/uploads/pics/manual/folderstructure.png" alt="Add Main Folder" class="step-image"> 
+   <img src="/deped/public/uploads/pics/manual/folderstructure.png" alt="Add Main Folder" class="step-image"> 
 
 
 
@@ -425,24 +450,24 @@
   <p>The <strong>Shared Files</strong> feature allows users to directly share files with others within the system.
   
   </p>
-  <img src="/cdi/deped/public/uploads/pics/manual/filesushared.png" alt="Shared Files Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/filesushared.png" alt="Shared Files Overview" class="step-image">
 
   <h4 id="how-to-share">How To Share a File</h4>
   <h5>Step 1: Open the Shared Files Section</h5>
   <p>Click the <strong>Shared Files</strong> button located at the top left of your screen.
 This will display a list of all your files.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/filesushared1.png" alt="Delete Main Folder" class="step-image"> 
+  <img src="/deped/public/uploads/pics/manual/filesushared1.png" alt="Delete Main Folder" class="step-image"> 
 
     <h5>Step 2:Select the File You Want to Shared</h5>
   <p>Browse through the list and locate the file you want to share.
 Click the <strong>Share Button</strong> beside that file.
 After clicking, the system will display a list of all users you can share the file with.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/clicksharefile1.png" alt="Delete Main Folder" class="step-image"> 
+  <img src="/deped/public/uploads/pics/manual/clicksharefile1.png" alt="Delete Main Folder" class="step-image"> 
 
   <h5>Choose the Users to Share With</h5>
   <p>On the list of users, click the <strong>checkbox</strong> beside the name of each user you want to share the file with.
 You can share one file with multiple users at the same time.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/sharetomodal1.png" alt="Delete Main Folder" class="step-image"> 
+  <img src="/deped/public/uploads/pics/manual/sharetomodal1.png" alt="Delete Main Folder" class="step-image"> 
 
 
   <h3 id="unshare-file">Unshare a File</h3>
@@ -450,13 +475,13 @@ You can share one file with multiple users at the same time.</p>
 (red unshare icon). Click the button to remove sharing access from the users.</p>
 <p><strong>Note: </strong>Once a shared file has been downloaded by the user, it will disappear from your shared list. 
 This indicates that the sharing session for that file is complete, and the user already has their own copy.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/unshare.png" alt="Shared Files Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/unshare.png" alt="Shared Files Overview" class="step-image">
 
     <h3 id="download-shared-file">How to Download a File Shared With You</h3>
   <p>Go to the <strong>"Files Shared With You"</strong> tab.
 This section displays all the files that other users have shared with you.</p>
 <p></p>
-  <img src="/cdi/deped/public/uploads/pics/manual/downloadshare1.png" alt="Shared Files Overview" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/downloadshare1.png" alt="Shared Files Overview" class="step-image">
 
 
 </section>
@@ -473,13 +498,13 @@ This section displays all the files that other users have shared with you.</p>
   <h4 id="requesting-access">Request Overview</h4>
   <p>You can request access to files that are archived. Once a request is made, it goes into a review process where the Superadmin will review and evaluate its purpose.</p>
   <p>After you request files, all your requests will be displayed on the Requests page.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/request.png" alt="File Request Page" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/request.png" alt="File Request Page" class="step-image">
 
     <h4 id="requesting-access">Request Overview</h4>
   <p> When you request a file, its status will show as <strong>Pending</strong> while it is under review by the Superadmin; once approved, it becomes downloadable. 
     </p>
   <p><strong>Note: </strong>but you can only download it once, so make sure to save it safely.</p>
-  <img src="/cdi/deped/public/uploads/pics/manual/requestpage1.png" alt="File Request Page" class="step-image">
+  <img src="/deped/public/uploads/pics/manual/requestpage1.png" alt="File Request Page" class="step-image">
 
 </section>
 
@@ -539,6 +564,16 @@ the practical needs of the DepEd Ozamiz City Records Section, creating a solutio
     const content = document.querySelector('.content');
     const sidebarToggle = document.querySelector('.sidebar-toggle');
     const closeButton = document.querySelector('.btn-close-sidebar');
+    const backToTopBtn = document.getElementById('sidebar-back-to-top');
+
+    // Back to Top button logic
+    if (backToTopBtn) {
+        backToTopBtn.addEventListener('click', function(e) {
+          e.preventDefault(); // Prevent the link from navigating
+          window.scrollTo({ top: 0, behavior: 'smooth' });
+        });
+    }
+
 
     function toggleSidebar() {
       sidebar.classList.toggle('active');

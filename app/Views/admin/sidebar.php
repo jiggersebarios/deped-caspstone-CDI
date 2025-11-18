@@ -21,7 +21,7 @@ $userRole = $session->get('role') ?? 'user';
 <?php endif; ?>
 
 <div class="sidebar">
-    <img src="/cdi/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
+    <img src="/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
     <h5 class="hello"><?= esc($userName) ?></h5>
     
     <nav class="nav flex-column">

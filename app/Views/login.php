@@ -5,21 +5,21 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>HR ARCHIVING SYSTEM</title>
-    <link rel="stylesheet" href="/cdi/deped/public/css/style.css">
+    <link rel="stylesheet" href="/deped/public/css/style.css">
 </head>
 <body class="login">
 <div class="login-container">
     <div class="branding-column">
         <div class="logo">
-            <img src="/cdi/deped/public/uploads/pics/matatag.png" alt="MATATAG Logo" class="logo-image">
-            <img src="/cdi/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
+            <img src="/deped/public/uploads/pics/matatag.png" alt="MATATAG Logo" class="logo-image">
+            <img src="/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
         </div>
         <h1>DEPED ARCHIVING SYSTEM</h1>
     </div>
 </div>
 <div class="card">
     <div class="mobile-branding">
-        <img src="/cdi/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
+        <img src="/deped/public/uploads/pics/deped.png" alt="DepEd Logo" class="logo-image">
         <h3>DEPED ARCHIVING SYSTEM</h3>
     </div>
 
@@ -82,7 +82,7 @@ document.addEventListener('DOMContentLoaded', function () {
         display: flex;
         justify-content: center;
         align-items: center;
-        background-image: url('/cdi/deped/public/uploads/pics/background.jpg');
+        background-image: url('/deped/public/uploads/pics/background.jpg');
         background-size: cover;
         background-attachment: fixed; /* Keep background in place on scroll */
         background-position: center;
