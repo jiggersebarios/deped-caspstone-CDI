@@ -318,13 +318,15 @@
     </p>
   </div>
 
- 
- <!-- Video Tutorial Button -->
-  <div class="text-center mb-4">
-    <a href="https://www.youtube.com/watch?v=dQw4w9WgXcQ" target="_blank" class="btn btn-danger btn-lg">
-      <i class="fab fa-youtube me-2"></i> Watch Video Tutorial
-    </a>
+   <div class="video-tutorial-link mb-4">
+      <h5>Video Tutorial</h5>
+      <p>For a visual guide, you can watch our video tutorial.</p>
+      <a href="https://drive.google.com/file/d/11qQalomIDWSD4CzrCeRBDu2lKMN4mV2O/view?usp=sharing" target="_blank" class="btn btn-danger">
+          <i class="fab fa-youtube me-2"></i> Watch Tutorial on YouTube
+      </a>
   </div>
+ 
+
 
 <!-- ============================
      DASHBOARD
