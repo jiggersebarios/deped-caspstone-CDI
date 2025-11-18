@@ -6,7 +6,7 @@ $userRole = $session->get('role') ?? 'user';
 
 // Get current segments after base URL
 $currentSegment1 = $uri->getSegment(2); // e.g., 'dashboard', 'files'
-$currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with other sidebars
+$currentSegment2 = $uri->getSegment(2); // e.g., 'sharedfiles', 'manage-uploads'
 ?>
 
 <div class="sidebar">
@@ -31,20 +31,20 @@ $currentSegment2 = $uri->getSegment(2); // Using segment 2 for consistency with 
 
             
 
-            <a href="<?= site_url('superadmin/manage-uploads') ?>" class="nav-link">
+            <a href="<?= site_url('superadmin/manage-uploads') ?>" class="nav-link <?= ($currentSegment2 === 'manage-uploads') ? 'active' : '' ?>">
                 <i class="fas fa-upload"></i>
                 <span class="nav-link-text">MANAGE UPLOADS</span>
                 <span id="badge-uploads" class="badge bg-danger notification-badge" style="display:none;"></span>
             </a>
 
-            <a href="<?= site_url('superadmin/manage_request') ?>" class="nav-link">
+            <a href="<?= site_url('superadmin/manage_request') ?>" class="nav-link <?= ($currentSegment2 === 'manage_request') ? 'active' : '' ?>">
                 <i class="fas fa-tasks"></i>
                 <span class="nav-link-text">REQUESTS</span>
                 <span id="badge-requests" class="badge bg-warning text-dark notification-badge" style="display:none;"></span>
             </a>
 
 
-<a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
+<a href="<?= site_url($userRole . '/category') ?>" class="nav-link <?= ($currentSegment2 === 'category') ? 'active' : '' ?>">
     <i class="fas fa-tags"></i> <span class="nav-link-text">CATEGORIES</span>
 </a>
 

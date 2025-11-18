@@ -1,24 +1,11 @@
 <?php
 $uri = service('uri');
-$currentSegment1 = $uri->getSegment(1); // e.g., 'admin', 'superadmin', or 'user'
 $currentSegment2 = $uri->getSegment(2); // e.g., 'files', 'sharedfiles', etc.
 
 $session = session();
 $userName = $session->get('username');
 $userRole = $session->get('role') ?? 'user';
 ?>
-<?php
-$session = session();
-$userName = $session->get('username');
-$userRole = $session->get('role') ?? 'user';
-?>
-<?php if (isset($config['allow_admin_to_access_category']) && $config['allow_admin_to_access_category'] == 1): ?>
-<li>
-    <a href="<?= site_url('admin/category') ?>">
-        <i class="fas fa-tags"></i> <span>Categories</span>
-    </a>
-</li>
-<?php endif; ?>
 
 <div class="sidebar">
     <img src="/deped/public/uploads/pics/deped-ozamiz-2.png" alt="Logo" class="img-fluid">
@@ -28,11 +15,11 @@ $userRole = $session->get('role') ?? 'user';
         <?php if ($userRole === 'admin') : ?>
             <!-- Admin-specific links -->
 
-                <a href="<?= site_url('admin/dashboard') ?>" class="nav-link <?= ($currentSegment1 === 'dashboard') ? 'active' : '' ?>">
+                <a href="<?= site_url('admin/dashboard') ?>" class="nav-link <?= ($currentSegment2 === 'dashboard') ? 'active' : '' ?>">
         <i class="fas fa-tachometer-alt"></i> <span class="nav-link-text">DASHBOARD</span>
     </a>
           
-            <a href="<?= site_url('admin/files') ?>" class="nav-link">
+            <a href="<?= site_url('admin/files') ?>" class="nav-link <?= ($currentSegment2 === 'files') ? 'active' : '' ?>">
                 <i class="fas fa-folder"></i> <span class="nav-link-text">FILES</span>
             </a>
 
@@ -41,23 +28,23 @@ $userRole = $session->get('role') ?? 'user';
                 <i class="fas fa-share-alt"></i> <span class="nav-link-text">SHARED FILES</span>
             </a>
 
-            <a href="<?= site_url('admin/manage-uploads') ?>" class="nav-link">
+            <a href="<?= site_url('admin/manage-uploads') ?>" class="nav-link <?= ($currentSegment2 === 'manage-uploads') ? 'active' : '' ?>">
                 <i class="fas fa-upload"></i>
                 <span class="nav-link-text">MANAGE UPLOADS</span>
                 <span id="badge-uploads" class="badge bg-danger notification-badge" style="display:none;"></span>
             </a>
 
-            <a href="<?= site_url('admin/manage_request') ?>" class="nav-link">
+            <a href="<?= site_url('admin/manage_request') ?>" class="nav-link <?= ($currentSegment2 === 'manage_request') ? 'active' : '' ?>">
                 <i class="fas fa-tasks"></i>
                 <span class="nav-link-text">REQUESTS</span>
                 <span id="badge-requests" class="badge bg-warning text-dark notification-badge" style="display:none;"></span>
             </a>
 
-<a href="<?= site_url($userRole . '/category') ?>" class="nav-link">
+<a href="<?= site_url($userRole . '/category') ?>" class="nav-link <?= ($currentSegment2 === 'category') ? 'active' : '' ?>">
     <i class="fas fa-tags"></i> <span class="nav-link-text">CATEGORIES</span>
 </a>
 
-<a href="<?= site_url($userRole . '/manual') ?>" class="nav-link">
+<a href="<?= site_url($userRole . '/manual') ?>" class="nav-link <?= ($currentSegment2 === 'manual') ? 'active' : '' ?>">
     <i class="fas fa-file"></i> 
     <span class="nav-link-text">MANUAL GUIDE</span>
 </a>

@@ -6,7 +6,7 @@ Options -Indexes
     RewriteEngine On
 
     # If CodeIgniter is inside a subfolder (e.g., /cdi/deped), adjust this:
-    RewriteBase /deped
+    RewriteBase /keepup
 
     # Redirect Trailing Slashes
     RewriteCond %{REQUEST_FILENAME} !-d
